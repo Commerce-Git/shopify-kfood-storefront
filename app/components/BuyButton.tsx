@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { storefrontFetch } from "@/lib/shopify/storefront";
-import { CREATE_CHECKOUT } from "@/lib/shopify/queries";
+import { CREATE_CART } from "@/lib/shopify/queries";
 
 interface BuyButtonProps {
   variantId: string;
@@ -13,12 +13,14 @@ interface BuyButtonProps {
   showSecureBadge?: boolean;
 }
 
-interface CheckoutResponse {
-  checkoutCreate: {
-    checkout: {
-      webUrl: string;
+interface CartResponse {
+  cartCreate: {
+    cart: {
+      id: string;
+      checkoutUrl: string;
     };
-    checkoutUserErrors: {
+    userErrors: {
+      field: string[];
       message: string;
     }[];
   };
@@ -46,19 +48,19 @@ export default function BuyButton({
     setError(null);
 
     try {
-      const data = await storefrontFetch<CheckoutResponse>(CREATE_CHECKOUT, {
-        lineItems: [{ variantId, quantity }],
+      const data = await storefrontFetch<CartResponse>(CREATE_CART, {
+        lines: [{ merchandiseId: variantId, quantity }],
       });
 
-      const { checkout, checkoutUserErrors } = data.checkoutCreate;
+      const { cart, userErrors } = data.cartCreate;
 
-      if (checkoutUserErrors.length > 0) {
-        setError(checkoutUserErrors[0].message);
+      if (userErrors.length > 0) {
+        setError(userErrors[0].message);
         return;
       }
 
       // Redirect to Shopify checkout
-      window.location.href = checkout.webUrl;
+      window.location.href = cart.checkoutUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

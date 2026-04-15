@@ -5,14 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "../components/CartProvider";
 import { storefrontFetch } from "@/lib/shopify/storefront";
-import { CREATE_CHECKOUT } from "@/lib/shopify/queries";
+import { CREATE_CART } from "@/lib/shopify/queries";
 
-interface CheckoutResponse {
-  checkoutCreate: {
-    checkout: {
-      webUrl: string;
+interface CartResponse {
+  cartCreate: {
+    cart: {
+      id: string;
+      checkoutUrl: string;
     };
-    checkoutUserErrors: {
+    userErrors: {
+      field: string[];
       message: string;
     }[];
   };
@@ -31,23 +33,23 @@ export default function CartPage() {
     setError(null);
 
     try {
-      const lineItems = items.map((item) => ({
-        variantId: item.variantId,
+      const lines = items.map((item) => ({
+        merchandiseId: item.variantId,
         quantity: item.quantity,
       }));
 
-      const data = await storefrontFetch<CheckoutResponse>(CREATE_CHECKOUT, {
-        lineItems,
+      const data = await storefrontFetch<CartResponse>(CREATE_CART, {
+        lines,
       });
 
-      const { checkout, checkoutUserErrors } = data.checkoutCreate;
+      const { cart, userErrors } = data.cartCreate;
 
-      if (checkoutUserErrors.length > 0) {
-        setError(checkoutUserErrors[0].message);
+      if (userErrors.length > 0) {
+        setError(userErrors[0].message);
         return;
       }
 
-      window.location.href = checkout.webUrl;
+      window.location.href = cart.checkoutUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

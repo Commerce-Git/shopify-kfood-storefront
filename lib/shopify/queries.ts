@@ -110,50 +110,25 @@ export const GET_ALL_PRODUCTS = `
   }
 `;
 
-/** Create a checkout session → returns the Shopify checkout URL */
-export const CREATE_CHECKOUT = `
-  mutation CheckoutCreate($lineItems: [CheckoutLineItemInput!]!) {
-    checkoutCreate(input: { lineItems: $lineItems }) {
-      checkout {
+/** Create a cart → returns the Shopify checkout URL */
+export const CREATE_CART = `
+  mutation CartCreate($lines: [CartLineInput!]!) {
+    cartCreate(input: { lines: $lines }) {
+      cart {
         id
-        webUrl
-        subtotalPrice {
-          amount
-          currencyCode
-        }
-        totalPrice {
-          amount
-          currencyCode
-        }
-        totalTax {
-          amount
-          currencyCode
-        }
-        lineItems(first: 10) {
-          edges {
-            node {
-              title
-              quantity
-              variant {
-                id
-                title
-                price {
-                  amount
-                  currencyCode
-                }
-                image {
-                  url
-                  altText
-                  width
-                  height
-                }
-              }
-            }
+        checkoutUrl
+        cost {
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalAmount {
+            amount
+            currencyCode
           }
         }
       }
-      checkoutUserErrors {
-        code
+      userErrors {
         field
         message
       }
