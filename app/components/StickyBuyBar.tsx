@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import {
   getProductPricing,
+  getFirstVariantId,
   formatPrice,
 } from "@/lib/shopify/api";
+import BuyButton from "./BuyButton";
 
 interface StickyBuyBarProps {
   product: ShopifyProduct | null;
@@ -18,6 +20,7 @@ export default function StickyBuyBar({ product }: StickyBuyBarProps) {
   const pricing = product
     ? getProductPricing(product)
     : { price: "45.00", compareAtPrice: null, currency: "USD" };
+  const variantId = product ? getFirstVariantId(product) : "";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,13 +29,6 @@ export default function StickyBuyBar({ product }: StickyBuyBarProps) {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleBuyClick = () => {
-    const showcase = document.getElementById("product-showcase");
-    if (showcase) {
-      showcase.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   return (
     <div
@@ -72,12 +68,18 @@ export default function StickyBuyBar({ product }: StickyBuyBarProps) {
           </div>
         </div>
 
-        <button
-          onClick={handleBuyClick}
-          className="btn-primary text-sm px-6 py-2.5 flex-shrink-0"
-        >
-          Claim My Box 🎁
-        </button>
+        {variantId ? (
+          <BuyButton
+            variantId={variantId}
+            label="Claim My Box 🎁"
+            size="sm"
+            showSecureBadge={false}
+          />
+        ) : (
+          <span className="btn-primary text-sm px-6 py-2.5 opacity-70 cursor-not-allowed">
+            Coming Soon
+          </span>
+        )}
       </div>
     </div>
   );

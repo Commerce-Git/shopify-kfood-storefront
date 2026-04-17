@@ -3,16 +3,17 @@ import WhatsInside from "./components/WhatsInside";
 import TrustBadges from "./components/TrustBadges";
 import FAQ from "./components/FAQ";
 import StickyBuyBar from "./components/StickyBuyBar";
-import { getAllProducts } from "@/lib/shopify/api";
+import { getAllProducts, getFirstVariantId } from "@/lib/shopify/api";
 
 export default async function Home() {
   const products = await getAllProducts();
   const featuredProduct = products[0] || null;
+  const variantId = featuredProduct ? getFirstVariantId(featuredProduct) : undefined;
 
   return (
     <>
-      {/* 1. Hero — 3초 안에 "과자 박스다" 인지 + CTA */}
-      <Hero />
+      {/* 1. Hero — 3초 안에 "과자 박스다" 인지 + 바로 결제 */}
+      <Hero variantId={variantId} />
 
       {/* 2. What's Inside — "뭐가 들어있지?" 호기심 해소 */}
       <WhatsInside />

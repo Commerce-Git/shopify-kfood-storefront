@@ -60,7 +60,7 @@ export default function Header() {
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 <span className="gradient-text">K-Food</span>
-                <span className={scrolled ? "text-dark" : "text-dark"}>
+                <span className={scrolled ? "text-dark" : "text-white"}>
                   {" "}Store
                 </span>
               </span>
@@ -75,7 +75,7 @@ export default function Header() {
                   className={`
                     text-sm font-medium transition-colors duration-200
                     hover:text-primary
-                    ${scrolled ? "text-text" : "text-dark"}
+                    ${scrolled ? "text-text" : "text-white/90"}
                   `}
                 >
                   {link.label}
@@ -86,12 +86,12 @@ export default function Header() {
             {/* Right Actions */}
             <div className="flex items-center gap-3 z-10">
               {/* Cart Button */}
-              <button
-                onClick={() => setIsCartOpen(true)}
+              <Link
+                href="/cart"
                 className={`
                   relative p-2.5 rounded-full transition-all duration-200
-                  hover:bg-black/5
-                  ${scrolled ? "text-dark" : "text-dark"}
+                  hover:bg-white/10
+                  ${scrolled ? "text-dark" : "text-white"}
                 `}
                 id="cart-button"
                 aria-label="Open cart"
@@ -115,12 +115,12 @@ export default function Header() {
                     {itemCount > 9 ? "9+" : itemCount}
                   </span>
                 )}
-              </button>
+              </Link>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2.5 rounded-full hover:bg-black/5 transition-colors"
+                className={`md:hidden p-2.5 rounded-full hover:bg-white/10 transition-colors ${scrolled ? "text-dark" : "text-white"}`}
                 id="mobile-menu-button"
                 aria-label="Toggle menu"
               >

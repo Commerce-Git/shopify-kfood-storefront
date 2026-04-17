@@ -1,9 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import BuyButton from "./BuyButton";
 
-export default function Hero() {
+interface HeroProps {
+  variantId?: string;
+}
+
+export default function Hero({ variantId }: HeroProps) {
   return (
     <section
       className="relative w-full min-h-screen flex items-center overflow-hidden"
@@ -74,12 +78,18 @@ export default function Hero() {
               className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start animate-fade-in-up"
               style={{ animationDelay: "0.8s", animationFillMode: "both" }}
             >
-              <Link
-                href="#product-showcase"
-                className="btn-primary text-lg px-10 py-4 animate-pulse-neon"
-              >
-                Yes! Send Me The Snack Box 🎁
-              </Link>
+              {variantId ? (
+                <BuyButton
+                  variantId={variantId}
+                  label="Yes! Send Me The Snack Box 🎁"
+                  size="lg"
+                  showSecureBadge={false}
+                />
+              ) : (
+                <span className="btn-primary text-lg px-10 py-4 opacity-70 cursor-not-allowed">
+                  Coming Soon
+                </span>
+              )}
             </div>
 
             {/* Stats */}
