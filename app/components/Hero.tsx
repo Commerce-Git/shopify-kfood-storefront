@@ -1,127 +1,140 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Hero() {
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const overlay = hero.querySelector<HTMLDivElement>(".hero-overlay");
-      if (overlay) {
-        overlay.style.transform = `translateY(${scrollY * 0.3}px)`;
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <section
-      ref={heroRef}
-      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative w-full min-h-screen flex items-center overflow-hidden"
       id="hero-section"
     >
-      {/* Background with gradient fallback */}
-      <div
-        className="hero-overlay absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/images/hero-bg.webp')",
-          backgroundColor: "#1A1A2E",
-        }}
-      />
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0F0A1A] via-[#1A1A2E] to-[#0D0D1A]" />
 
-      {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5" />
+      {/* Subtle texture */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      }} />
 
-      {/* Animated Background Accents */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-pink-400/15 rounded-full blur-[100px] pointer-events-none" />
+      {/* Glow accents */}
+      <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[#1E3A5F]/30 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto">
-        {/* Badge */}
-        <div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium mb-8 animate-fade-in"
-          style={{ animationDelay: "0.2s", animationFillMode: "both" }}
-        >
-          <span>🇰🇷</span>
-          <span>Direct from Seoul, Korea</span>
-          <span>✈️</span>
-        </div>
+      {/* Content — Split Layout */}
+      <div className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-20 pt-28">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
 
-        {/* Main Heading */}
-        <h1
-          className="heading-xl text-white mb-6 animate-fade-in-up"
-          style={{ animationDelay: "0.4s", animationFillMode: "both" }}
-        >
-          Gift a Piece of{" "}
-          <span className="gradient-text">Korea</span>
-        </h1>
-
-        {/* Subtitle */}
-        <p
-          className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up"
-          style={{
-            fontFamily: "var(--font-body)",
-            animationDelay: "0.6s",
-            animationFillMode: "both",
-          }}
-        >
-          Discover curated boxes of Korea&apos;s most-loved snacks, from trending
-          convenience store picks to hidden gems. Shipped fresh to your door.
-        </p>
-
-        {/* CTA Buttons */}
-        <div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up"
-          style={{ animationDelay: "0.8s", animationFillMode: "both" }}
-        >
-          <Link
-            href="#product-showcase"
-            className="btn-primary text-lg px-10 py-4 animate-pulse-neon"
-          >
-            Explore the Box
-          </Link>
-          <Link
-            href="/about"
-            className="btn-secondary text-white border-white/30 hover:border-white hover:text-white"
-          >
-            Our Story
-          </Link>
-        </div>
-
-        {/* Stats */}
-        <div
-          className="mt-16 flex items-center justify-center gap-8 sm:gap-12 animate-fade-in-up"
-          style={{ animationDelay: "1s", animationFillMode: "both" }}
-        >
-          {[
-            { value: "10+", label: "Unique Snacks" },
-            { value: "🇺🇸", label: "US Shipping" },
-            { value: "FDA", label: "Compliant" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                {stat.value}
-              </div>
-              <div className="text-xs sm:text-sm text-white/50 mt-1">
-                {stat.label}
-              </div>
+          {/* Left — Text & CTA */}
+          <div className="flex flex-col gap-6 text-center lg:text-left">
+            {/* Badge */}
+            <div
+              className="inline-flex self-center lg:self-start items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium animate-fade-in"
+              style={{ animationDelay: "0.2s", animationFillMode: "both" }}
+            >
+              <span>🇰🇷</span>
+              <span>Direct from Seoul, Korea</span>
+              <span>✈️</span>
             </div>
-          ))}
+
+            {/* Main Heading */}
+            <h1
+              className="heading-xl text-white animate-fade-in-up"
+              style={{ animationDelay: "0.4s", animationFillMode: "both" }}
+            >
+              Stop Watching K-Dramas.{" "}
+              <span className="gradient-text">Start Tasting Them.</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p
+              className="text-lg sm:text-xl text-white/70 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up"
+              style={{
+                fontFamily: "var(--font-body)",
+                animationDelay: "0.6s",
+                animationFillMode: "both",
+              }}
+            >
+              Seoul&apos;s viral convenience store snacks — the ones you see in
+              every K-Drama — curated in one premium box and shipped to your door.
+            </p>
+
+            {/* Price hint */}
+            <div
+              className="flex items-baseline gap-3 justify-center lg:justify-start animate-fade-in-up"
+              style={{ animationDelay: "0.7s", animationFillMode: "both" }}
+            >
+              <span className="text-3xl sm:text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+                $39.99
+              </span>
+              <span className="text-lg text-white/40 line-through">$54.99</span>
+              <span className="text-sm font-semibold text-success bg-success/15 px-2.5 py-0.5 rounded-full">
+                27% OFF
+              </span>
+            </div>
+
+            {/* CTA Buttons */}
+            <div
+              className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start animate-fade-in-up"
+              style={{ animationDelay: "0.8s", animationFillMode: "both" }}
+            >
+              <Link
+                href="#product-showcase"
+                className="btn-primary text-lg px-10 py-4 animate-pulse-neon"
+              >
+                Yes! Send Me The Snack Box 🎁
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div
+              className="flex items-center gap-8 sm:gap-10 justify-center lg:justify-start mt-4 animate-fade-in-up"
+              style={{ animationDelay: "1s", animationFillMode: "both" }}
+            >
+              {[
+                { value: "10+", label: "Unique Snacks" },
+                { value: "5-10", label: "Day Delivery" },
+                { value: "FDA", label: "Compliant" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center lg:text-left">
+                  <div
+                    className="text-xl sm:text-2xl font-bold text-white"
+                    style={{ fontFamily: "var(--font-heading)" }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="text-xs text-white/40 mt-0.5">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — Box Image */}
+          <div
+            className="relative flex justify-center lg:justify-end animate-fade-in-up"
+            style={{ animationDelay: "0.5s", animationFillMode: "both" }}
+          >
+            <div className="relative w-full max-w-[520px] aspect-square">
+              {/* Glow behind box */}
+              <div className="absolute inset-8 bg-primary/20 rounded-full blur-[80px] pointer-events-none" />
+
+              <Image
+                src="/images/seoul-snack-box.jpg"
+                alt="Seoul Snack Box — Premium Korean Treats"
+                fill
+                className="object-contain drop-shadow-2xl relative z-10"
+                sizes="(max-width: 1024px) 90vw, 45vw"
+                priority
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-slow">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-slow z-10">
         <svg
           width="24"
           height="24"
@@ -131,7 +144,7 @@ export default function Hero() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="opacity-50"
+          className="opacity-40"
         >
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>

@@ -13,21 +13,22 @@ import {
 
 // Fallback mock data when no product is available from API
 const FALLBACK = {
-  title: "Korean Snack Discovery Box",
+  title: "Seoul Snack Box",
   price: "39.99",
   compareAtPrice: "54.99",
   currency: "USD",
   description:
-    "A premium selection of 10+ trending Korean snacks, carefully curated from Seoul's hottest convenience stores and local favorites. Each box is a journey through Korea's vibrant snack culture.",
+    "10+ viral Korean snacks shipped directly from Seoul's trendiest convenience stores. The exact treats you see in K-Dramas — sweet, savory, and spicy all in one curated box.",
   highlights: [
     "10+ unique Korean snacks",
-    "Mix of sweet, savory & spicy",
-    "Includes trending K-Drama snacks",
+    "Mix of sweet, savory & spicy flavors",
+    "Includes viral K-Drama snacks",
     "English flavor guide included",
-    "Ships from Seoul within 3-5 days",
+    "Ships from Seoul via EMS (5-10 days)",
+    "100% satisfaction guarantee",
   ],
   variantId: "",
-  image: "/images/snack-box.webp",
+  image: "/images/seoul-snack-box.jpg",
 };
 
 interface ProductShowcaseProps {
@@ -150,7 +151,7 @@ export default function ProductShowcase({ product }: ProductShowcaseProps) {
               <div className="mt-2">
                 <BuyButton
                   variantId={variantId}
-                  label={`Buy Now — ${formatPrice(pricing.price, pricing.currency)}`}
+                  label={`Yes! Claim My Box — ${formatPrice(pricing.price, pricing.currency)}`}
                   size="lg"
                 />
               </div>

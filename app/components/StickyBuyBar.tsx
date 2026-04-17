@@ -14,7 +14,7 @@ interface StickyBuyBarProps {
 export default function StickyBuyBar({ product }: StickyBuyBarProps) {
   const [visible, setVisible] = useState(false);
 
-  const title = product?.title || "Korean Snack Discovery Box";
+  const title = product?.title || "Seoul Snack Box";
   const pricing = product
     ? getProductPricing(product)
     : { price: "39.99", compareAtPrice: "54.99", currency: "USD" };
@@ -76,7 +76,7 @@ export default function StickyBuyBar({ product }: StickyBuyBarProps) {
           onClick={handleBuyClick}
           className="btn-primary text-sm px-6 py-2.5 flex-shrink-0"
         >
-          Buy Now
+          Claim My Box 🎁
         </button>
       </div>
     </div>
