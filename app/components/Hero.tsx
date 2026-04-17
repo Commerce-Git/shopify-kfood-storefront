@@ -65,11 +65,7 @@ export default function Hero() {
               style={{ animationDelay: "0.7s", animationFillMode: "both" }}
             >
               <span className="text-3xl sm:text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                $39.99
-              </span>
-              <span className="text-lg text-white/40 line-through">$54.99</span>
-              <span className="text-sm font-semibold text-success bg-success/15 px-2.5 py-0.5 rounded-full">
-                27% OFF
+                $45.00
               </span>
             </div>
 
@@ -122,7 +118,7 @@ export default function Hero() {
 
               <Image
                 src="/images/seoul-snack-box.jpg"
-                alt="Seoul Snack Box — Premium Korean Treats"
+                alt="The Ultimate Seoul Box — Premium Korean Treats"
                 fill
                 className="object-contain drop-shadow-2xl relative z-10"
                 sizes="(max-width: 1024px) 90vw, 45vw"

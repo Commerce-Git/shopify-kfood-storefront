@@ -14,10 +14,10 @@ interface StickyBuyBarProps {
 export default function StickyBuyBar({ product }: StickyBuyBarProps) {
   const [visible, setVisible] = useState(false);
 
-  const title = product?.title || "Seoul Snack Box";
+  const title = product?.title || "The Ultimate Seoul Box";
   const pricing = product
     ? getProductPricing(product)
-    : { price: "39.99", compareAtPrice: "54.99", currency: "USD" };
+    : { price: "45.00", compareAtPrice: null, currency: "USD" };
 
   useEffect(() => {
     const handleScroll = () => {
