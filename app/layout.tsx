@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { CartProvider } from "./components/CartProvider";
+import { AuthProvider } from "./components/AuthProvider";
 
 const outfit = Outfit({
   variable: "--font-heading",
@@ -67,11 +68,13 @@ export default function RootLayout({
       className={`${outfit.variable} ${inter.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col bg-background text-text">
-        <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
