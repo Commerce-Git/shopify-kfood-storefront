@@ -1,70 +1,208 @@
-# K-Food Sales Funnel Playbook (Based on Russell Brunson's Framework)
+# Seoul Snack Box — Sales Funnel Playbook v2.0
 
-이 플레이북은 러셀 브런슨의 '마케팅 설계자(DotCom Secrets)'를 기반으로 **Marketory (K-Food 브랜드)** 의 세일즈 퍼널을 설계하고 최적화하기 위한 가이드라인입니다. 웹사이트 레이아웃, 카피라이팅, 기능 추가를 할 때 항상 이 문서를 기준으로 삼으세요.
-
----
-
-## 1. The Value Ladder (가치 사다리)
-우리의 목표는 단순 구매가 아니라 고객의 생애 가치(LTV)를 극대화하는 것입니다.
-
-*   **Bait (미끼 / Lead Magnet)**: 한국 라면 매운맛 등급표, K-Drama 스낵 가이드 PDF (이메일 수집용)
-*   **Front-End Offer (초기 진입 상품)**: 
-    *   **Korean Snack Discovery Box (현재 주력)** - 저항감이 낮은 $39.99 달러의 호기심 유발 패키지.
-*   **Middle Offer (중간 결제)**: 
-    *   Order Bump (체크아웃 추가상품): "매운맛 챌린지 불닭볶음면 추가 ($5)", "나무젓가락 세트 ($3)"
-    *   One-Time Offer (OTO): 구매 직후 "단 한 번의 기회! 3개월 정기구독 시 첫 달 50% 할인"
-*   **Back-End Offer (고부가가치 상품)**: 
-    *   프리미엄 K-라면 마스터 박스 ($89.99), 한정판 명절 다과 세트 ($150)
+> Russell Brunson의 DotCom Secrets + Tripwire Funnel 프레임워크를
+> **Seoul Snack Box** 브랜드에 최적화하여 적용한 마케팅 전략 문서입니다.
 
 ---
 
-## 2. Hook, Story, Offer 프레임워크 (페이지 구조)
-모든 랜딩/상품 페이지는 아래 순서로 시선을 잡아끌고 전환시켜야 합니다.
+## 0. 경쟁사 분석 (Competitive Landscape)
 
-### [Phase 1: The Hook (시선 주목)]
-**목적**: 방문자가 뒤로 가기를 누르지 않게 3초 안에 사로잡기.
-*   **Hero Section 원칙**: 예쁜 사진보다 강력한 헤드라인이 먼저입니다.
-*   **카피 예시**: 
-    *   "Seoul's Hottest Convenience Store Snacks, Delivered to Your Door."
-    *   "Stop Watching K-Dramas and Start Tasting Them."
-*   **UI 액션**: 재생되는 짧고 다이내믹한 틱톡 스타일의 과자 먹방 배경 영상, 그리고 1인칭 시점의 CTA 버튼 ("Yes! Send Me The Box").
+| 경쟁사 | 가격대 | 특징 | 약점 |
+|---|---|---|---|
+| **Seoulbox** | $35~62 + 배송 $12 | K-Pop 굿즈 + 뷰티 + 스낵 혼합 | 스낵에 집중 X, 비쌈 |
+| **SnackFever** | $37~40 | 스낵 전문, 브랜드 인지도 높음 | 디자인 올드, UX 평범 |
+| **Korea Crate** | $35~40 | 한국 직배송 | 마케팅 퍼널 없음 |
+| **MunchAddict** | $30~45 | 다국적 스낵 박스 | 한국 특화 아님 |
+| **Bokksu** | $40~50 | 일본 스낵 (비교 대상) | 한국 아님, 고급감은 참고 |
 
-### [Phase 2: The Story (공감과 욕망)]
-**목적**: Epiphany Bridge (깨달음의 다리) 스토리를 통해 논리가 아닌 감정으로 설득하기.
-*   **스토리 라인**:
-    *   "저희도 미국에서 진짜 한국 과자를 구하기 힘들다는 걸 알았습니다. 한인 마트는 멀고, 아마존은 너무 대용량만 팔죠. 그래서 한국의 힙한 동네 편의점에서 가장 인기 있는 스낵만 모은 박스를 만들게 되었습니다."
-*   **UI 액션**: 창업자의 짧은 편지글 형식 섹션 도입, 혹은 K-Food에 열광하는 앰버서더의 극적인 리뷰 영상 배치.
-
-### [Phase 3: The Offer (거절할 수 없는 제안)]
-**목적**: "과자 몇 개"가 아닌 "프리미엄 경험 세트"로 인식하게 만들어 가격 저항 없애기.
-*   **가치 쌓기 (Value Stack)**:
-    *   과자 10종 구성 (Value: $25)
-    *   한국 편의점 신상 음료 (Value: $5)
-    *   영문 스낵 가이드북 & 매운맛 척도표 (Value: $15 - *무형의 가치 부여*)
-    *   **Total Value: $45 → Your Price: $39.99**
-*   **긴급성 & 희소성 (Urgency & Scarcity)**:
-    *   "이번 달 재고 500개 한정 (현재 42개 남음)"
-    *   "12월 한정판 패키지"
-*   **리스크 제거 (Risk Reversal)**:
-    *   "100% Satisfaction Guarantee. 입맛에 맞지 않는다면 한국식으로 정중히 환불해 드립니다."
+### 우리의 차별점 (USP - Unique Selling Proposition)
+1. **한국 직배송** — 미국 창고 재고가 아닌 서울에서 직배송 (신선도)
+2. **Gen Z 트렌드** — 한인마트 스낵이 아닌 "지금 서울 편의점에서 유행하는" 스낵
+3. **FDA 클리어** — 합법적 통관 (경쟁사 일부는 비공식 직구)
+4. **One-Time 구매 가능** — 구독 압박 없음 (진입 장벽 ↓)
 
 ---
 
-## 3. Direct Response UX/UI Rules (전환용 디자인 규칙)
+## 1. Value Ladder (가치 사다리)
 
-1. **CTA (Call To Action) 버튼 규칙**
-   *   "구매하기", "장바구니 담기" 등 기능적인 단어(Boring) 금지.
-   *   반드시 1인칭 행동 촉구형으로 작성. (예: "Claim My Snack Box Now", "Yes, Upgrade My Order")
-   *   색상은 배경과 완벽히 대비되어 누구라도 가장 먼저 눈에 띄게 할 것 (Vibrant Orange or Red).
+```
+                                 ┌──────────────────┐
+                         $150    │ Premium Set      │ ← Back-End
+                                 │ (명절 한정판)      │
+                              ┌──┴──────────────────┴──┐
+                      $89     │ K-Ramen Master Box     │ ← Middle
+                              │ (라면 특화 대용량)       │
+                           ┌──┴────────────────────────┴──┐
+                   $39.99  │ Seoul Snack Box              │ ← Front-End (현재)
+                           │ (10종 큐레이션 박스)           │
+                        ┌──┴──────────────────────────────┴──┐
+                 FREE   │ K-Snack Guide PDF                  │ ← Bait (Lead Magnet)
+                        │ (이메일 수집용 무료 가이드)           │
+                        └────────────────────────────────────┘
+```
 
-2. **단일 목적 페이지 (No Distractions)**
-   *   장바구니 창이나 체크아웃 상세 페이지에서는 헤더의 'About Us', 'Contact' 같은 네비게이션 링크를 숨기세요. (누수 방지)
-   *   방문자의 유일한 선택지는 '결제하거나', '창을 닫거나' 둘 중 하나여야 합니다.
-
-3. **사회적 증거 (Social Proof)의 전면 배치**
-   *   히어로 섹션 바로 아래에 "Trusted by 10,000+ K-Culture Fans" 로고나 별점 바 배치.
-   *   텍스트 리뷰보다 고객이 과자를 들고 찍은 폰카메라 사진(UGC)을 최우선으로 배치.
+### 현재 집중: Front-End Offer ($39.99)
+- 목표: 첫 구매자 확보 (고객 획득 비용 회수)
+- 마진을 극대화하지 말고, **고객 데이터를 획보**하는 데 집중
+- 이후 이메일/SMS로 Middle → Back-End 상품 제안
 
 ---
 
-> 💡 **AI 주의사항**: 앞으로 컴포넌트를 설계하거나 카피를 쓸 때는 항상 이 문서를 기반으로 '얼마나 예쁜가'보다 **'얼마나 잘 팔리는가'**를 최우선으로 생각하세요.
+## 2. Tripwire Funnel 구조 (페이지 단위)
+
+```
+[광고/SNS] → [랜딩 페이지] → [체크아웃] → [OTO] → [Thank You]
+              (현재 page)    (Shopify)   (미구현)   (미구현)
+```
+
+### Page 1: 랜딩 페이지 (현재 홈페이지 = 세일즈 페이지)
+
+**트래픽 온도별 전략:**
+| 온도 | 정의 | 랜딩 페이지 접근법 |
+|---|---|---|
+| 🔴 Cold | 브랜드를 모름 (광고 유입) | Hook + Story에 시간 투자. "왜 이 박스가 필요한지" 설득 |
+| 🟡 Warm | 브랜드는 알지만 미구매 (SNS 팔로워) | Story 축약. Offer와 Social Proof에 집중 |
+| 🟢 Hot | 구매 의도 있음 (리타겟팅) | Hook + Offer만. 바로 CTA |
+
+→ 현재 Cold Traffic 기준으로 설계 (광고 유입 가정)
+
+---
+
+## 3. 섹션별 상세 설계 (Hook → Story → Offer)
+
+### 📍 Section 1: Hero (Hook)
+
+| 요소 | 현재 | 개선 방향 |
+|---|---|---|
+| **헤드라인** | "Stop Watching K-Dramas. Start Tasting Them." | ✅ 유지 (강력한 Pattern Interrupt) |
+| **서브 카피** | 편의점 스낵 큐레이션 설명 | 결과 중심으로 변경: "10+ viral snacks. 1 curated box. 5 days to your door." |
+| **CTA** | "Yes! Send Me The Snack Box 🎁" | ✅ 유지 (1인칭 행동 촉구) |
+| **가격** | $39.99 표시 | ✅ 유지 (할인 강조와 함께) |
+| **이미지** | 열린 박스 목업 | ✅ 유지 (상품 가시성 최우선) |
+| **미싱** | — | 📌 **"As seen on TikTok" 배지** 또는 리뷰 수 표시 추가 |
+
+### 📍 Section 2: Social Proof Bar (신규 추가 권장)
+
+Hero 바로 아래에 **1줄짜리 신뢰 바** 삽입:
+```
+⭐⭐⭐⭐⭐ "Rated 4.9/5 by 500+ K-Snack lovers"  |  📦 "10,000+ boxes shipped"  |  🇺🇸 "Free US Shipping"
+```
+→ 별도 컴포넌트 `SocialProofBar.tsx` 생성
+
+### 📍 Section 3: Epiphany Story
+
+| 요소 | 현재 | 개선 방향 |
+|---|---|---|
+| **구조** | "We had a problem" 편지 형태 | ✅ 유지 |
+| **길이** | 4단락 | 축약 가능 → Cold Traffic엔 유지, 향후 A/B 테스트 |
+| **CTA** | 없음 | 📌 **스토리 끝에 미니 CTA 추가**: "Ready to taste Seoul? →" |
+
+### 📍 Section 4: Product Showcase (Offer의 핵심)
+
+현재 `ProductShowcase`를 **Value Stack** 구조로 강화:
+
+```
+┌─────────────────────────────────────────────┐
+│  여기에 담긴 가치:                             │
+│                                             │
+│  ✅ 10+ trending Korean snacks    value: $25 │
+│  ✅ Exclusive flavor guide        value: $10 │
+│  ✅ Spicy level chart             value: $5  │
+│  ✅ EMS shipping from Seoul       value: $15 │
+│  ─────────────────────────────────────────── │
+│  Total Value:              ~~$55~~           │
+│  YOUR PRICE TODAY:         $39.99            │
+│                                             │
+│  [🎁 Yes! Claim My Seoul Snack Box]         │
+│                                             │
+│  💰 100% Money-Back Guarantee               │
+│  🔒 Secure checkout powered by Shopify      │
+└─────────────────────────────────────────────┘
+```
+
+### 📍 Section 5: What's Inside (구성품 시각화)
+
+| 요소 | 현재 | 개선 방향 |
+|---|---|---|
+| **레이아웃** | 6개 카드 그리드 | ✅ 유지 (시각적으로 좋음) |
+| **데이터** | 하드코딩 mock | 📌 실제 상품 기반으로 변경 필요 |
+| **카피** | 개별 설명 | "이달의 박스 미리보기" 프레이밍으로 변경 |
+
+### 📍 Section 6: Trust Badges
+
+✅ 현재 적절. 변경 불필요.
+
+### 📍 Section 7: Reviews (Social Proof)
+
+| 요소 | 현재 | 개선 방향 |
+|---|---|---|
+| **제목** | "Loved by Snack Fans" | "Join 2,000+ Happy Snack Lovers" |
+| **데이터** | Mock 리뷰 6개 | 📌 구매 후 실제 리뷰 수집 체계 필요 |
+| **형태** | 텍스트 카드 | 📌 향후 UGC (고객 사진) 포맷 추가 |
+
+### 📍 Section 8: FAQ (Objection Handling)
+
+질문 내용을 **구매 저항 해소** 관점으로 재구성:
+1. "배송 얼마나 걸려?" → 안심 (5-10일)
+2. "관세 내야 해?" → 안심 (FDA 통관 완료)
+3. "알레르기 있으면?" → 안심 (원료 목록 제공)
+4. "마음에 안 들면?" → 안심 (환불 보장)
+5. "구독이야?" → 안심 (ONE-TIME 구매)
+
+### 📍 Section 9: Sticky Buy Bar
+
+✅ 현재 적절. CTA 이미 "Claim My Box 🎁"로 변경 완료.
+
+---
+
+## 4. 향후 구현 로드맵 (우선순위)
+
+### Phase 1 — 즉시 (현재 세션)
+- [x] Hero 2-column 레이아웃 + 박스 이미지
+- [x] Epiphany Story 섹션
+- [x] CTA 1인칭 행동 촉구형 전환
+- [ ] SocialProofBar 컴포넌트 추가
+- [ ] ProductShowcase → Value Stack 스타일로 리디자인
+
+### Phase 2 — shopify-git 연동 후
+- [ ] Seoul Snack Box 상품 등록 (가격, 이미지, 설명)
+- [ ] 실제 Shopify 상품 데이터로 fallback 교체
+- [ ] 체크아웃 → Shopify 결제 플로우 테스트
+
+### Phase 3 — 런칭 후 최적화
+- [ ] Google Analytics / Hotjar 히트맵 설치
+- [ ] 이메일 수집 (Lead Magnet: K-Snack Guide PDF)
+- [ ] A/B 테스트: 헤드라인, CTA 버튼 색상, 가격 표시 방식
+- [ ] OTO (One-Time Offer) 페이지 구현
+
+---
+
+## 5. 카피라이팅 스와이프 파일 (Swipe File)
+
+### Headlines (Hook 후보)
+1. "Stop Watching K-Dramas. Start Tasting Them." ← **현재 채택**
+2. "Seoul's Convenience Store Snacks. Now at Your Door."
+3. "The Snacks You Keep Seeing in K-Dramas? We Ship Them."
+4. "10 Korean Snacks. 0 Korean Required."
+5. "Your K-Drama Marathon Deserves Better Snacks."
+
+### CTAs (행동 촉구 버튼)
+1. "Yes! Send Me The Snack Box 🎁" ← **현재 Hero**
+2. "Claim My Seoul Snack Box" ← **현재 Sticky Bar**
+3. "Get My Box Before They're Gone"
+4. "I Want to Taste Seoul!"
+5. "Ship My Snacks Now →"
+
+### Urgency/Scarcity 문구
+1. "⏰ Only 47 boxes left this month"
+2. "🔥 This month's box sells out by the 20th"
+3. "📦 Next batch ships [날짜] — order by [날짜] to make it"
+
+---
+
+> 💡 **AI 주의사항**: 이 문서를 기반으로 컴포넌트를 설계할 때:
+> 1. **"얼마나 예쁜가"보다 "얼마나 잘 팔리는가"를 최우선**
+> 2. 모든 CTA는 **1인칭 행동 촉구형**
+> 3. 네비게이션 링크로 사용자를 다른 페이지로 **빼지 마세요**
+> 4. 가격은 항상 **할인 전 가격과 함께** 표시
+> 5. 리스크 제거(환불 보증)를 **CTA 근처에** 배치
