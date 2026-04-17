@@ -1,6 +1,8 @@
 import Hero from "./components/Hero";
-import WhatsInside from "./components/WhatsInside";
+import StorySection from "./components/StorySection";
+import OfferStack from "./components/OfferStack";
 import TrustBadges from "./components/TrustBadges";
+import CustomerReviews from "./components/CustomerReviews";
 import FAQ from "./components/FAQ";
 import StickyBuyBar from "./components/StickyBuyBar";
 import { getAllProducts, getFirstVariantId } from "@/lib/shopify/api";
@@ -15,13 +17,19 @@ export default async function Home() {
       {/* 1. Hero — 3초 안에 "과자 박스다" 인지 + 바로 결제 */}
       <Hero variantId={variantId} />
 
-      {/* 2. What's Inside — "뭐가 들어있지?" 호기심 해소 */}
-      <WhatsInside />
+      {/* 2. Story — Epiphany Bridge */}
+      <StorySection />
 
-      {/* 3. Trust — 실제 차별점 (서울 직배송, FDA, 정품) */}
+      {/* 3. Offer Stack — 거부할 수 없는 제안 */}
+      <OfferStack variantId={variantId} />
+
+      {/* 4. Trust — 실제 차별점 (서울 직배송, FDA, 정품) */}
       <TrustBadges />
 
-      {/* 4. FAQ — 구매 전 걱정 해소 */}
+      {/* 5. Social Proof — 실제 후기 */}
+      <CustomerReviews />
+
+      {/* 6. FAQ — 구매 전 걱정 해소 */}
       <FAQ />
 
       {/* 항시 따라다니는 CTA */}

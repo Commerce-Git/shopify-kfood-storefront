@@ -9,10 +9,12 @@ import CancelButton from "@/app/components/CancelButton";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import { useRouter } from "next/navigation";
 
 export default function OrderDetailPage() {
-  const { customer, isLoading: authLoading } = useAuth();
+  const { customer, isLoading: authLoading, isLoggedIn } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const orderId = decodeURIComponent(params.id as string);
 
   const [order, setOrder] = useState<ShopifyOrder | null>(null);
@@ -47,7 +49,13 @@ export default function OrderDetailPage() {
     }
   }, [authLoading, customer, orderId]);
 
-  if (loading || authLoading) {
+  useEffect(() => {
+    if (!authLoading && !isLoggedIn) {
+      router.push("/account/login");
+    }
+  }, [authLoading, isLoggedIn, router]);
+
+  if (loading || authLoading || !isLoggedIn) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
@@ -57,7 +65,7 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-2xl mx-auto px-4 pt-28 pb-12 text-center">
         <div className="text-4xl mb-4">😕</div>
         <p className="text-gray-600 mb-4">{error || "Order not found"}</p>
         <Link
@@ -73,7 +81,7 @@ export default function OrderDetailPage() {
   const { step } = getOrderStep(order.fulfillmentStatus);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="max-w-2xl mx-auto px-4 pt-28 pb-12">
       {/* Back link */}
       <Link
         href="/account"

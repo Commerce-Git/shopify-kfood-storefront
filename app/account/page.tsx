@@ -6,12 +6,14 @@ import { getCustomerOrders, getOrderStep } from "@/lib/shopify/customer";
 import type { ShopifyOrder } from "@/lib/shopify/customer";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
-  const { user, customer, isLoading, signOut } = useAuth();
+  const { user, customer, isLoading, signOut, isLoggedIn } = useAuth();
   const [orders, setOrders] = useState<ShopifyOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchOrders() {
@@ -38,10 +40,30 @@ export default function AccountPage() {
     }
   }, [isLoading, user, customer]);
 
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.push("/account/login");
+    }
+  }, [isLoading, isLoggedIn, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
+          <p className="mt-4 text-gray-500">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
+          <p className="mt-4 text-gray-500">Redirecting to login...</p>
+        </div>
       </div>
     );
   }
@@ -50,7 +72,7 @@ export default function AccountPage() {
     customer?.first_name || user?.user_metadata?.full_name || user?.email;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
+    <div className="max-w-3xl mx-auto px-4 pt-28 pb-12">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

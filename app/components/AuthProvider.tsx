@@ -17,6 +17,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   signInWithEmail: (email: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   isLoading: true,
   signInWithEmail: async () => ({ error: null }),
+  signInWithGoogle: async () => {},
   signOut: async () => {},
 });
 
@@ -37,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [customer, setCustomer] = useState<StorefrontCustomer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   // Fetch customer profile from storefront_customers
   const fetchCustomer = useCallback(
@@ -55,14 +57,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        await fetchCustomer(user.id);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+          await fetchCustomer(user.id);
+        }
+      } catch (error) {
+        console.error("Auth session error:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     getSession();
@@ -71,16 +78,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
+      try {
+        const currentUser = session?.user ?? null;
+        
+        // Only update if the user ID actually changed to prevent infinite loops on token refresh
+        setUser((prevUser) => {
+          if (prevUser?.id !== currentUser?.id) {
+            if (currentUser) {
+              fetchCustomer(currentUser.id);
+            } else {
+              setCustomer(null);
+            }
+          }
+          return currentUser;
+        });
 
-      if (currentUser) {
-        await fetchCustomer(currentUser.id);
-      } else {
-        setCustomer(null);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -98,6 +113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -112,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoggedIn: !!user,
         isLoading,
         signInWithEmail,
+        signInWithGoogle,
         signOut,
       }}
     >

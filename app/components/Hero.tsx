@@ -31,6 +31,13 @@ export default function Hero({ variantId }: HeroProps) {
 
           {/* Left — Text & CTA */}
           <div className="flex flex-col gap-6 text-center lg:text-left">
+            {/* Urgency Badge */}
+            <div
+              className="inline-block bg-orange-500/10 text-orange-400 font-bold px-4 py-2 rounded-lg border border-orange-500/20 text-sm w-fit mx-auto lg:mx-0 self-center lg:self-start"
+            >
+              ✈️ Order now to catch this week's direct shipment from Seoul
+            </div>
+
             {/* Badge */}
             <div
               className="inline-flex self-center lg:self-start items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium animate-fade-in"

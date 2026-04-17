@@ -33,7 +33,7 @@ export default function OrderLookupPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="text-4xl mb-4">🔍</div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 
@@ -16,6 +17,9 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { itemCount, setIsCartOpen } = useCart();
   const { isLoggedIn, customer, user } = useAuth();
+  const pathname = usePathname();
+
+  const isSolidHeader = scrolled || pathname !== "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,7 +48,7 @@ export default function Header() {
         className={`
           fixed top-0 left-0 right-0 z-50 transition-all duration-300
           ${
-            scrolled
+            isSolidHeader
               ? "bg-white/80 backdrop-blur-xl shadow-sm border-b border-border-light"
               : "bg-transparent"
           }
@@ -62,7 +66,7 @@ export default function Header() {
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 <span className="gradient-text">K-Food</span>
-                <span className={scrolled ? "text-dark" : "text-white"}>
+                <span className={isSolidHeader ? "text-dark" : "text-white"}>
                   {" "}Store
                 </span>
               </span>
@@ -77,7 +81,7 @@ export default function Header() {
                   className={`
                     text-sm font-medium transition-colors duration-200
                     hover:text-primary
-                    ${scrolled ? "text-text" : "text-white/90"}
+                    ${isSolidHeader ? "text-text" : "text-white/90"}
                   `}
                 >
                   {link.label}
@@ -93,7 +97,7 @@ export default function Header() {
                 className={`
                   hidden md:flex items-center gap-1.5 text-sm font-medium transition-colors duration-200
                   hover:text-primary
-                  ${scrolled ? "text-text" : "text-white/90"}
+                  ${isSolidHeader ? "text-text" : "text-white/90"}
                 `}
                 id="account-button"
               >
@@ -119,7 +123,7 @@ export default function Header() {
                 className={`
                   relative p-2.5 rounded-full transition-all duration-200
                   hover:bg-white/10
-                  ${scrolled ? "text-dark" : "text-white"}
+                  ${isSolidHeader ? "text-dark" : "text-white"}
                 `}
                 id="cart-button"
                 aria-label="Open cart"
@@ -148,7 +152,7 @@ export default function Header() {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`md:hidden p-2.5 rounded-full hover:bg-white/10 transition-colors ${scrolled ? "text-dark" : "text-white"}`}
+                className={`md:hidden p-2.5 rounded-full hover:bg-white/10 transition-colors ${isSolidHeader ? "text-dark" : "text-white"}`}
                 id="mobile-menu-button"
                 aria-label="Toggle menu"
               >
