@@ -80,24 +80,25 @@ export async function POST(request: Request) {
         cancel_window_hours: CANCEL_WINDOW_HOURS,
       });
     } else {
-      // Shopify cancel failed — keep as pending for manual review
+      // Shopify cancel failed
       console.error("[cancel-order] Shopify cancel failed:", result.error);
 
       // Update with failure reason so admin can review
       await supabase
         .from("storefront_cancel_requests")
         .update({
-          status: "pending",
+          status: "failed",
           reason: `${reason || ""} [AUTO-CANCEL FAILED: ${result.error}]`.trim(),
         })
         .eq("id", cancelRecord.id);
 
-      // Still return success to user — they don't need to know about internal issues
-      return NextResponse.json({
-        success: true,
-        message: `Cancellation request for order ${order_number} has been submitted. We'll process it shortly.`,
-        cancel_window_hours: CANCEL_WINDOW_HOURS,
-      });
+      return NextResponse.json(
+        {
+          error: `Cancellation failed: ${result.error}`,
+          debug: { shopify_order_id, result },
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("[cancel-order] Unexpected error:", error);

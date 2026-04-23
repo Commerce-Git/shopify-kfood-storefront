@@ -31,15 +31,29 @@ export default function CancelButton({
     !isCancelled && fulfillmentStatus === "UNFULFILLED" && isCancelable(processedAt);
   const minutesLeft = getCancelMinutesRemaining(processedAt);
 
-  if (!canCancel) return null;
-
-  if (success) {
+  // Already cancelled — show status
+  if (isCancelled) {
     return (
-      <div className="bg-green-50 text-green-700 px-4 py-3 rounded-xl text-sm text-center">
-        ✅ Cancellation request submitted. We&apos;ll process it shortly.
+      <div className="bg-gray-50 text-gray-500 px-4 py-3 rounded-xl text-sm text-center">
+        🚫 This order has been cancelled. Your refund is being processed.
       </div>
     );
   }
+
+  // Just cancelled in this session — show processing state
+  if (success) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl text-sm text-center text-amber-700">
+        <div className="flex items-center justify-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-400 border-t-transparent" />
+          <span>Cancellation in progress — your refund will be processed shortly.</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Can't cancel (time expired or already fulfilled)
+  if (!canCancel) return null;
 
   const handleCancel = async () => {
     setLoading(true);
