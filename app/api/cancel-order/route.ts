@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import { cancelOrder } from "@/lib/shopify/admin";
 
 export async function POST(request: Request) {
   try {
@@ -41,8 +42,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert cancel request
-    const { error } = await supabase
+    // 1. Record cancel request in Supabase (pending)
+    const { data: cancelRecord, error: dbError } = await supabase
       .from("storefront_cancel_requests")
       .insert({
         customer_id: user.id,
@@ -51,21 +52,53 @@ export async function POST(request: Request) {
         order_number,
         reason: reason || null,
         status: "pending",
-      });
+      })
+      .select("id")
+      .single();
 
-    if (error) {
-      console.error("[cancel-order] DB error:", error);
+    if (dbError) {
+      console.error("[cancel-order] DB error:", dbError);
       return NextResponse.json(
         { error: "Failed to submit cancellation request" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Cancellation request for order ${order_number} has been submitted.`,
-      cancel_window_hours: CANCEL_WINDOW_HOURS,
-    });
+    // 2. Auto-cancel in Shopify Admin API
+    const result = await cancelOrder(shopify_order_id, "customer");
+
+    if (result.success) {
+      // Update status to approved
+      await supabase
+        .from("storefront_cancel_requests")
+        .update({ status: "approved" })
+        .eq("id", cancelRecord.id);
+
+      return NextResponse.json({
+        success: true,
+        message: `Order ${order_number} has been cancelled and your refund is being processed.`,
+        cancel_window_hours: CANCEL_WINDOW_HOURS,
+      });
+    } else {
+      // Shopify cancel failed — keep as pending for manual review
+      console.error("[cancel-order] Shopify cancel failed:", result.error);
+
+      // Update with failure reason so admin can review
+      await supabase
+        .from("storefront_cancel_requests")
+        .update({
+          status: "pending",
+          reason: `${reason || ""} [AUTO-CANCEL FAILED: ${result.error}]`.trim(),
+        })
+        .eq("id", cancelRecord.id);
+
+      // Still return success to user — they don't need to know about internal issues
+      return NextResponse.json({
+        success: true,
+        message: `Cancellation request for order ${order_number} has been submitted. We'll process it shortly.`,
+        cancel_window_hours: CANCEL_WINDOW_HOURS,
+      });
+    }
   } catch (error) {
     console.error("[cancel-order] Unexpected error:", error);
     return NextResponse.json(

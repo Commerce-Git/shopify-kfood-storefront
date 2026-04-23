@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "../components/CartProvider";
+import { useAuth } from "../components/AuthProvider";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { CREATE_CART } from "@/lib/shopify/queries";
 
@@ -25,6 +26,7 @@ export default function CartPage() {
     useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   async function handleCheckout() {
     if (items.length === 0) return;
@@ -67,7 +69,7 @@ export default function CartPage() {
             Looks like you haven&apos;t added any K-Food snacks yet!
           </p>
           <Link href="/" className="btn-primary">
-            Explore Snack Boxes
+            Get My Seoul Snack Box →
           </Link>
         </div>
       </div>
@@ -228,7 +230,7 @@ export default function CartPage() {
                   Redirecting to checkout...
                 </span>
               ) : (
-                "Proceed to Checkout"
+                "Yes! Complete My Order 🎉"
               )}
             </button>
 
@@ -250,6 +252,12 @@ export default function CartPage() {
               </svg>
               Secure checkout powered by Shopify
             </p>
+
+            {user?.email && (
+              <p className="text-xs text-text-muted/70">
+                💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
+              </p>
+            )}
           </div>
 
           <div className="text-center mt-6">

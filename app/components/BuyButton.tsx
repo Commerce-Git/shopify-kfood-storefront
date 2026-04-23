@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { CREATE_CART } from "@/lib/shopify/queries";
+import { useAuth } from "@/app/components/AuthProvider";
 
 interface BuyButtonProps {
   variantId: string;
@@ -36,6 +37,7 @@ export default function BuyButton({
 }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const sizeClasses = {
     sm: "px-5 py-2.5 text-sm",
@@ -122,6 +124,12 @@ export default function BuyButton({
             <path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
           Secure checkout powered by Shopify
+        </p>
+      )}
+
+      {user?.email && (
+        <p className="text-xs text-text-muted/70 mt-1">
+          💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
         </p>
       )}
 

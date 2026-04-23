@@ -8,6 +8,7 @@ interface CancelButtonProps {
   orderNumber: string;
   processedAt: string;
   fulfillmentStatus: string;
+  financialStatus: string;
   onCancelled?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function CancelButton({
   orderNumber,
   processedAt,
   fulfillmentStatus,
+  financialStatus,
   onCancelled,
 }: CancelButtonProps) {
   const [showModal, setShowModal] = useState(false);
@@ -24,8 +26,9 @@ export default function CancelButton({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const isCancelled = ["CANCELLED", "REFUNDED", "VOIDED"].includes(financialStatus);
   const canCancel =
-    fulfillmentStatus === "UNFULFILLED" && isCancelable(processedAt);
+    !isCancelled && fulfillmentStatus === "UNFULFILLED" && isCancelable(processedAt);
   const minutesLeft = getCancelMinutesRemaining(processedAt);
 
   if (!canCancel) return null;
@@ -70,17 +73,16 @@ export default function CancelButton({
 
   return (
     <>
-      <div className="space-y-2">
+      <div className="text-center space-y-1">
         <button
           onClick={() => setShowModal(true)}
-          className="w-full py-3 px-4 border-2 border-red-200 text-red-600 font-semibold 
-            rounded-xl hover:bg-red-50 transition-all"
+          className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 
+            transition-colors"
         >
-          ❌ Cancel This Order
+          Changed your mind? Cancel this order
         </button>
-        <p className="text-xs text-gray-500 text-center">
-          Free cancellation available for {minutesLeft} more minute
-          {minutesLeft !== 1 ? "s" : ""}
+        <p className="text-xs text-gray-400">
+          Free cancellation within {minutesLeft <= 60 ? `${minutesLeft} min` : "1 hour"} of purchase
         </p>
       </div>
 

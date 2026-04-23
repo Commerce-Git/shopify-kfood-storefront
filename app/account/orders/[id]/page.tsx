@@ -120,6 +120,47 @@ export default function OrderDetailPage() {
         <OrderStatusBar step={step} />
       </div>
 
+      {/* Tracking Info */}
+      {order.tracking?.number && (
+        <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6 mb-6">
+          <h2 className="text-sm font-semibold text-blue-600 uppercase mb-3">
+            📦 Shipment Tracking
+          </h2>
+          <div className="space-y-2">
+            {order.tracking.company && (
+              <p className="text-sm text-gray-600">
+                <span className="text-gray-400">Carrier:</span>{" "}
+                <span className="font-medium">{order.tracking.company}</span>
+              </p>
+            )}
+            <p className="text-sm text-gray-600">
+              <span className="text-gray-400">Tracking #:</span>{" "}
+              <span className="font-mono font-medium">{order.tracking.number}</span>
+            </p>
+            {order.tracking.url && (
+              <a
+                href={order.tracking.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 
+                  underline underline-offset-2"
+              >
+                Track My Package →
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Estimated delivery note for shipped orders without tracking */}
+      {order.fulfillmentStatus === "FULFILLED" && !order.tracking?.number && (
+        <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 mb-6 text-center">
+          <p className="text-sm text-gray-500">
+            ✈️ Your order has been shipped! Estimated delivery: 7–14 business days.
+          </p>
+        </div>
+      )}
+
       {/* Line Items */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-4">
@@ -160,18 +201,22 @@ export default function OrderDetailPage() {
           orderNumber={order.name}
           processedAt={order.processedAt}
           fulfillmentStatus={order.fulfillmentStatus}
+          financialStatus={order.financialStatus}
         />
       </div>
 
       {/* Help Section */}
       <div className="bg-gray-50 rounded-2xl p-6 text-center">
         <p className="text-sm text-gray-500 mb-1">
-          Issue with your order after shipping?
+          Issue with your order?
         </p>
-        <p className="text-sm text-gray-600">
-          Contact us and we&apos;ll help you out.
-        </p>
-        <p className="text-xs text-gray-400 mt-2">
+        <a
+          href="mailto:support@seoulsnackbox.com"
+          className="text-sm text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+        >
+          Contact us and we&apos;ll help you out →
+        </a>
+        <p className="text-xs text-gray-400 mt-3">
           Free cancellation is available within {CANCEL_WINDOW_HOURS} hour
           {CANCEL_WINDOW_HOURS !== 1 ? "s" : ""} of placing your order.
         </p>

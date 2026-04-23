@@ -67,6 +67,33 @@ async function getAdminToken(): Promise<string> {
   return cachedToken!;
 }
 
+/**
+ * Wrapper around fetch for Shopify Admin API calls.
+ * Handles 429 rate limiting with automatic retry + exponential backoff.
+ */
+async function adminFetch(
+  url: string,
+  options: RequestInit,
+  retries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const response = await fetch(url, options);
+
+    if (response.status === 429 && attempt < retries - 1) {
+      const retryAfter = parseFloat(response.headers.get("Retry-After") || "2");
+      const waitMs = retryAfter * 1000 * (attempt + 1); // exponential backoff
+      console.warn(`[Admin API] Rate limited. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${retries})`);
+      await new Promise((r) => setTimeout(r, waitMs));
+      continue;
+    }
+
+    return response;
+  }
+
+  // Should never reach here, but TypeScript needs it
+  throw new Error("[Admin API] Max retries exceeded");
+}
+
 // ---- Types (Admin REST API format) ----
 
 interface AdminLineItem {
@@ -76,10 +103,18 @@ interface AdminLineItem {
   variant_id: number | null;
 }
 
+interface AdminFulfillment {
+  id: number;
+  status: string;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+}
+
 interface AdminOrder {
   id: number;
-  admin_graphql_api_id: string; // "gid://shopify/Order/123456"
-  name: string; // "#1001"
+  admin_graphql_api_id: string;
+  name: string;
   created_at: string;
   processed_at: string;
   fulfillment_status: string | null;
@@ -88,6 +123,7 @@ interface AdminOrder {
   total_price: string;
   currency: string;
   line_items: AdminLineItem[];
+  fulfillments: AdminFulfillment[];
 }
 
 // ---- Mapped types (compatible with existing UI) ----
@@ -115,6 +151,11 @@ export interface MappedOrder {
       };
     }[];
   };
+  tracking: {
+    number: string | null;
+    url: string | null;
+    company: string | null;
+  } | null;
 }
 
 // ---- API Functions ----
@@ -135,7 +176,7 @@ export async function getOrdersByEmail(
     order: "processed_at desc",
   });
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${ADMIN_API_URL}/orders.json?${params.toString()}`,
     {
       method: "GET",
@@ -143,7 +184,6 @@ export async function getOrdersByEmail(
         "X-Shopify-Access-Token": token,
         "Content-Type": "application/json",
       },
-      // Don't cache — always fetch fresh order data
       cache: "no-store",
     }
   );
@@ -169,6 +209,8 @@ export async function getOrdersByEmail(
  * without any changes.
  */
 function mapAdminOrder(order: AdminOrder): MappedOrder {
+  const fulfillment = order.fulfillments?.[0] || null;
+
   return {
     id: order.admin_graphql_api_id,
     name: order.name,
@@ -195,6 +237,13 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
         },
       })),
     },
+    tracking: fulfillment
+      ? {
+          number: fulfillment.tracking_number,
+          url: fulfillment.tracking_url,
+          company: fulfillment.tracking_company,
+        }
+      : null,
   };
 }
 
@@ -214,5 +263,63 @@ function mapFulfillmentStatus(status: string | null): string {
     case "unfulfilled":
     default:
       return "UNFULFILLED";
+  }
+}
+
+// ---- Order Cancellation ----
+
+/**
+ * Extract numeric order ID from Shopify GraphQL ID.
+ * "gid://shopify/Order/6218047701302" → "6218047701302"
+ */
+function extractNumericId(gid: string): string {
+  const match = gid.match(/\/(\d+)$/);
+  if (!match) throw new Error(`Invalid Shopify GID: ${gid}`);
+  return match[1];
+}
+
+/**
+ * Cancel an order via Shopify Admin REST API.
+ * This triggers an automatic full refund to the original payment method.
+ * Server-side only.
+ */
+export async function cancelOrder(
+  shopifyOrderGid: string,
+  reason: string = "customer"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = await getAdminToken();
+    const numericId = extractNumericId(shopifyOrderGid);
+
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/orders/${numericId}/cancel.json`,
+      {
+        method: "POST",
+        headers: {
+          "X-Shopify-Access-Token": token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("[Admin API] Cancel error:", response.status, text);
+      return {
+        success: false,
+        error: `Shopify returned HTTP ${response.status}: ${text}`,
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("[Admin API] Cancel exception:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
   }
 }

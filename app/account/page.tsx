@@ -62,21 +62,41 @@ export default function AccountPage() {
     );
   }
 
-  const displayName =
-    customer?.first_name || user?.user_metadata?.full_name || user?.email;
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const rawName =
+    customer?.first_name || user?.user_metadata?.full_name || user?.email || "";
+  // Capitalize first letter of each word
+  const displayName = rawName
+    .split(" ")
+    .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-28 pb-12">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1
-            className="text-3xl font-bold"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            👤 Welcome, {displayName}!
-          </h1>
-          <p className="text-gray-500 mt-1">{user?.email}</p>
+        <div className="flex items-center gap-4">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-xl font-bold text-orange-600">
+              {displayName.charAt(0)}
+            </div>
+          )}
+          <div>
+            <h1
+              className="text-2xl sm:text-3xl font-bold"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Welcome, {displayName}!
+            </h1>
+            <p className="text-gray-500 text-sm mt-0.5">{user?.email}</p>
+          </div>
         </div>
         <button
           onClick={signOut}
@@ -96,9 +116,27 @@ export default function AccountPage() {
       </h2>
 
       {ordersLoading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto" />
-          <p className="text-gray-500 mt-3 text-sm">Loading orders...</p>
+        <div className="space-y-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="h-4 w-16 bg-gray-200 rounded" />
+                  <div className="h-5 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-20 bg-gray-100 rounded" />
+                </div>
+                <div className="h-4 w-24 bg-gray-100 rounded" />
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} className="flex flex-col items-center gap-1">
+                    <div className="h-4 w-4 bg-gray-200 rounded-full" />
+                    <div className="h-3 w-16 bg-gray-100 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : ordersError ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
@@ -127,6 +165,7 @@ export default function AccountPage() {
           </Link>
         </div>
       ) : (
+        <>
         <div className="space-y-4">
           {orders.map((order) => {
             const { step, label } = getOrderStep(order.fulfillmentStatus);
@@ -163,6 +202,25 @@ export default function AccountPage() {
             );
           })}
         </div>
+
+        {/* Reorder CTA */}
+        <div className="mt-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 text-center border border-orange-100">
+          <p className="text-2xl mb-2">🇰🇷</p>
+          <p className="font-semibold text-gray-800 mb-1">
+            Craving more K-Snacks?
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            Your next Seoul Snack Box is just a click away.
+          </p>
+          <Link
+            href="/"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold 
+              px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md"
+          >
+            Order Another Box →
+          </Link>
+        </div>
+        </>
       )}
     </div>
   );
