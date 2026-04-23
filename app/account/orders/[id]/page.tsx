@@ -215,10 +215,13 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Reorder Button */}
-      <div className="mb-4">
-        <ReorderButton order={order} />
-      </div>
+      {/* Reorder Button — only for shipped or cancelled orders */}
+      {(order.fulfillmentStatus === "FULFILLED" || 
+        ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus)) && (
+        <div className="mb-4">
+          <ReorderButton order={order} />
+        </div>
+      )}
 
       {/* Cancel Button */}
       <div className="mb-6">

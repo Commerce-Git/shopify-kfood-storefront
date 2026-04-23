@@ -25,7 +25,7 @@ interface CartResponse {
 
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, removeFromCart, updateQuantity } =
+  const { items, itemCount, subtotal, removeFromCart, updateQuantity, clearCart } =
     useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +56,7 @@ export default function CartPage() {
         return;
       }
 
+      clearCart();
       window.location.href = cart.checkoutUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

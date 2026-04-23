@@ -1,10 +1,10 @@
 "use client";
 
 interface OrderStatusBarProps {
-  step: number; // 0 = Placed, 1 = Processing, 2 = Shipped, 3 = Delivered
+  step: number; // 0 = Order Placed, 1 = Shipped
 }
 
-const STEPS = ["Order Placed", "Processing", "Shipped", "Delivered"];
+const STEPS = ["Order Placed", "Shipped ✈️"];
 
 export default function OrderStatusBar({ step }: OrderStatusBarProps) {
   return (

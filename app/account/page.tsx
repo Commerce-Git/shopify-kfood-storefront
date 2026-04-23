@@ -202,8 +202,10 @@ export default function AccountPage() {
         <>
         <div className="space-y-4">
           {orders.map((order) => {
-            const { step, label } = getOrderStep(order.fulfillmentStatus);
+            const { step } = getOrderStep(order.fulfillmentStatus);
             const firstItem = order.lineItems.edges[0]?.node;
+            const isCancelled = ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus);
+            const showReorder = isCancelled || order.fulfillmentStatus === "FULFILLED";
             return (
               <Link
                 key={order.id}
@@ -232,31 +234,42 @@ export default function AccountPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-4">
-                  <OrderStatusBar step={step} />
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      order.lineItems.edges.forEach(({ node }) => {
-                        if (!node.variantId) return;
-                        addToCart({
-                          variantId: node.variantId,
-                          productHandle: "",
-                          title: node.title,
-                          variantTitle: "",
-                          price: node.variant?.price.amount || "0",
-                          quantity: node.quantity,
-                          image: null,
+                  {isCancelled ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-medium">
+                        ❌ Cancelled
+                      </span>
+                      <span className="text-xs text-gray-400">💳 Refund processed</span>
+                    </div>
+                  ) : (
+                    <OrderStatusBar step={step} />
+                  )}
+                  {showReorder && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        order.lineItems.edges.forEach(({ node }) => {
+                          if (!node.variantId) return;
+                          addToCart({
+                            variantId: node.variantId,
+                            productHandle: "",
+                            title: node.title,
+                            variantTitle: "",
+                            price: node.variant?.price.amount || "0",
+                            quantity: node.quantity,
+                            image: null,
+                          });
                         });
-                      });
-                      router.push("/cart");
-                    }}
-                    className="text-xs text-orange-600 hover:text-orange-700 font-semibold 
-                      bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all 
-                      flex-shrink-0 ml-3"
-                  >
-                    🔄 Reorder
-                  </button>
+                        router.push("/cart");
+                      }}
+                      className="text-xs text-orange-600 hover:text-orange-700 font-semibold 
+                        bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all 
+                        flex-shrink-0 ml-3"
+                    >
+                      🔄 Reorder
+                    </button>
+                  )}
                 </div>
               </Link>
             );
