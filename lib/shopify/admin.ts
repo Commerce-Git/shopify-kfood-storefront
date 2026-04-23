@@ -3,10 +3,13 @@
  *
  * Since Jan 2026, Shopify no longer issues static shpat_ tokens.
  * Instead, we use Client Credentials Grant to get short-lived tokens.
- * This module handles token acquisition, caching, and auto-refresh.
+ * This module handles token acquisition, caching (in-memory + Supabase),
+ * and auto-refresh.
  *
  * Server-side only — never import this from client components.
  */
+
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
 const SHOPIFY_STORE_DOMAIN =
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
@@ -18,21 +21,46 @@ const SHOPIFY_CLIENT_SECRET =
 const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10`;
 const TOKEN_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`;
 
-// ---- Token Cache ----
+// Supabase admin client (service_role — bypasses RLS)
+const supabaseAdmin = createSupabaseAdmin(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
+
+// ---- Token Cache (in-memory for same-process reuse) ----
 
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
 
 /**
- * Get a valid Admin API access token using Client Credentials Grant.
- * Tokens are cached and auto-refreshed when expired.
+ * Get a valid Admin API access token.
+ * Priority: in-memory cache → Supabase cache → fresh OAuth.
  */
-async function getAdminToken(): Promise<string> {
-  // Return cached token if still valid (with 5 min buffer)
+export async function getAdminToken(): Promise<string> {
+  // 1. In-memory cache (same serverless instance)
   if (cachedToken && Date.now() < tokenExpiresAt - 5 * 60 * 1000) {
     return cachedToken;
   }
 
+  // 2. Supabase cache (shared across all instances)
+  try {
+    const { data: cached } = await supabaseAdmin
+      .from("shopify_token_cache")
+      .select("access_token, expires_at")
+      .eq("id", "admin_token")
+      .single();
+
+    if (cached && new Date(cached.expires_at).getTime() > Date.now() + 5 * 60 * 1000) {
+      // Valid token found in Supabase — save to in-memory too
+      cachedToken = cached.access_token;
+      tokenExpiresAt = new Date(cached.expires_at).getTime();
+      return cachedToken!;
+    }
+  } catch {
+    // Supabase cache miss or table doesn't exist — continue to OAuth
+  }
+
+  // 3. Fresh OAuth token
   if (!SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) {
     throw new Error(
       "[Admin API] Missing SHOPIFY_CLIENT_ID or SHOPIFY_CLIENT_SECRET in environment variables."
@@ -61,8 +89,20 @@ async function getAdminToken(): Promise<string> {
 
   const data = await response.json();
   cachedToken = data.access_token;
-  // expires_in is in seconds, convert to milliseconds
   tokenExpiresAt = Date.now() + (data.expires_in || 86400) * 1000;
+
+  // Save to Supabase for other instances (fire-and-forget)
+  supabaseAdmin
+    .from("shopify_token_cache")
+    .upsert({
+      id: "admin_token",
+      access_token: cachedToken,
+      expires_at: new Date(tokenExpiresAt).toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .then(({ error }) => {
+      if (error) console.warn("[Admin API] Failed to cache token:", error.message);
+    });
 
   return cachedToken!;
 }
@@ -239,10 +279,10 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
     },
     tracking: fulfillment
       ? {
-          number: fulfillment.tracking_number,
-          url: fulfillment.tracking_url,
-          company: fulfillment.tracking_company,
-        }
+        number: fulfillment.tracking_number,
+        url: fulfillment.tracking_url,
+        company: fulfillment.tracking_company,
+      }
       : null,
   };
 }

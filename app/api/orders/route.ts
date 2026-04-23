@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrdersByEmail } from "@/lib/shopify/admin";
+import { getOrdersByEmail, getAdminToken } from "@/lib/shopify/admin";
 
 /**
  * GET /api/orders
@@ -11,16 +11,17 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    // Check auth
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Parallel: auth check + token warm-up
+    const [{ data: { user } }, _token] = await Promise.all([
+      supabase.auth.getUser(),
+      getAdminToken(), // Pre-warm token while auth check runs
+    ]);
 
     if (!user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch orders from Shopify Admin API by email
+    // Token is already cached from Promise.all above, so this is instant
     const orders = await getOrdersByEmail(user.email);
 
     return NextResponse.json({ orders });

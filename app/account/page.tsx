@@ -17,13 +17,45 @@ export default function AccountPage() {
 
   useEffect(() => {
     async function fetchOrders() {
+      const cacheKey = `orders_${user?.email || "anon"}`;
+
+      // 1. Show cached data instantly (stale-while-revalidate)
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { orders: cachedOrders, timestamp } = JSON.parse(cached);
+          const age = Date.now() - timestamp;
+          // Use cache if less than 2 minutes old
+          if (age < 2 * 60 * 1000 && cachedOrders.length > 0) {
+            setOrders(cachedOrders);
+            setOrdersLoading(false);
+          }
+        }
+      } catch {
+        // localStorage not available or corrupt — ignore
+      }
+
+      // 2. Always fetch fresh data in background
       try {
         const res = await fetch("/api/orders");
         if (!res.ok) throw new Error("Failed to fetch orders");
         const data = await res.json();
         setOrders(data.orders);
+
+        // Save to localStorage for next visit
+        try {
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({ orders: data.orders, timestamp: Date.now() })
+          );
+        } catch {
+          // Storage full — ignore
+        }
       } catch {
-        setOrdersError("Failed to load orders. Please try again.");
+        // Only show error if we don't have cached data
+        if (orders.length === 0) {
+          setOrdersError("Failed to load orders. Please try again.");
+        }
       } finally {
         setOrdersLoading(false);
       }
