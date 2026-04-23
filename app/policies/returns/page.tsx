@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Return Policy",
-  description: "Our return and refund policy for K-Food snack boxes.",
+  title: "Return & Refund Policy",
+  description: "Our return and refund policy for Seoul Snack Box orders.",
 };
 
 export default function ReturnPolicyPage() {
@@ -11,61 +12,85 @@ export default function ReturnPolicyPage() {
       <h1 className="heading-md text-dark mb-6">Return & Refund Policy</h1>
       <p className="text-sm text-text-muted mb-8">Last updated: April 2026</p>
 
-      <h2>Our Guarantee</h2>
+      <h2>Order Cancellation (Before Shipment)</h2>
       <p>
-        We want you to love your K-Food snack box! If there&apos;s an issue with your
-        order, we&apos;re here to help.
+        You may cancel your order for a <strong>full refund</strong> within{" "}
+        {CANCEL_WINDOW_HOURS} hour{CANCEL_WINDOW_HOURS !== 1 ? "s" : ""} of
+        placing your order — no questions asked. Simply go to your{" "}
+        <a href="/account">Account page</a> and click &quot;Cancel this
+        order.&quot;
+      </p>
+      <p>
+        If your order has not yet been shipped, you may also request cancellation
+        by emailing us at{" "}
+        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a>.
+        We will do our best to cancel before fulfillment.
       </p>
 
-      <h2>Damaged Items</h2>
+      <h2>Damaged or Defective Items</h2>
       <p>
-        If any items in your box arrive damaged, please email us at{" "}
-        <a href="mailto:hello@kfoodstore.com">hello@kfoodstore.com</a> within 48 hours
-        of delivery with:
+        If any items in your box arrive damaged or defective, please email us at{" "}
+        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a>{" "}
+        within <strong>48 hours</strong> of delivery with:
       </p>
       <ul>
         <li>Your order number</li>
-        <li>Photos of the damaged item(s)</li>
+        <li>Photos of the damaged item(s) and packaging</li>
         <li>A brief description of the issue</li>
       </ul>
       <p>
-        We will either send a replacement item or issue a partial refund for the
-        affected product(s).
+        After review, we will offer one of the following resolutions:
       </p>
-
-      <h2>Non-Returnable Items</h2>
-      <p>
-        Due to the perishable nature of food products and international shipping,
-        we are unable to accept returns of opened or consumed items. All snack boxes
-        are final sale unless items arrive damaged or defective.
-      </p>
+      <ul>
+        <li>
+          <strong>Full replacement</strong> — We&apos;ll send a new box at no
+          charge
+        </li>
+        <li>
+          <strong>Partial refund</strong> — Refund for the affected item(s)
+        </li>
+        <li>
+          <strong>Full refund</strong> — In cases of severe damage
+        </li>
+      </ul>
 
       <h2>Lost Packages</h2>
       <p>
-        If your tracking shows delivery but you did not receive your package, please
-        contact us within 7 days. We will work with the carrier to locate your package
-        or issue a replacement.
+        All orders are shipped with EMS tracking. If your tracking shows
+        delivered but you did not receive your package, please contact us
+        within <strong>7 days</strong> of the delivery date. We will file a
+        claim with Korea Post EMS and either resend your order or issue a
+        full refund.
       </p>
 
-      <h2>Cancellations</h2>
+      <h2>Non-Refundable Situations</h2>
       <p>
-        Orders can be cancelled within 12 hours of placement for a full refund. After
-        that, orders enter our fulfillment process and cannot be cancelled. Please
-        contact us as soon as possible if you need to cancel.
+        Due to the perishable nature of food products and international
+        shipping regulations, we <strong>cannot</strong> accept returns or
+        issue refunds in the following cases:
       </p>
+      <ul>
+        <li>Change of mind after shipment</li>
+        <li>Items that have been opened or consumed</li>
+        <li>Incorrect shipping address provided by the customer</li>
+        <li>Package refused or unclaimed at delivery</li>
+      </ul>
 
-      <h2>Refund Process</h2>
+      <h2>Refund Timeline</h2>
       <p>
-        Approved refunds will be processed within 3-5 business days and returned to the
-        original payment method. Please allow an additional 5-10 business days for the
-        refund to appear on your statement.
+        Approved refunds are processed within <strong>3-5 business days</strong>{" "}
+        and returned to the original payment method. Please allow an additional
+        5-10 business days for the refund to appear on your bank or credit card
+        statement.
       </p>
 
       <h2>Contact Us</h2>
       <p>
-        For any return or refund inquiries, please email{" "}
-        <a href="mailto:hello@kfoodstore.com">hello@kfoodstore.com</a> with your order
-        number.
+        For any return or refund inquiries, email{" "}
+        <a href="mailto:support@seoulsnackbox.com">
+          support@seoulsnackbox.com
+        </a>{" "}
+        with your order number. We respond within 24 hours.
       </p>
     </>
   );

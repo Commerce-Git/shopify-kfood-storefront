@@ -76,6 +76,7 @@ export default function CancelButton({
         body: JSON.stringify({
           shopify_order_id: orderId,
           order_number: orderNumber,
+          processedAt,
           reason,
         }),
       });
@@ -126,8 +127,8 @@ export default function CancelButton({
             Changed your mind? Cancel this order
           </button>
           <p className="text-xs text-gray-400">
-            Free cancellation within {minutesLeft <= 60 ? `${minutesLeft} min` : "1 hour"} of purchase
-        </p>
+            Free cancellation within {minutesLeft < 60 ? `${minutesLeft} min` : `${Math.floor(minutesLeft / 60)} hour${Math.floor(minutesLeft / 60) !== 1 ? "s" : ""}`} of purchase
+          </p>
       </div>
       )}
 

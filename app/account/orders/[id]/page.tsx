@@ -6,6 +6,7 @@ import { getOrderStep } from "@/lib/shopify/customer";
 import type { MappedOrder } from "@/lib/shopify/admin";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import CancelButton from "@/app/components/CancelButton";
+import { useCart } from "@/app/components/CartProvider";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
@@ -214,6 +215,11 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Reorder Button */}
+      <div className="mb-4">
+        <ReorderButton order={order} />
+      </div>
+
       {/* Cancel Button */}
       <div className="mb-6">
         <CancelButton
@@ -242,5 +248,36 @@ export default function OrderDetailPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+function ReorderButton({ order }: { order: MappedOrder }) {
+  const { addToCart } = useCart();
+  const router = useRouter();
+
+  function handleReorder() {
+    order.lineItems.edges.forEach(({ node }) => {
+      if (!node.variantId) return;
+      addToCart({
+        variantId: node.variantId,
+        productHandle: "",
+        title: node.title,
+        variantTitle: "",
+        price: node.variant?.price.amount || "0",
+        quantity: node.quantity,
+        image: null,
+      });
+    });
+    router.push("/cart");
+  }
+
+  return (
+    <button
+      onClick={handleReorder}
+      className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold 
+        rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+    >
+      🔄 Reorder This Box
+    </button>
   );
 }

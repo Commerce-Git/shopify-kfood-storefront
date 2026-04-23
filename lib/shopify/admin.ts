@@ -184,6 +184,7 @@ export interface MappedOrder {
       node: {
         title: string;
         quantity: number;
+        variantId: string | null;
         variant: {
           price: { amount: string; currencyCode: string };
           image: { url: string; altText: string | null } | null;
@@ -267,6 +268,9 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
         node: {
           title: item.title,
           quantity: item.quantity,
+          variantId: item.variant_id
+            ? `gid://shopify/ProductVariant/${item.variant_id}`
+            : null,
           variant: {
             price: {
               amount: item.price,

@@ -7,6 +7,7 @@ import type { MappedOrder } from "@/lib/shopify/admin";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/app/components/CartProvider";
 
 export default function AccountPage() {
   const { user, customer, isLoading, signOut, isLoggedIn } = useAuth();
@@ -14,6 +15,7 @@ export default function AccountPage() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const router = useRouter();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     async function fetchOrders() {
@@ -229,7 +231,33 @@ export default function AccountPage() {
                     })}
                   </span>
                 </div>
-                <OrderStatusBar step={step} />
+                <div className="flex items-center justify-between mt-4">
+                  <OrderStatusBar step={step} />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      order.lineItems.edges.forEach(({ node }) => {
+                        if (!node.variantId) return;
+                        addToCart({
+                          variantId: node.variantId,
+                          productHandle: "",
+                          title: node.title,
+                          variantTitle: "",
+                          price: node.variant?.price.amount || "0",
+                          quantity: node.quantity,
+                          image: null,
+                        });
+                      });
+                      router.push("/cart");
+                    }}
+                    className="text-xs text-orange-600 hover:text-orange-700 font-semibold 
+                      bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all 
+                      flex-shrink-0 ml-3"
+                  >
+                    🔄 Reorder
+                  </button>
+                </div>
               </Link>
             );
           })}

@@ -26,6 +26,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // Backend validation: Verify the cancellation window has not passed
+    if (body.processedAt) {
+      const orderDate = new Date(body.processedAt);
+      const deadline = new Date(orderDate.getTime() + CANCEL_WINDOW_HOURS * 60 * 60 * 1000);
+      if (new Date() > deadline) {
+        return NextResponse.json(
+          { error: `The ${CANCEL_WINDOW_HOURS}-hour free cancellation window has passed.` },
+          { status: 403 }
+        );
+      }
+    }
+
     // Check for duplicate request
     const { data: existing } = await supabase
       .from("storefront_cancel_requests")

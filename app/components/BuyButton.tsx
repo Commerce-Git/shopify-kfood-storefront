@@ -1,42 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { storefrontFetch } from "@/lib/shopify/storefront";
-import { CREATE_CART } from "@/lib/shopify/queries";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/app/components/CartProvider";
 import { useAuth } from "@/app/components/AuthProvider";
 
 interface BuyButtonProps {
   variantId: string;
-  quantity?: number;
+  productTitle?: string;
+  productHandle?: string;
+  price?: string;
   label?: string;
   className?: string;
   size?: "sm" | "md" | "lg";
   showSecureBadge?: boolean;
 }
 
-interface CartResponse {
-  cartCreate: {
-    cart: {
-      id: string;
-      checkoutUrl: string;
-    };
-    userErrors: {
-      field: string[];
-      message: string;
-    }[];
-  };
-}
-
 export default function BuyButton({
   variantId,
-  quantity = 1,
-  label = "Buy Now",
+  productTitle = "Seoul Snack Box",
+  productHandle = "seoul-snack-box",
+  price = "45.00",
+  label = "Add to Cart 🛒",
   className = "",
   size = "md",
   showSecureBadge = true,
 }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { addToCart } = useCart();
+  const router = useRouter();
   const { user } = useAuth();
 
   const sizeClasses = {
@@ -45,35 +37,27 @@ export default function BuyButton({
     lg: "px-10 py-4 text-lg",
   };
 
-  async function handleBuyNow() {
+  function handleAddToCart() {
     setLoading(true);
-    setError(null);
 
-    try {
-      const data = await storefrontFetch<CartResponse>(CREATE_CART, {
-        lines: [{ merchandiseId: variantId, quantity }],
-      });
+    addToCart({
+      variantId,
+      productHandle,
+      title: productTitle,
+      variantTitle: "",
+      price,
+      quantity: 1,
+      image: null,
+    });
 
-      const { cart, userErrors } = data.cartCreate;
-
-      if (userErrors.length > 0) {
-        setError(userErrors[0].message);
-        return;
-      }
-
-      // Redirect to Shopify checkout
-      window.location.href = cart.checkoutUrl;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    // Navigate to cart page
+    router.push("/cart");
   }
 
   return (
     <div className="flex flex-col items-center gap-2">
       <button
-        onClick={handleBuyNow}
+        onClick={handleAddToCart}
         disabled={loading}
         className={`
           btn-primary ${sizeClasses[size]}
@@ -103,7 +87,7 @@ export default function BuyButton({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            Processing...
+            Adding...
           </span>
         ) : (
           label
@@ -131,10 +115,6 @@ export default function BuyButton({
         <p className="text-xs text-text-muted/70 mt-1">
           💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
         </p>
-      )}
-
-      {error && (
-        <p className="text-sm text-red-500 mt-1">{error}</p>
       )}
     </div>
   );
