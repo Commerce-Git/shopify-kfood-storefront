@@ -23,6 +23,26 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     async function fetchOrder() {
+      // 1. Try localStorage cache first (shared with /account page)
+      try {
+        const keys = Object.keys(localStorage).filter((k) => k.startsWith("orders_"));
+        for (const key of keys) {
+          const cached = JSON.parse(localStorage.getItem(key) || "{}");
+          const age = Date.now() - (cached.timestamp || 0);
+          if (age < 2 * 60 * 1000 && cached.orders) {
+            const found = cached.orders.find((o: MappedOrder) => o.id === orderId);
+            if (found) {
+              setOrder(found);
+              setLoading(false);
+              break;
+            }
+          }
+        }
+      } catch {
+        // Cache miss — continue to API
+      }
+
+      // 2. Always fetch fresh data
       try {
         const res = await fetch("/api/orders");
         if (!res.ok) throw new Error("Failed to fetch orders");
@@ -30,11 +50,11 @@ export default function OrderDetailPage() {
         const found = data.orders.find((o: MappedOrder) => o.id === orderId);
         if (found) {
           setOrder(found);
-        } else {
+        } else if (!order) {
           setError("Order not found.");
         }
       } catch {
-        setError("Failed to load order.");
+        if (!order) setError("Failed to load order.");
       } finally {
         setLoading(false);
       }

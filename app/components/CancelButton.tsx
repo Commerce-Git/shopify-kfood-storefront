@@ -25,6 +25,7 @@ export default function CancelButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [refundAmount, setRefundAmount] = useState<string | null>(null);
 
   const isCancelled = ["CANCELLED", "REFUNDED", "VOIDED"].includes(financialStatus);
   const canCancel =
@@ -34,20 +35,28 @@ export default function CancelButton({
   // Already cancelled — show status
   if (isCancelled) {
     return (
-      <div className="bg-gray-50 text-gray-500 px-4 py-3 rounded-xl text-sm text-center">
-        🚫 This order has been cancelled. Your refund is being processed.
+      <div className="bg-gray-50 border border-gray-200 px-4 py-4 rounded-xl text-sm text-center space-y-1">
+        <p className="text-gray-700 font-medium">✅ This order has been cancelled.</p>
+        <p className="text-gray-500">
+          💳 Refund → Original payment method · 📅 5-10 business days
+        </p>
       </div>
     );
   }
 
-  // Just cancelled in this session — show processing state
+  // Just cancelled in this session
   if (success) {
     return (
-      <div className="bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl text-sm text-center text-amber-700">
-        <div className="flex items-center justify-center gap-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-400 border-t-transparent" />
-          <span>Cancellation in progress — your refund will be processed shortly.</span>
-        </div>
+      <div className="bg-green-50 border border-green-200 px-4 py-4 rounded-xl text-sm text-center space-y-1">
+        <p className="text-green-700 font-medium">
+          ✅ Order has been cancelled and refunded.
+        </p>
+        {refundAmount && (
+          <p className="text-green-600">
+            💳 Refund: ${parseFloat(refundAmount).toFixed(2)} → Original payment
+          </p>
+        )}
+        <p className="text-gray-500">📅 Expected: 5-10 business days</p>
       </div>
     );
   }
@@ -58,6 +67,7 @@ export default function CancelButton({
   const handleCancel = async () => {
     setLoading(true);
     setError(null);
+    setShowModal(false); // Close modal immediately
 
     try {
       const res = await fetch("/api/cancel-order", {
@@ -76,6 +86,7 @@ export default function CancelButton({
         setError(data.error || "Something went wrong");
       } else {
         setSuccess(true);
+        setRefundAmount(data.refundAmount || null);
         onCancelled?.();
       }
     } catch {
@@ -87,18 +98,38 @@ export default function CancelButton({
 
   return (
     <>
-      <div className="text-center space-y-1">
-        <button
-          onClick={() => setShowModal(true)}
-          className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 
-            transition-colors"
-        >
-          Changed your mind? Cancel this order
-        </button>
-        <p className="text-xs text-gray-400">
-          Free cancellation within {minutesLeft <= 60 ? `${minutesLeft} min` : "1 hour"} of purchase
+      {/* Loading state — shown after modal closes while API processes */}
+      {loading && (
+        <div className="bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl text-sm text-center text-amber-700">
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-400 border-t-transparent" />
+            <span>Processing cancellation and refund...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Cancel link — hidden while loading */}
+      {!loading && !error && (
+        <div className="text-center space-y-1">
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 
+              transition-colors"
+          >
+            Changed your mind? Cancel this order
+          </button>
+          <p className="text-xs text-gray-400">
+            Free cancellation within {minutesLeft <= 60 ? `${minutesLeft} min` : "1 hour"} of purchase
         </p>
       </div>
+      )}
 
       {/* Cancel Confirmation Modal */}
       {showModal && (
@@ -119,11 +150,6 @@ export default function CancelButton({
                 outline-none resize-none h-24 text-sm text-gray-900 mb-4"
             />
 
-            {error && (
-              <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
-                {error}
-              </div>
-            )}
 
             <div className="flex gap-3">
               <button

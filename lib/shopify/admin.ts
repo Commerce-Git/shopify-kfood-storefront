@@ -306,7 +306,7 @@ function mapFulfillmentStatus(status: string | null): string {
   }
 }
 
-// ---- Order Cancellation ----
+// ---- Order Cancellation + Full Refund ----
 
 /**
  * Extract numeric order ID from Shopify GraphQL ID.
@@ -319,46 +319,111 @@ function extractNumericId(gid: string): string {
 }
 
 /**
- * Cancel an order via Shopify Admin REST API.
- * This triggers an automatic full refund to the original payment method.
+ * Cancel an order AND issue a full refund via Shopify Admin REST API.
+ * Flow: calculate refund → execute refund → cancel order.
  * Server-side only.
  */
 export async function cancelOrder(
   shopifyOrderGid: string,
   reason: string = "customer"
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; refundAmount?: string; error?: string }> {
   try {
     const token = await getAdminToken();
     const numericId = extractNumericId(shopifyOrderGid);
+    const headers = {
+      "X-Shopify-Access-Token": token,
+      "Content-Type": "application/json",
+    };
 
-    const response = await adminFetch(
+    // ---- Step 0: Get order details (need line_items for refund) ----
+    const orderRes = await adminFetch(
+      `${ADMIN_API_URL}/orders/${numericId}.json?fields=id,line_items,total_price,currency`,
+      { method: "GET", headers }
+    );
+
+    if (!orderRes.ok) {
+      const text = await orderRes.text();
+      return { success: false, error: `Failed to fetch order: HTTP ${orderRes.status}: ${text}` };
+    }
+
+    const { order } = await orderRes.json();
+
+    // ---- Step 1: Calculate refund (Shopify computes exact amounts) ----
+    const calcBody = {
+      refund: {
+        shipping: { full_refund: true },
+        refund_line_items: order.line_items.map((item: { id: number; quantity: number }) => ({
+          line_item_id: item.id,
+          quantity: item.quantity,
+          restock_type: "cancel",
+        })),
+      },
+    };
+
+    const calcRes = await adminFetch(
+      `${ADMIN_API_URL}/orders/${numericId}/refunds/calculate.json`,
+      { method: "POST", headers, body: JSON.stringify(calcBody) }
+    );
+
+    if (!calcRes.ok) {
+      const text = await calcRes.text();
+      console.error("[Admin API] Refund calculate error:", calcRes.status, text);
+      return { success: false, error: `Refund calculation failed: HTTP ${calcRes.status}` };
+    }
+
+    const calcData = await calcRes.json();
+    const suggestedRefund = calcData.refund;
+
+    // ---- Step 2: Execute refund (change "suggested_refund" → "refund") ----
+    const transactions = (suggestedRefund.transactions || []).map(
+      (tx: { parent_id: number; amount: string; kind: string; gateway: string }) => ({
+        parent_id: tx.parent_id,
+        amount: tx.amount,
+        kind: "refund", // Must change from "suggested_refund" to "refund"
+        gateway: tx.gateway,
+      })
+    );
+
+    const refundBody = {
+      refund: {
+        notify: true,
+        refund_line_items: suggestedRefund.refund_line_items,
+        transactions,
+      },
+    };
+
+    const refundRes = await adminFetch(
+      `${ADMIN_API_URL}/orders/${numericId}/refunds.json`,
+      { method: "POST", headers, body: JSON.stringify(refundBody) }
+    );
+
+    if (!refundRes.ok) {
+      const text = await refundRes.text();
+      console.error("[Admin API] Refund execute error:", refundRes.status, text);
+      return { success: false, error: `Refund failed: HTTP ${refundRes.status}: ${text}` };
+    }
+
+    // ---- Step 3: Cancel the order ----
+    const cancelRes = await adminFetch(
       `${ADMIN_API_URL}/orders/${numericId}/cancel.json`,
       {
         method: "POST",
-        headers: {
-          "X-Shopify-Access-Token": token,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reason,
-          restock: true,
-          email: true,
-        }),
+        headers,
+        body: JSON.stringify({ reason, email: false }), // email already sent by refund
       }
     );
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("[Admin API] Cancel error:", response.status, text);
-      return {
-        success: false,
-        error: `Shopify returned HTTP ${response.status}: ${text}`,
-      };
+    if (!cancelRes.ok) {
+      // Refund succeeded but cancel failed — still considered success
+      console.warn("[Admin API] Cancel failed after refund:", cancelRes.status);
     }
 
-    return { success: true };
+    return {
+      success: true,
+      refundAmount: order.total_price,
+    };
   } catch (err) {
-    console.error("[Admin API] Cancel exception:", err);
+    console.error("[Admin API] Cancel+Refund exception:", err);
     return {
       success: false,
       error: err instanceof Error ? err.message : "Unknown error",

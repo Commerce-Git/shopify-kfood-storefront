@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Auto-cancel in Shopify Admin API
+    // 2. Cancel + full refund in Shopify Admin API
     const result = await cancelOrder(shopify_order_id, "customer");
 
     if (result.success) {
@@ -77,8 +77,8 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Order ${order_number} has been cancelled and your refund is being processed.`,
-        cancel_window_hours: CANCEL_WINDOW_HOURS,
+        message: `Order ${order_number} has been cancelled. Your refund of $${result.refundAmount || "0"} is being processed.`,
+        refundAmount: result.refundAmount,
       });
     } else {
       // Shopify cancel failed
