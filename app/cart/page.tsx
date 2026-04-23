@@ -25,13 +25,12 @@ interface CartResponse {
 
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, removeFromCart, updateQuantity, clearCart } =
+  const { items, itemCount, subtotal, removeFromCart, updateQuantity, backupToStorageOnly, restoreFromBackup, dismissBackup, getCheckoutBackup } =
     useCart();
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-
-
 
   async function handleCheckout() {
     if (items.length === 0) return;
@@ -56,16 +55,41 @@ export default function CartPage() {
         return;
       }
 
-      clearCart();
+      // Show redirect overlay BEFORE touching storage
+      setIsRedirecting(true);
+
+      // Backup to localStorage only (no React re-render = no flash)
+      backupToStorageOnly(items.map((i) => i.variantId));
+
       window.location.href = cart.checkoutUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      setIsRedirecting(false);
     } finally {
       setLoading(false);
     }
   }
 
+  // Full-screen redirect overlay
+  if (isRedirecting) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div className="text-center px-4">
+          <div className="text-4xl mb-4">🔒</div>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">
+            Redirecting to Secure Checkout
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Please wait while we connect you to our payment partner...
+          </p>
+          <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
   if (itemCount === 0) {
+    const backup = getCheckoutBackup();
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
         <div className="text-center px-4">
@@ -74,6 +98,35 @@ export default function CartPage() {
           <p className="text-text-muted mb-8">
             Looks like you haven&apos;t added any K-Food snacks yet!
           </p>
+
+          {/* Checkout restore banner */}
+          {backup && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 max-w-sm mx-auto">
+              <p className="text-sm font-semibold text-amber-900 mb-1">
+                Didn&apos;t complete your purchase?
+              </p>
+              <p className="text-xs text-amber-700 mb-4">
+                Your previous cart ({backup.items.length} {backup.items.length === 1 ? "item" : "items"}) is saved.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={restoreFromBackup}
+                  className="text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500
+                    text-white px-4 py-2 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all"
+                >
+                  Restore My Cart
+                </button>
+                <button
+                  onClick={dismissBackup}
+                  className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl
+                    border border-gray-200 hover:bg-gray-50 transition-all"
+                >
+                  No Thanks
+                </button>
+              </div>
+            </div>
+          )}
+
           <Link href="/" className="btn-primary">
             Get My Seoul Snack Box →
           </Link>
@@ -282,9 +335,8 @@ export default function CartPage() {
             <button
               onClick={handleCheckout}
               disabled={loading}
-              className={`btn-primary w-full text-base py-4 mt-2 ${
-                loading ? "opacity-70 cursor-wait" : ""
-              }`}
+              className={`btn-primary w-full text-base py-4 mt-2 ${loading ? "opacity-70 cursor-wait" : ""
+                }`}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -377,9 +429,8 @@ export default function CartPage() {
           <button
             onClick={handleCheckout}
             disabled={loading}
-            className={`btn-primary flex-1 py-3.5 text-base ${
-              loading ? "opacity-70 cursor-wait" : ""
-            }`}
+            className={`btn-primary flex-1 py-3.5 text-base ${loading ? "opacity-70 cursor-wait" : ""
+              }`}
           >
             {loading ? "Processing..." : "Complete Order 🎉"}
           </button>
