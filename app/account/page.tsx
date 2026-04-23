@@ -2,32 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
-import { getCustomerOrders, getOrderStep } from "@/lib/shopify/customer";
-import type { ShopifyOrder } from "@/lib/shopify/customer";
+import { getOrderStep } from "@/lib/shopify/customer";
+import type { MappedOrder } from "@/lib/shopify/admin";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
   const { user, customer, isLoading, signOut, isLoggedIn } = useAuth();
-  const [orders, setOrders] = useState<ShopifyOrder[]>([]);
+  const [orders, setOrders] = useState<MappedOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchOrders() {
-      if (!customer?.shopify_access_token) {
-        setOrdersLoading(false);
-        setOrdersError(
-          "No Shopify account linked yet. Orders will appear here after your first purchase."
-        );
-        return;
-      }
-
       try {
-        const data = await getCustomerOrders(customer.shopify_access_token);
-        setOrders(data);
+        const res = await fetch("/api/orders");
+        if (!res.ok) throw new Error("Failed to fetch orders");
+        const data = await res.json();
+        setOrders(data.orders);
       } catch {
         setOrdersError("Failed to load orders. Please try again.");
       } finally {
@@ -38,7 +32,7 @@ export default function AccountPage() {
     if (!isLoading && user) {
       fetchOrders();
     }
-  }, [isLoading, user, customer]);
+  }, [isLoading, user]);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {

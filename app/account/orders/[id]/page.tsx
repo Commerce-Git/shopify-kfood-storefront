@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
-import { getCustomerOrders, getOrderStep } from "@/lib/shopify/customer";
-import type { ShopifyOrder } from "@/lib/shopify/customer";
+import { getOrderStep } from "@/lib/shopify/customer";
+import type { MappedOrder } from "@/lib/shopify/admin";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import CancelButton from "@/app/components/CancelButton";
 import Link from "next/link";
@@ -12,26 +12,22 @@ import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 
 export default function OrderDetailPage() {
-  const { customer, isLoading: authLoading, isLoggedIn } = useAuth();
+  const { isLoading: authLoading, isLoggedIn } = useAuth();
   const params = useParams();
   const router = useRouter();
   const orderId = decodeURIComponent(params.id as string);
 
-  const [order, setOrder] = useState<ShopifyOrder | null>(null);
+  const [order, setOrder] = useState<MappedOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchOrder() {
-      if (!customer?.shopify_access_token) {
-        setError("Unable to load order details.");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const orders = await getCustomerOrders(customer.shopify_access_token);
-        const found = orders.find((o) => o.id === orderId);
+        const res = await fetch("/api/orders");
+        if (!res.ok) throw new Error("Failed to fetch orders");
+        const data = await res.json();
+        const found = data.orders.find((o: MappedOrder) => o.id === orderId);
         if (found) {
           setOrder(found);
         } else {
@@ -44,10 +40,10 @@ export default function OrderDetailPage() {
       }
     }
 
-    if (!authLoading) {
+    if (!authLoading && isLoggedIn) {
       fetchOrder();
     }
-  }, [authLoading, customer, orderId]);
+  }, [authLoading, isLoggedIn, orderId]);
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) {
