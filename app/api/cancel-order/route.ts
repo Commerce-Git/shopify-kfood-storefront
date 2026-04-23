@@ -29,17 +29,18 @@ export async function POST(request: Request) {
     // Check for duplicate request
     const { data: existing } = await supabase
       .from("storefront_cancel_requests")
-      .select("id")
+      .select("id, status")
       .eq("shopify_order_id", shopify_order_id)
       .eq("customer_id", user.id)
       .in("status", ["pending", "approved"])
       .single();
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Cancellation already requested for this order" },
-        { status: 409 }
-      );
+      const msg =
+        existing.status === "approved"
+          ? "This order has already been cancelled. Your refund is being processed."
+          : "Cancellation is already in progress. Please wait.";
+      return NextResponse.json({ error: msg }, { status: 409 });
     }
 
     // 1. Record cancel request in Supabase (pending)

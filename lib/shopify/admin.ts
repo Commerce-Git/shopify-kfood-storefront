@@ -301,6 +301,8 @@ export async function cancelOrder(
         },
         body: JSON.stringify({
           reason,
+          restock: true,
+          email: true,
         }),
       }
     );
