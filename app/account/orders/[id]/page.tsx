@@ -158,9 +158,9 @@ export default function OrderDetailPage() {
               <span className="text-gray-400">Tracking #:</span>{" "}
               <span className="font-mono font-medium">{order.tracking.number}</span>
             </p>
-            {order.tracking.url && (
+            {order.tracking.number && (
               <a
-                href={order.tracking.url}
+                href={`https://t.17track.net/en#nums=${order.tracking.number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 

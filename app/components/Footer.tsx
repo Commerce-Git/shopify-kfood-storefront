@@ -12,7 +12,8 @@ const FOOTER_LINKS = {
   Support: [
     { label: "FAQ", href: "/faq" },
     { label: "Contact Us", href: "mailto:support@seoulsnackbox.com" },
-    { label: "Track Order", href: "#" },
+    { label: "Track Order", href: "/order-lookup" },
+    { label: "Feedback", href: "/feedback" },
   ],
   Legal: [
     { label: "Shipping Policy", href: "/policies/shipping" },
