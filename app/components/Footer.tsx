@@ -11,7 +11,7 @@ const FOOTER_LINKS = {
   ],
   Support: [
     { label: "FAQ", href: "/faq" },
-    { label: "Contact Us", href: "mailto:hello@kfoodstore.com" },
+    { label: "Contact Us", href: "mailto:support@seoulsnackbox.com" },
     { label: "Track Order", href: "#" },
   ],
   Legal: [

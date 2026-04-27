@@ -47,9 +47,9 @@ export default function ShippingPolicyPage() {
 
       <h2>Shipping Costs</h2>
       <p>
-        Shipping costs are calculated at checkout based on the weight of your order and
-        destination. We occasionally offer free shipping promotions — follow us on social
-        media to stay updated!
+        We are currently offering <strong>Free International Shipping</strong> on all our
+        snack box orders via Korea Post EMS. There are no hidden shipping fees calculated
+        at checkout.
       </p>
 
       <h2>Customs & Duties</h2>
@@ -64,7 +64,7 @@ export default function ShippingPolicyPage() {
       <p>
         If your package has not arrived within 15 business days of shipment, please contact
         us at{" "}
-        <a href="mailto:hello@kfoodstore.com">hello@kfoodstore.com</a> with your order
+        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a> with your order
         number, and we will investigate with the carrier.
       </p>
     </>

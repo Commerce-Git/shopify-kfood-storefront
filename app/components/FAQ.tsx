@@ -46,7 +46,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Do you ship outside the US?",
     answer:
-      "Currently, we only ship to the contiguous United States (48 states). We're planning to expand to Canada, UK, and Australia soon. Join our mailing list to be the first to know!",
+      "Currently, we ship to all 50 United States (including Hawaii and Alaska) as well as US Territories. We're planning to expand to Canada, UK, and Australia soon. Join our mailing list to be the first to know!",
   },
 ];
 

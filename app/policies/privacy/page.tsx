@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
       <h2>Contact</h2>
       <p>
         For privacy-related inquiries, please contact us at{" "}
-        <a href="mailto:hello@kfoodstore.com">hello@kfoodstore.com</a>.
+        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a>.
       </p>
     </>
   );

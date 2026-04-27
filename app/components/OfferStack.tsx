@@ -50,7 +50,7 @@ export default function OfferStack({ variantId }: OfferStackProps) {
 
           <div className="mt-12 text-center border-t-2 border-dashed border-gray-200 pt-10">
             <div className="inline-block bg-orange-50 text-orange-600 font-bold px-4 py-1 rounded-full text-sm mb-6 border border-orange-100">
-              ✈️ Ships direct from Seoul every Friday
+              ✈️ Shipped direct from Seoul
             </div>
             
             <p className="text-gray-500 mb-2 uppercase tracking-wide font-bold">Today&apos;s Price</p>

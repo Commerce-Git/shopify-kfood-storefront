@@ -79,7 +79,7 @@ export default function TermsPage() {
       <h2>Contact</h2>
       <p>
         For questions about these terms, please contact us at{" "}
-        <a href="mailto:hello@kfoodstore.com">hello@kfoodstore.com</a>.
+        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a>.
       </p>
     </>
   );
