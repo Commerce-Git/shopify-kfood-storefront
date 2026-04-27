@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -11,7 +11,7 @@ import {
 
 // ---- Component ----
 
-export default function FeedbackPage() {
+function FeedbackForm() {
   const [step, setStep] = useState(1);
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -428,5 +428,13 @@ export default function FeedbackPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function FeedbackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[80vh] flex items-center justify-center text-gray-500">Loading feedback form...</div>}>
+      <FeedbackForm />
+    </Suspense>
   );
 }
