@@ -53,7 +53,7 @@ export const FeedbackEmail = ({
             <Section className="text-center mt-[32px] mb-[32px]">
               <Button
                 className="bg-[#f97316] rounded-md text-white text-[14px] font-semibold no-underline text-center px-6 py-3"
-                href={`https://seoulsnackbox.com/feedback?email=${encodeURIComponent(
+                href={`${process.env.NEXT_PUBLIC_SITE_URL || "https://shopify-kfood-storefront.vercel.app"}/feedback?email=${encodeURIComponent(
                   customerEmail
                 )}`}
               >
