@@ -1,7 +1,133 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
-import { cancelOrder } from "@/lib/shopify/admin";
+import { cancelOrder, adminGraphQL } from "@/lib/shopify/admin";
+import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
+import { Resend } from "resend";
+import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Service-role Supabase client (bypasses RLS)
+const supabaseAdmin = createSupabaseAdmin(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
+
+// ---- 쿠폰 재발급 헬퍼 ----
+
+/**
+ * 취소된 주문에서 사용된 리뷰 쿠폰을 감지하고, 새 쿠폰을 자동 발급합니다.
+ * 비동기로 실행되며 (fire-and-forget), 실패해도 취소 결과에 영향을 주지 않습니다.
+ */
+async function handleCouponReplacement(shopifyOrderGid: string) {
+  try {
+    // 1. 취소된 주문의 할인 코드 조회
+    const { data } = await adminGraphQL(`
+      {
+        order(id: "${shopifyOrderGid}") {
+          discountCodes
+          email
+        }
+      }
+    `);
+
+    const discountCodes: string[] = data?.order?.discountCodes || [];
+    const customerEmail: string | null = data?.order?.email || null;
+
+    // 2. REVIEW- 접두어 쿠폰이 있는지 확인
+    const usedReviewCoupon = discountCodes.find((code: string) =>
+      code.startsWith(COUPON_CONFIG.codePrefix + "-")
+    );
+
+    if (!usedReviewCoupon) return; // 리뷰 쿠폰이 아닌 경우 무시
+
+    // 3. Supabase에서 해당 쿠폰의 리뷰 레코드 조회
+    const { data: review, error } = await supabaseAdmin
+      .from("reviews")
+      .select("id, token, customer_name, customer_email, coupon_expires_at")
+      .eq("coupon_code", usedReviewCoupon)
+      .single();
+
+    if (error || !review) {
+      console.log("[Coupon Replace] No matching review found for:", usedReviewCoupon);
+      return;
+    }
+
+    // 4. 새 쿠폰 생성 (기존 만료일 유지)
+    const newCouponCode = generateCouponCode();
+    const couponExpiresAt = new Date(review.coupon_expires_at);
+
+    // 만료일이 이미 지났으면 30일 연장
+    if (couponExpiresAt < new Date()) {
+      couponExpiresAt.setDate(new Date().getDate() + COUPON_CONFIG.validityDays);
+    }
+
+    const discountValue =
+      COUPON_CONFIG.discountType === "percentage"
+        ? `{ percentage: ${COUPON_CONFIG.discountValue / 100} }`
+        : `{ amount: { amount: "${COUPON_CONFIG.discountValue}", currencyCode: USD } }`;
+
+    await adminGraphQL(`
+      mutation {
+        discountCodeBasicCreate(basicCodeDiscount: {
+          title: "Review Reward (Replacement) - ${newCouponCode}"
+          code: "${newCouponCode}"
+          startsAt: "${new Date().toISOString()}"
+          endsAt: "${couponExpiresAt.toISOString()}"
+          usageLimit: ${COUPON_CONFIG.usageLimit}
+          customerGets: {
+            value: ${discountValue}
+            items: { all: true }
+          }
+          customerSelection: { all: true }
+        }) {
+          codeDiscountNode { id }
+          userErrors { field message }
+        }
+      }
+    `);
+
+    // 5. Supabase 업데이트 (새 쿠폰 코드로 교체)
+    await supabaseAdmin
+      .from("reviews")
+      .update({
+        coupon_code: newCouponCode,
+        coupon_expires_at: couponExpiresAt.toISOString(),
+        reminder_sent: false, // 리마인더 리셋
+      })
+      .eq("id", review.id);
+
+    // 6. 새 쿠폰 이메일 발송
+    const discountLabel =
+      COUPON_CONFIG.discountType === "percentage"
+        ? `${COUPON_CONFIG.discountValue}% OFF`
+        : `$${COUPON_CONFIG.discountValue} OFF`;
+
+    const emailTo = customerEmail || review.customer_email;
+
+    await resend.emails.send({
+      from: "Seoul Snack Box <onboarding@resend.dev>",
+      to: [emailTo],
+      subject: `Your ${discountLabel} coupon has been restored! — Seoul Snack Box`,
+      react: CouponConfirmationEmail({
+        customerName: review.customer_name.split(" ")[0],
+        couponCode: newCouponCode,
+        discountLabel,
+        expiresAt: couponExpiresAt.toISOString(),
+        reviewToken: review.token,
+      }) as React.ReactElement,
+    });
+
+    console.log(`[Coupon Replace] ${usedReviewCoupon} → ${newCouponCode} for ${emailTo}`);
+  } catch (err) {
+    // fire-and-forget: 실패해도 취소 결과에 영향 없음
+    console.error("[Coupon Replace] Error:", err);
+  }
+}
+
+// ---- 주문 취소 API ----
 
 export async function POST(request: Request) {
   try {
@@ -86,6 +212,9 @@ export async function POST(request: Request) {
         .from("storefront_cancel_requests")
         .update({ status: "approved" })
         .eq("id", cancelRecord.id);
+
+      // 3. 쿠폰 재발급 (fire-and-forget — 취소 응답을 지연시키지 않음)
+      handleCouponReplacement(shopify_order_id);
 
       return NextResponse.json({
         success: true,

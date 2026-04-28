@@ -37,7 +37,7 @@
 | `validityDays` | `30` | 쿠폰 유효기간 (리뷰 작성일 기준) |
 | `tokenExpiryDays` | `60` | 리뷰 토큰 유효기간 (이메일 발송일 기준) |
 | `reminderDaysBeforeExpiry` | `7` | 만료 리마인더 발송 시점 |
-| `usageLimit` | `2` | 쿠폰 사용 횟수 (취소 후 재사용 1회 허용) |
+| `usageLimit` | `1` | 쿠폰 사용 횟수 (취소 시 새 쿠폰 자동 발급) |
 | `minimumOrderAmount` | `null` | 최소 주문 금액 (null = 없음) |
 
 ### 할인율 변경 방법

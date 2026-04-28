@@ -19,8 +19,8 @@ export const COUPON_CONFIG = {
   /** 만료 리마인더: 쿠폰 만료 며칠 전에 알림 이메일을 보낼지 */
   reminderDaysBeforeExpiry: 7,
 
-  /** 쿠폰 총 사용 횟수: 2 = 주문 취소 후 재사용 1회 허용 */
-  usageLimit: 2,
+  /** 쿠폰 총 사용 횟수: 1 = 1회 사용 (취소 시 새 쿠폰 자동 발급) */
+  usageLimit: 1,
 
   /** 최소 주문 금액: null = 제한 없음, 숫자 = 해당 금액 이상 구매 시 적용 */
   minimumOrderAmount: null as number | null,
