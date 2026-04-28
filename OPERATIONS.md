@@ -19,6 +19,7 @@
 | 이메일 | 트리거 | 템플릿 파일 |
 |--------|--------|------------|
 | 리뷰 요청 | 배송 완료 21일 후 (크론잡 #1) | `emails/ReviewRequestEmail.tsx` |
+| 쿠폰 발급 확인 | 리뷰 작성 직후 (즉시) | `emails/CouponConfirmationEmail.tsx` |
 | 쿠폰 만료 리마인더 | 쿠폰 만료 7일 전 (크론잡 #2) | `emails/CouponReminderEmail.tsx` |
 
 > **발신자**: `Seoul Snack Box <onboarding@resend.dev>` (도메인 인증 후 변경 예정)
