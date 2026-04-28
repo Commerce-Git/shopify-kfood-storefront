@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "email": "react-email dev"
+    "email": "email dev"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",
