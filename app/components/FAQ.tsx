@@ -148,7 +148,141 @@ export default function FAQ({ showAll = false }: { showAll?: boolean }) {
             </a>
           </div>
         )}
+
+        {/* Contact / Feedback Form */}
+        <FeedbackForm />
       </div>
     </section>
+  );
+}
+
+// ---- Feedback Form (integrated into FAQ) ----
+
+function FeedbackForm() {
+  const [content, setContent] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!content.trim()) return;
+
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: content.trim(),
+          name: name.trim() || undefined,
+          email: email.trim() || undefined,
+          _hp: honeypot || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Something went wrong.");
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="mt-12 pt-10 border-t border-border-light text-center">
+        <div className="text-4xl mb-3">🙏</div>
+        <p className="text-base font-semibold text-dark mb-1">
+          Thank you for your message!
+        </p>
+        <p className="text-sm text-text-muted">
+          We read every message and truly appreciate your feedback.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-12 pt-10 border-t border-border-light">
+      <div className="text-center mb-6">
+        <h3
+          className="text-lg font-bold text-dark mb-1"
+          style={{ fontFamily: "var(--font-heading)" }}
+        >
+          Still have a question or idea?
+        </h3>
+        <p className="text-sm text-text-muted">
+          We&apos;d love to hear from you — questions, ideas, requests, anything!
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3 max-w-lg mx-auto">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Ask us anything — questions, ideas, requests..."
+          maxLength={5000}
+          rows={3}
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 resize-none text-sm"
+        />
+
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name (optional)"
+            maxLength={200}
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 text-sm"
+          />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email — only if you want a reply"
+            maxLength={320}
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 text-sm"
+          />
+        </div>
+
+        {/* Honeypot — invisible to humans, bots fill this */}
+        <input
+          type="text"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          style={{ position: "absolute", left: "-9999px", opacity: 0 }}
+          aria-hidden="true"
+        />
+
+        {error && (
+          <p className="text-red-500 text-sm">{error}</p>
+        )}
+
+        <div className="text-center">
+          <button
+            type="submit"
+            disabled={sending || !content.trim()}
+            className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-md shadow-orange-500/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? "Sending..." : "Send My Message 💌"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

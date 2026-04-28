@@ -13,10 +13,6 @@ import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
 import { getReviewStatus } from "@/lib/review-filter";
-import {
-  VALID_SNACK_IDS,
-  VALID_CATEGORY_IDS,
-} from "@/lib/snack-options";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -127,19 +123,11 @@ export async function POST(request: NextRequest) {
       ? body.photoUrls.filter((u: unknown) => typeof u === "string").slice(0, 3)
       : [];
 
-    // 비공개 피드백 데이터 (선택)
-    const favoriteSnacks = Array.isArray(body.favoriteSnacks)
-      ? body.favoriteSnacks.filter((s: string) => VALID_SNACK_IDS.includes(s))
-      : [];
-    const leastFavoriteSnacks = Array.isArray(body.leastFavoriteSnacks)
-      ? body.leastFavoriteSnacks.filter((s: string) => VALID_SNACK_IDS.includes(s))
-      : [];
-    const wantNext = Array.isArray(body.wantNext)
-      ? body.wantNext.filter((s: string) => VALID_CATEGORY_IDS.includes(s))
-      : [];
-    const privateComment = typeof body.privateComment === "string"
-      ? body.privateComment.trim().slice(0, 1000)
-      : null;
+    // 비공개 피드백 필드 — 폼에서 더 이상 수집하지 않음 (DB 컬럼 유지, 값만 비움)
+    const favoriteSnacks: string[] = [];
+    const leastFavoriteSnacks: string[] = [];
+    const wantNext: string[] = [];
+    const privateComment = null;
 
     // 3. 금지어 필터
     const status = getReviewStatus(title, reviewBody);

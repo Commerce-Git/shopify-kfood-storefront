@@ -1,13 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense, useCallback } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  SNACK_OPTIONS,
-  CATEGORY_OPTIONS,
-  STAR_LABELS,
-} from "@/lib/snack-options";
+import { STAR_LABELS } from "@/lib/snack-options";
 
 // ---- Review Form Component ----
 
@@ -15,13 +11,8 @@ function ReviewForm() {
   const [step, setStep] = useState(0); // 0 = loading/validating token
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
-  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [photoUrls] = useState<string[]>([]);
-  const [favoriteSnacks, setFavoriteSnacks] = useState<string[]>([]);
-  const [leastFavoriteSnacks, setLeastFavoriteSnacks] = useState<string[]>([]);
-  const [wantNext, setWantNext] = useState<string[]>([]);
-  const [privateComment, setPrivateComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +24,7 @@ function ReviewForm() {
   const [discountLabel, setDiscountLabel] = useState<string>("");
 
   const searchParams = useSearchParams();
-  const totalSteps = 6;
+  const totalSteps = 2;
   const initialized = useRef(false);
 
   // Token validation on mount
@@ -77,15 +68,6 @@ function ReviewForm() {
       });
   }, [searchParams]);
 
-  const toggleSelection = useCallback(
-    (id: string, list: string[], setter: (v: string[]) => void) => {
-      setter(
-        list.includes(id) ? list.filter((x) => x !== id) : [...list, id]
-      );
-    },
-    []
-  );
-
   const handleSubmit = async () => {
     if (rating === 0) {
       setError("Please select a rating.");
@@ -108,13 +90,13 @@ function ReviewForm() {
         body: JSON.stringify({
           token,
           rating,
-          title: title.trim() || null,
+          title: null,
           body: body.trim(),
           photoUrls,
-          favoriteSnacks,
-          leastFavoriteSnacks,
-          wantNext,
-          privateComment: privateComment.trim() || null,
+          favoriteSnacks: [],
+          leastFavoriteSnacks: [],
+          wantNext: [],
+          privateComment: null,
         }),
       });
 
@@ -233,7 +215,7 @@ function ReviewForm() {
     );
   }
 
-  // ---- Main Form ----
+  // ---- Main Form (2 steps) ----
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24 pb-16">
       <div className="max-w-lg w-full">
@@ -246,20 +228,6 @@ function ReviewForm() {
           <p className="text-gray-500">
             Tell us about your snack box to instantly unlock your next discount.
           </p>
-        </div>
-
-        {/* Progress bar */}
-        <div className="flex gap-1.5 mb-8 px-4">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                i < step
-                  ? "bg-gradient-to-r from-orange-500 to-red-500"
-                  : "bg-gray-200"
-              }`}
-            />
-          ))}
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
@@ -292,23 +260,28 @@ function ReviewForm() {
             </div>
           )}
 
-          {/* Step 2: Review text (PUBLIC) */}
+          {/* Step 2: Review text + Photo + Submit */}
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 mb-2 text-center">
+              {/* Show selected rating */}
+              <div className="flex items-center justify-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span key={star} className="text-xl">
+                    {star <= rating ? "⭐" : "☆"}
+                  </span>
+                ))}
+                <span className="text-sm text-gray-400 ml-2">
+                  {STAR_LABELS[rating]}
+                </span>
+              </div>
+
+              <h2 className="text-lg font-bold text-gray-900 text-center">
                 Tell others about your experience
               </h2>
-              <p className="text-sm text-gray-400 text-center mb-4">
+              <p className="text-sm text-gray-400 text-center">
                 This will be shown on our product page 🌟
               </p>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Review title (optional)"
-                maxLength={200}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900"
-              />
+
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
@@ -317,158 +290,14 @@ function ReviewForm() {
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 resize-none"
               />
-            </div>
-          )}
 
-          {/* Step 3: Photo upload (PUBLIC) */}
-          {step === 3 && (
-            <div className="text-center">
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                Add a photo 📸
-              </h2>
-              <p className="text-sm text-gray-400 mb-6">
-                Optional — share your unboxing moment!
-              </p>
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
+              {/* Photo upload placeholder */}
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
                 <p className="text-gray-400 text-sm">
                   📷 Photo upload coming soon!
                   <br />
-                  <span className="text-xs">(Skip for now)</span>
+                  <span className="text-xs">(Optional)</span>
                 </p>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Favorite snacks (PRIVATE) */}
-          {step === 4 && (
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2 text-center">
-                Which snacks did you love?
-              </h2>
-              <p className="text-sm text-gray-400 text-center mb-1">
-                Select all that apply
-              </p>
-              <p className="text-xs text-orange-500 text-center mb-6">
-                🔒 This is private — only we see this
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {SNACK_OPTIONS.map((snack) => (
-                  <button
-                    key={snack.id}
-                    onClick={() =>
-                      toggleSelection(snack.id, favoriteSnacks, setFavoriteSnacks)
-                    }
-                    className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 rounded-xl border text-sm font-medium transition-all relative ${
-                      favoriteSnacks.includes(snack.id)
-                        ? "border-orange-500 bg-orange-50 text-orange-700 shadow-md transform scale-[1.02]"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {favoriteSnacks.includes(snack.id) && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs shadow-sm">
-                        ✓
-                      </div>
-                    )}
-                    <span className="text-2xl">{snack.emoji}</span>
-                    <span className="text-center leading-tight truncate w-full">
-                      {snack.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Want next (PRIVATE) */}
-          {step === 5 && (
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2 text-center">
-                Build your dream box!
-              </h2>
-              <p className="text-sm text-gray-400 text-center mb-1">
-                What should we focus on next?
-              </p>
-              <p className="text-xs text-orange-500 text-center mb-6">
-                🔒 Private feedback
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {CATEGORY_OPTIONS.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() =>
-                      toggleSelection(cat.id, wantNext, setWantNext)
-                    }
-                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full border text-sm font-medium transition-all ${
-                      wantNext.includes(cat.id)
-                        ? "border-orange-400 bg-orange-50 text-orange-700 shadow-sm"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span>{cat.emoji}</span>
-                    <span>{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Private comment + least favorite */}
-          {step === 6 && (
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-2 text-center">
-                  Anything else?
-                </h2>
-                <p className="text-sm text-gray-400 text-center mb-1">
-                  Optional — but we read every response!
-                </p>
-                <p className="text-xs text-orange-500 text-center mb-4">
-                  🔒 Private feedback
-                </p>
-                <textarea
-                  value={privateComment}
-                  onChange={(e) => setPrivateComment(e.target.value)}
-                  placeholder="Any snacks you didn't enjoy? Suggestions for improvement?"
-                  maxLength={1000}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 resize-none"
-                />
-              </div>
-
-              {/* Least favorite snacks */}
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-3">
-                  Was there anything you didn&apos;t enjoy?
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {SNACK_OPTIONS.map((snack) => (
-                    <button
-                      key={snack.id}
-                      onClick={() =>
-                        toggleSelection(
-                          snack.id,
-                          leastFavoriteSnacks,
-                          setLeastFavoriteSnacks
-                        )
-                      }
-                      className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl border text-xs font-medium transition-all relative ${
-                        leastFavoriteSnacks.includes(snack.id)
-                          ? "border-red-500 bg-red-50 text-red-700 shadow-md"
-                          : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {leastFavoriteSnacks.includes(snack.id) && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">
-                          ✕
-                        </div>
-                      )}
-                      <span className="text-xl">{snack.emoji}</span>
-                      <span className="text-center leading-tight truncate w-full">
-                        {snack.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -493,25 +322,7 @@ function ReviewForm() {
               <div />
             )}
 
-            {step < totalSteps ? (
-              <button
-                onClick={() => {
-                  if (step === 1 && rating === 0) {
-                    setError("Please select a rating.");
-                    return;
-                  }
-                  if (step === 2 && !body.trim()) {
-                    setError("Please write a short review.");
-                    return;
-                  }
-                  setError(null);
-                  setStep(step + 1);
-                }}
-                className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-md shadow-orange-500/25 text-sm"
-              >
-                Next →
-              </button>
-            ) : (
+            {step === 2 && (
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
@@ -528,18 +339,6 @@ function ReviewForm() {
               </button>
             )}
           </div>
-
-          {/* Skip link for steps 3-5 */}
-          {step >= 3 && step <= 5 && (
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setStep(step + 1)}
-                className="text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {step === 3 ? "Skip photo →" : "No strong preference →"}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
