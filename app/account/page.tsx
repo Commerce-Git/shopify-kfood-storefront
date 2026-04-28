@@ -173,8 +173,8 @@ export default function AccountPage() {
         </button>
       </div>
 
-      {/* Coupon Vault */}
-      {(couponsLoading || coupons.length > 0) && (
+      {/* Coupon Vault — only render after loading completes, and only if coupons exist */}
+      {!couponsLoading && coupons.length > 0 && (
         <>
           <h2
             className="text-xl font-bold mb-4"
@@ -183,11 +183,6 @@ export default function AccountPage() {
             🎫 My Coupons
           </h2>
 
-          {couponsLoading ? (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8 animate-pulse">
-              <div className="h-16 bg-gray-100 rounded-xl" />
-            </div>
-          ) : (
             <div className="space-y-3 mb-8">
               {coupons.map((coupon) => {
                 const isActive = coupon.status === "active";
@@ -263,7 +258,6 @@ export default function AccountPage() {
                 );
               })}
             </div>
-          )}
         </>
       )}
 
