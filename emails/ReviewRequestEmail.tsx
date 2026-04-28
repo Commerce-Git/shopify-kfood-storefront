@@ -18,11 +18,13 @@ import { COUPON_CONFIG } from "@/lib/coupon-config";
 interface ReviewRequestEmailProps {
   customerName: string;
   reviewToken: string;
+  unsubscribeUrl: string;
 }
 
 export const ReviewRequestEmail = ({
   customerName,
   reviewToken,
+  unsubscribeUrl,
 }: ReviewRequestEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -83,7 +85,7 @@ export const ReviewRequestEmail = ({
               30 N Gould St, STE R, Sheridan, WY 82801, USA
               <br />
               <br />
-              <Link href="#" className="text-[#999999] underline">
+              <Link href={unsubscribeUrl} className="text-[#999999] underline">
                 Unsubscribe
               </Link>
             </Text>

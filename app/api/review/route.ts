@@ -13,6 +13,7 @@ import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
 import { getReviewStatus } from "@/lib/review-filter";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -168,18 +169,25 @@ export async function POST(request: NextRequest) {
         ? `${COUPON_CONFIG.discountValue}% OFF`
         : `$${COUPON_CONFIG.discountValue} OFF`;
 
-    // 6. 쿠폰 확인 이메일 발송 (fire-and-forget)
+    // 6. 쿠폰 확인 이메일 발송 (fire-and-forget, opt-out 체크 안 함 — 거래 이메일)
+    const unsubscribeUrl = generateUnsubscribeUrl(review.customer_email);
+
     resend.emails
       .send({
         from: "Seoul Snack Box <onboarding@resend.dev>",
         to: [review.customer_email],
         subject: `🎉 Your ${discountLabel} coupon is ready! — Seoul Snack Box`,
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
         react: CouponConfirmationEmail({
           customerName: review.customer_name.split(" ")[0],
           couponCode,
           discountLabel,
           expiresAt: couponExpiresAt.toISOString(),
           reviewToken: token,
+          unsubscribeUrl,
         }) as React.ReactElement,
       })
       .catch((err) => console.error("[Review API] Confirmation email error:", err));

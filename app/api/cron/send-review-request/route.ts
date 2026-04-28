@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { ReviewRequestEmail } from "@/emails/ReviewRequestEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
+import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 /**
  * Vercel Cron Job — 매일 01:00 UTC 실행
@@ -96,6 +97,12 @@ export async function GET(request: Request) {
       if (!order.email) continue;
 
       try {
+        // 수신 거부 확인
+        if (await isOptedOut(order.email)) {
+          results.push({ order: order.name, status: "skipped (opted out)" });
+          continue;
+        }
+
         // 리뷰 토큰 생성 (UUID)
         const reviewToken = crypto.randomUUID();
         const tokenExpiresAt = new Date();
@@ -125,14 +132,22 @@ export async function GET(request: Request) {
           continue;
         }
 
+        // Unsubscribe URL 생성
+        const unsubscribeUrl = generateUnsubscribeUrl(order.email);
+
         // Resend로 이메일 발송
         await resend.emails.send({
           from: "Seoul Snack Box <onboarding@resend.dev>", // 도메인 인증 후 변경
           to: [order.email],
           subject: "How was your Seoul Snack Box? Share & get 15% off 🎁",
+          headers: {
+            "List-Unsubscribe": `<${unsubscribeUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
           react: ReviewRequestEmail({
             customerName: firstName,
             reviewToken,
+            unsubscribeUrl,
           }) as React.ReactElement,
         });
 

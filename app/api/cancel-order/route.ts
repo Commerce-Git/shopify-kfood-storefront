@@ -6,6 +6,7 @@ import { cancelOrder, adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { Resend } from "resend";
 import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -106,17 +107,23 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
         : `$${COUPON_CONFIG.discountValue} OFF`;
 
     const emailTo = customerEmail || review.customer_email;
+    const unsubscribeUrl = generateUnsubscribeUrl(emailTo);
 
     await resend.emails.send({
       from: "Seoul Snack Box <onboarding@resend.dev>",
       to: [emailTo],
       subject: `Your ${discountLabel} coupon has been restored! — Seoul Snack Box`,
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
       react: CouponConfirmationEmail({
         customerName: review.customer_name.split(" ")[0],
         couponCode: newCouponCode,
         discountLabel,
         expiresAt: couponExpiresAt.toISOString(),
         reviewToken: review.token,
+        unsubscribeUrl,
       }) as React.ReactElement,
     });
 

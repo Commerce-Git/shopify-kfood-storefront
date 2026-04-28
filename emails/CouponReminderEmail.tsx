@@ -20,6 +20,7 @@ interface CouponReminderEmailProps {
   discountLabel: string;
   expiresAt: string;
   daysLeft: number;
+  unsubscribeUrl: string;
 }
 
 export const CouponReminderEmail = ({
@@ -28,6 +29,7 @@ export const CouponReminderEmail = ({
   discountLabel,
   expiresAt,
   daysLeft,
+  unsubscribeUrl,
 }: CouponReminderEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -96,7 +98,7 @@ export const CouponReminderEmail = ({
               30 N Gould St, STE R, Sheridan, WY 82801, USA
               <br />
               <br />
-              <Link href="#" className="text-[#999999] underline">
+              <Link href={unsubscribeUrl} className="text-[#999999] underline">
                 Unsubscribe
               </Link>
             </Text>

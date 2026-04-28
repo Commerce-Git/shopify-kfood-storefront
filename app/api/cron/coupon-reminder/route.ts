@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
+import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 /**
  * Vercel Cron Job #2 — 매일 02:00 UTC 실행
@@ -85,6 +86,17 @@ export async function GET(request: Request) {
 
     for (const review of pendingReminders) {
       try {
+        // 수신 거부 확인
+        if (await isOptedOut(review.customer_email)) {
+          // opt-out이지만 reminder_sent는 true로 표시하여 다음 날 다시 조회되지 않도록
+          await supabase
+            .from("reviews")
+            .update({ reminder_sent: true })
+            .eq("id", review.id);
+          results.push({ order: review.order_name, status: "skipped (opted out)" });
+          continue;
+        }
+
         // Shopify에서 쿠폰 사용 여부 확인
         const used = await isDiscountUsed(review.coupon_code);
 
@@ -102,17 +114,25 @@ export async function GET(request: Request) {
           (new Date(review.coupon_expires_at).getTime() - Date.now()) / 86400000
         );
 
+        // Unsubscribe URL 생성
+        const unsubscribeUrl = generateUnsubscribeUrl(review.customer_email);
+
         // 리마인더 이메일 발송
         await resend.emails.send({
           from: "Seoul Snack Box <onboarding@resend.dev>",
           to: [review.customer_email],
           subject: `⏰ Your ${discountLabel} coupon expires in ${daysLeft} days!`,
+          headers: {
+            "List-Unsubscribe": `<${unsubscribeUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
           react: CouponReminderEmail({
             customerName: review.customer_name.split(" ")[0],
             couponCode: review.coupon_code,
             discountLabel,
             expiresAt: review.coupon_expires_at,
             daysLeft,
+            unsubscribeUrl,
           }) as React.ReactElement,
         });
 

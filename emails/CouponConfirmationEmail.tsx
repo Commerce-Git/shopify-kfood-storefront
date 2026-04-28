@@ -20,6 +20,7 @@ interface CouponConfirmationEmailProps {
   discountLabel: string;
   expiresAt: string;
   reviewToken: string;
+  unsubscribeUrl: string;
 }
 
 export const CouponConfirmationEmail = ({
@@ -28,6 +29,7 @@ export const CouponConfirmationEmail = ({
   discountLabel,
   expiresAt,
   reviewToken,
+  unsubscribeUrl,
 }: CouponConfirmationEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -104,7 +106,7 @@ export const CouponConfirmationEmail = ({
               30 N Gould St, STE R, Sheridan, WY 82801, USA
               <br />
               <br />
-              <Link href="#" className="text-[#999999] underline">
+              <Link href={unsubscribeUrl} className="text-[#999999] underline">
                 Unsubscribe
               </Link>
             </Text>
