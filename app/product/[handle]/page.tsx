@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import BuyButton from "@/app/components/BuyButton";
 import TrustBadges from "@/app/components/TrustBadges";
 import Reviews from "@/app/components/Reviews";
@@ -60,8 +61,62 @@ export default async function ProductPage({ params }: PageProps) {
       ? Math.round(((compareNum - priceNum) / compareNum) * 100)
       : null;
 
+  // SEO: 리뷰 구조화 데이터 (Google Rich Snippets)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  );
+  const { data: reviewData } = await supabase
+    .from("reviews")
+    .select("customer_name, rating, title, body, submitted_at")
+    .not("rating", "is", null)
+    .eq("status", "approved")
+    .order("submitted_at", { ascending: false })
+    .limit(10);
+
+  const reviews = reviewData || [];
+  const avgRating =
+    reviews.length > 0
+      ? Math.round(
+          (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
+            reviews.length) *
+            10
+        ) / 10
+      : null;
+
+  const jsonLd = avgRating
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.title,
+        description: product.description.slice(0, 300),
+        image: images[0]?.url,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: String(avgRating),
+          reviewCount: String(reviews.length),
+        },
+        review: reviews.slice(0, 5).map((r) => ({
+          "@type": "Review",
+          author: { "@type": "Person", name: r.customer_name },
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: String(r.rating),
+          },
+          reviewBody: r.body || r.title || "",
+          datePublished: r.submitted_at,
+        })),
+      }
+    : null;
+
   return (
     <div className="pt-20">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       {/* Breadcrumb */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4">
         <nav className="flex items-center gap-2 text-sm text-text-muted">

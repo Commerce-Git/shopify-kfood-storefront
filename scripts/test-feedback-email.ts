@@ -19,7 +19,7 @@ async function main() {
     subject: "How was your Seoul Snack Box? 🎁 (TEST)",
     react: FeedbackEmail({
       customerName: "Junseo",
-      customerEmail: testEmail,
+      reviewToken: "test-token-12345",
     }) as React.ReactElement,
   });
 

@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/send-feedback",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/coupon-reminder",
+      "schedule": "0 2 * * *"
     }
   ]
 }

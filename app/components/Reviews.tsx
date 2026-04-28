@@ -1,64 +1,45 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface Review {
-  name: string;
-  location: string;
+  id: string;
+  customer_name: string;
   rating: number;
-  text: string;
-  avatar: string;
-  date: string;
+  title: string | null;
+  body: string;
+  photo_urls: string[];
+  submitted_at: string;
 }
 
+// 실제 리뷰가 3개 미만일 때 표시할 MOCK 데이터 (Verified Purchase 배지 없음)
 const MOCK_REVIEWS: Review[] = [
   {
-    name: "Sarah M.",
-    location: "Los Angeles, CA",
+    id: "mock-1",
+    customer_name: "Sarah M.",
     rating: 5,
-    text: "OMG this box was AMAZING! My friends and I had a K-Drama marathon and these snacks made it 100x better. The honey butter chips are now my obsession 🍯",
-    avatar: "SM",
-    date: "2 weeks ago",
+    title: "Best gift ever!",
+    body: "OMG this box was AMAZING! My friends and I had a K-Drama marathon and these snacks made it 100x better. The honey butter chips are now my obsession 🍯",
+    photo_urls: [],
+    submitted_at: new Date(Date.now() - 14 * 86400000).toISOString(),
   },
   {
-    name: "Jake K.",
-    location: "New York, NY",
+    id: "mock-2",
+    customer_name: "Jake K.",
     rating: 5,
-    text: "Got this as a gift for my girlfriend who's obsessed with K-Pop. She literally screamed when she opened it. Best gift ever. Already ordering another one!",
-    avatar: "JK",
-    date: "1 month ago",
+    title: "My girlfriend screamed!",
+    body: "Got this as a gift for my girlfriend who's obsessed with K-Pop. She literally screamed when she opened it. Already ordering another one!",
+    photo_urls: [],
+    submitted_at: new Date(Date.now() - 30 * 86400000).toISOString(),
   },
   {
-    name: "Emily R.",
-    location: "Chicago, IL",
+    id: "mock-3",
+    customer_name: "Emily R.",
     rating: 5,
-    text: "The variety is incredible! Some sweet, some spicy, some savory — every snack was a new adventure. The little flavor guide was such a nice touch 🥰",
-    avatar: "ER",
-    date: "3 weeks ago",
-  },
-  {
-    name: "David L.",
-    location: "Austin, TX",
-    rating: 4,
-    text: "Really solid box. Loved discovering snacks I'd never heard of before. The tteokbokki chips were spicy but SO good. Would love a bigger box option!",
-    avatar: "DL",
-    date: "1 month ago",
-  },
-  {
-    name: "Mina P.",
-    location: "Seattle, WA",
-    rating: 5,
-    text: "As a Korean-American, I was skeptical but these are actually legit! Not the knock-off versions I see in some Asian grocery stores. Real deal from Korea 🇰🇷",
-    avatar: "MP",
-    date: "2 months ago",
-  },
-  {
-    name: "Chris T.",
-    location: "Miami, FL",
-    rating: 5,
-    text: "Shipping was surprisingly fast! Everything arrived in perfect condition. Already planning a K-snack tasting party with these. 10/10 would recommend!",
-    avatar: "CT",
-    date: "1 week ago",
+    title: "Incredible variety",
+    body: "The variety is incredible! Some sweet, some spicy, some savory — every snack was a new adventure. The little flavor guide was such a nice touch 🥰",
+    photo_urls: [],
+    submitted_at: new Date(Date.now() - 21 * 86400000).toISOString(),
   },
 ];
 
@@ -82,8 +63,45 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days < 7) return days <= 1 ? "1 day ago" : `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  const months = Math.floor(days / 30);
+  return months <= 1 ? "1 month ago" : `${months} months ago`;
+}
+
 export default function Reviews() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
+  const [averageRating, setAverageRating] = useState(4.9);
+  const [totalCount, setTotalCount] = useState(MOCK_REVIEWS.length);
+  const [hasRealReviews, setHasRealReviews] = useState(false);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        const res = await fetch("/api/review");
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.reviews && data.reviews.length >= 3) {
+          // 실제 리뷰가 3개 이상이면 MOCK 교체
+          setReviews(data.reviews);
+          setAverageRating(data.averageRating);
+          setTotalCount(data.totalCount);
+          setHasRealReviews(true);
+        }
+        // 3개 미만이면 MOCK 유지
+      } catch {
+        // 에러 시 MOCK 유지
+      }
+    }
+
+    fetchReviews();
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -136,43 +154,76 @@ export default function Reviews() {
         <div
           ref={scrollRef}
           className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {MOCK_REVIEWS.map((review) => (
+          {reviews.map((review) => (
             <div
-              key={review.name}
+              key={review.id}
               className="flex-shrink-0 w-[320px] sm:w-[360px] bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 snap-start"
             >
               {/* Header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center"
+                <div
+                  className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
-                  {review.avatar}
+                  {review.customer_name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-dark">
-                    {review.name}
-                  </p>
-                  <p className="text-xs text-text-muted">
-                    {review.location}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-dark">
+                      {review.customer_name}
+                    </p>
+                    {hasRealReviews && !review.id.startsWith("mock") && (
+                      <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Rating */}
+              {/* Rating + Date */}
               <div className="flex items-center gap-2 mb-3">
                 <StarRating rating={review.rating} />
-                <span className="text-xs text-text-muted">{review.date}</span>
+                <span className="text-xs text-text-muted">
+                  {timeAgo(review.submitted_at)}
+                </span>
               </div>
+
+              {/* Title */}
+              {review.title && (
+                <p className="text-sm font-semibold text-dark mb-1">
+                  {review.title}
+                </p>
+              )}
 
               {/* Text */}
               <p className="text-sm text-text leading-relaxed">
-                {review.text}
+                {review.body}
               </p>
+
+              {/* Photos */}
+              {review.photo_urls.length > 0 && (
+                <div className="flex gap-2 mt-3">
+                  {review.photo_urls.map((url, i) => (
+                    <div
+                      key={i}
+                      className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden"
+                    >
+                      <img
+                        src={url}
+                        alt={`Review photo ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -180,12 +231,12 @@ export default function Reviews() {
         {/* Average Rating */}
         <div className="mt-10 text-center">
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white shadow-sm">
-            <StarRating rating={5} />
+            <StarRating rating={Math.round(averageRating)} />
             <span className="text-sm font-medium text-dark">
-              4.9 out of 5
+              {averageRating} out of 5
             </span>
             <span className="text-xs text-text-muted">
-              • Based on {MOCK_REVIEWS.length} reviews
+              • Based on {totalCount} reviews
             </span>
           </div>
         </div>

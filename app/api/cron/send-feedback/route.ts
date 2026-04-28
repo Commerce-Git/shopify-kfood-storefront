@@ -1,17 +1,25 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { createClient } from "@supabase/supabase-js";
 import { FeedbackEmail } from "@/emails/FeedbackEmail";
+import { COUPON_CONFIG } from "@/lib/coupon-config";
 
 /**
- * Vercel Cron Job — 매일 오후 8시(EST)에 실행
+ * Vercel Cron Job — 매일 01:00 UTC 실행
  *
  * 1. Shopify Admin API로 21일 이상 전에 배송 완료된 주문을 조회
- * 2. 'feedback_sent' 태그가 없는 주문만 필터링
- * 3. Resend로 피드백 요청 이메일 발송
- * 4. 발송 완료된 주문에 'feedback_sent' 태그 추가 (중복 방지)
+ * 2. 'review_requested' 태그가 없는 주문만 필터링
+ * 3. Supabase에 리뷰 토큰(빈 껍데기) 생성
+ * 4. Resend로 리뷰 요청 이메일 발송 (쿠폰 코드는 숨김)
+ * 5. 발송 완료된 주문에 'review_requested' 태그 추가 (중복 방지)
  */
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
 
 const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!;
 const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
@@ -81,10 +89,10 @@ export async function GET(request: Request) {
     // 1. Shopify Access Token 발급
     const token = await getShopifyAccessToken();
 
-    // 2. 배송 완료 + feedback_sent 태그 없는 주문 조회
+    // 2. 배송 완료 + review_requested 태그 없는 주문 조회
     const ordersQuery = `
       {
-        orders(first: 50, query: "fulfillment_status:fulfilled -tag:feedback_sent") {
+        orders(first: 50, query: "fulfillment_status:fulfilled -tag:review_requested") {
           edges {
             node {
               id
@@ -92,6 +100,7 @@ export async function GET(request: Request) {
               email
               customer {
                 firstName
+                lastName
               }
               tags
               fulfillments(first: 1) {
@@ -114,7 +123,7 @@ export async function GET(request: Request) {
       id: string;
       name: string;
       email: string | null;
-      customer: { firstName: string } | null;
+      customer: { firstName: string; lastName: string } | null;
       tags: string[];
       fulfillments: { createdAt: string }[];
     }
@@ -129,11 +138,11 @@ export async function GET(request: Request) {
 
     if (eligibleOrders.length === 0) {
       return NextResponse.json({
-        message: "No pending feedback emails today.",
+        message: "No pending review emails today.",
       });
     }
 
-    // 4. 이메일 발송 + 태그 추가
+    // 4. 리뷰 토큰 생성 + 이메일 발송 + 태그 추가
     const results = [];
 
     for (const edge of eligibleOrders) {
@@ -141,21 +150,50 @@ export async function GET(request: Request) {
       if (!order.email) continue;
 
       try {
+        // 리뷰 토큰 생성 (UUID)
+        const reviewToken = crypto.randomUUID();
+        const tokenExpiresAt = new Date();
+        tokenExpiresAt.setDate(
+          tokenExpiresAt.getDate() + COUPON_CONFIG.tokenExpiryDays
+        );
+
+        // 고객 표시 이름 생성 (예: "Sarah M.")
+        const firstName = order.customer?.firstName || "Customer";
+        const lastInitial = order.customer?.lastName
+          ? ` ${order.customer.lastName.charAt(0)}.`
+          : "";
+        const displayName = `${firstName}${lastInitial}`;
+
+        // Supabase에 빈 껍데기 리뷰 행 생성
+        const { error: dbError } = await supabase.from("reviews").insert({
+          token: reviewToken,
+          token_expires_at: tokenExpiresAt.toISOString(),
+          order_id: order.id,
+          order_name: order.name,
+          customer_name: displayName,
+          customer_email: order.email,
+        });
+
+        if (dbError) {
+          console.error(`DB insert failed for ${order.name}:`, dbError);
+          continue;
+        }
+
         // Resend로 이메일 발송
         await resend.emails.send({
           from: "Seoul Snack Box <onboarding@resend.dev>", // 도메인 인증 후 변경
           to: [order.email],
-          subject: "How was your Seoul Snack Box? 🎁",
+          subject: "How was your Seoul Snack Box? Share & get 15% off 🎁",
           react: FeedbackEmail({
-            customerName: order.customer?.firstName || "Customer",
-            customerEmail: order.email,
+            customerName: firstName,
+            reviewToken,
           }) as React.ReactElement,
         });
 
-        // Shopify 주문에 'feedback_sent' 태그 추가 (중복 발송 방지)
+        // Shopify 주문에 'review_requested' 태그 추가 (중복 발송 방지)
         await shopifyGraphQL(token, TAG_MUTATION, {
           id: order.id,
-          tags: ["feedback_sent"],
+          tags: ["review_requested"],
         });
 
         results.push({ order: order.name, status: "sent" });

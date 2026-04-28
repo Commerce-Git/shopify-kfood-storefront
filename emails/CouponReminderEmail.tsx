@@ -13,27 +13,32 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
-import { COUPON_CONFIG } from "@/lib/coupon-config";
 
-interface FeedbackEmailProps {
+interface CouponReminderEmailProps {
   customerName: string;
-  reviewToken: string;
+  couponCode: string;
+  discountLabel: string;
+  expiresAt: string;
+  daysLeft: number;
 }
 
-export const FeedbackEmail = ({
+export const CouponReminderEmail = ({
   customerName,
-  reviewToken,
-}: FeedbackEmailProps) => {
+  couponCode,
+  discountLabel,
+  expiresAt,
+  daysLeft,
+}: CouponReminderEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://shopify-kfood-storefront.vercel.app";
-  const reviewUrl = `${siteUrl}/review?token=${reviewToken}`;
-  const discountLabel =
-    COUPON_CONFIG.discountType === "percentage"
-      ? `${COUPON_CONFIG.discountValue}% OFF`
-      : `$${COUPON_CONFIG.discountValue} OFF`;
+  const expiryDate = new Date(expiresAt).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
-  const previewText = `Your Seoul Snack Box arrived! Share your experience & get ${discountLabel}`;
+  const previewText = `⏰ Your ${discountLabel} coupon expires in ${daysLeft} days!`;
 
   return (
     <Html>
@@ -43,35 +48,43 @@ export const FeedbackEmail = ({
         <Body className="bg-gray-50 my-auto mx-auto font-sans px-2">
           <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px] bg-white">
             <Section className="mt-[32px] text-center">
-              <Text className="text-4xl m-0">🇰🇷 📦</Text>
+              <Text className="text-4xl m-0">⏰</Text>
             </Section>
             <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
-              How was your <strong>Seoul Snack Box</strong>?
+              Your coupon expires <strong>soon!</strong>
             </Heading>
             <Text className="text-black text-[14px] leading-[24px]">
               Hi {customerName},
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              Your Seoul Snack Box arrived a few weeks ago — we&apos;d love to
-              hear what you think! Every review helps us pick better snacks for
-              the next box. Your honest opinion shapes what goes in! 🙌
+              Just a quick reminder — your{" "}
+              <strong>{discountLabel}</strong> coupon from your Seoul Snack Box
+              review expires on <strong>{expiryDate}</strong> ({daysLeft} days
+              left!).
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              As a thank you, you&apos;ll receive an{" "}
-              <strong>exclusive {discountLabel} coupon</strong> (valid for{" "}
-              {COUPON_CONFIG.validityDays} days) after sharing your experience.
+              Don&apos;t let it go to waste! Use it on your next box and
+              discover even more amazing Korean snacks 🇰🇷
             </Text>
+
+            {/* Coupon Code */}
+            <Section className="text-center my-[24px]">
+              <Text className="text-[12px] text-gray-500 mb-2">
+                Your coupon code:
+              </Text>
+              <Text className="text-[24px] font-bold tracking-wider text-[#f97316] bg-[#fff7ed] rounded-xl py-3 px-6 border-2 border-dashed border-[#fed7aa] inline-block">
+                {couponCode}
+              </Text>
+            </Section>
+
             <Section className="text-center mt-[32px] mb-[32px]">
               <Button
                 className="bg-[#f97316] rounded-md text-white text-[14px] font-semibold no-underline text-center px-6 py-3"
-                href={reviewUrl}
+                href={siteUrl}
               >
-                Yes, I&apos;ll Write a Review! →
+                Shop Now Before It&apos;s Gone →
               </Button>
             </Section>
-            <Text className="text-[#999999] text-[11px] leading-[18px] text-center">
-              This offer is available for {COUPON_CONFIG.tokenExpiryDays} days.
-            </Text>
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email was intended for {customerName}. If you didn&apos;t
@@ -94,4 +107,4 @@ export const FeedbackEmail = ({
   );
 };
 
-export default FeedbackEmail;
+export default CouponReminderEmail;

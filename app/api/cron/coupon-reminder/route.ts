@@ -1,0 +1,176 @@
+import { NextResponse } from "next/server";
+import { Resend } from "resend";
+import { createClient } from "@supabase/supabase-js";
+import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
+import { COUPON_CONFIG } from "@/lib/coupon-config";
+
+/**
+ * Vercel Cron Job #2 — 매일 02:00 UTC 실행
+ *
+ * 쿠폰 만료 7일 전에 미사용 쿠폰에 대해 리마인더 이메일을 발송합니다.
+ * - Shopify API로 쿠폰 사용 여부를 확인
+ * - 이미 사용된 쿠폰은 리마인더를 보내지 않음
+ */
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
+
+const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!;
+const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
+const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET!;
+
+async function getShopifyAccessToken(): Promise<string> {
+  const res = await fetch(
+    `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: SHOPIFY_CLIENT_ID,
+        client_secret: SHOPIFY_CLIENT_SECRET,
+        grant_type: "client_credentials",
+      }),
+    }
+  );
+  if (!res.ok) throw new Error(`Shopify token failed: ${res.status}`);
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function isDiscountUsed(
+  shopifyToken: string,
+  code: string
+): Promise<boolean> {
+  const query = `
+    {
+      codeDiscountNodeByCode(code: "${code}") {
+        codeDiscount {
+          ... on DiscountCodeBasic {
+            usageLimit
+            asyncUsageCount
+          }
+        }
+      }
+    }
+  `;
+
+  const res = await fetch(
+    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2025-10/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": shopifyToken,
+      },
+      body: JSON.stringify({ query }),
+    }
+  );
+
+  if (!res.ok) return false;
+  const data = await res.json();
+  const discount = data?.data?.codeDiscountNodeByCode?.codeDiscount;
+  if (!discount) return false;
+
+  return discount.asyncUsageCount > 0;
+}
+
+export async function GET(request: Request) {
+  const authHeader = request.headers.get("authorization");
+  if (
+    process.env.NODE_ENV === "production" &&
+    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+  ) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  try {
+    // 만료 7일 이내 + 리마인더 미발송 쿠폰 조회
+    const reminderDays = COUPON_CONFIG.reminderDaysBeforeExpiry;
+    const reminderCutoff = new Date();
+    reminderCutoff.setDate(reminderCutoff.getDate() + reminderDays);
+
+    const { data: pendingReminders, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .not("coupon_code", "is", null)
+      .eq("reminder_sent", false)
+      .lte("coupon_expires_at", reminderCutoff.toISOString())
+      .gt("coupon_expires_at", new Date().toISOString()); // 아직 만료 안 됨
+
+    if (error) {
+      console.error("[Coupon Reminder] DB error:", error);
+      return NextResponse.json({ error: "DB error" }, { status: 500 });
+    }
+
+    if (!pendingReminders || pendingReminders.length === 0) {
+      return NextResponse.json({ message: "No reminders to send today." });
+    }
+
+    const shopifyToken = await getShopifyAccessToken();
+    const results = [];
+
+    const discountLabel =
+      COUPON_CONFIG.discountType === "percentage"
+        ? `${COUPON_CONFIG.discountValue}% OFF`
+        : `$${COUPON_CONFIG.discountValue} OFF`;
+
+    for (const review of pendingReminders) {
+      try {
+        // Shopify에서 쿠폰 사용 여부 확인
+        const used = await isDiscountUsed(shopifyToken, review.coupon_code);
+
+        if (used) {
+          // 이미 사용됨 → 리마인더 스킵
+          await supabase
+            .from("reviews")
+            .update({ reminder_sent: true })
+            .eq("id", review.id);
+          results.push({ order: review.order_name, status: "skipped (used)" });
+          continue;
+        }
+
+        // 남은 일수 계산
+        const daysLeft = Math.ceil(
+          (new Date(review.coupon_expires_at).getTime() - Date.now()) / 86400000
+        );
+
+        // 리마인더 이메일 발송
+        await resend.emails.send({
+          from: "Seoul Snack Box <onboarding@resend.dev>",
+          to: [review.customer_email],
+          subject: `⏰ Your ${discountLabel} coupon expires in ${daysLeft} days!`,
+          react: CouponReminderEmail({
+            customerName: review.customer_name.split(" ")[0],
+            couponCode: review.coupon_code,
+            discountLabel,
+            expiresAt: review.coupon_expires_at,
+            daysLeft,
+          }) as React.ReactElement,
+        });
+
+        await supabase
+          .from("reviews")
+          .update({ reminder_sent: true })
+          .eq("id", review.id);
+
+        results.push({ order: review.order_name, status: "sent" });
+      } catch (err) {
+        console.error(`[Coupon Reminder] Failed for ${review.order_name}:`, err);
+        results.push({ order: review.order_name, status: "failed" });
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      processed: results.length,
+      details: results,
+    });
+  } catch (error) {
+    console.error("[Coupon Reminder] Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
