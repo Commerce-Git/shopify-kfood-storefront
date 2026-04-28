@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, useRef, Suspense, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -34,17 +34,22 @@ function ReviewForm() {
 
   const searchParams = useSearchParams();
   const totalSteps = 6;
+  const initialized = useRef(false);
 
   // Token validation on mount
   useEffect(() => {
+    if (initialized.current) return;
+
     const tokenParam = searchParams.get("token");
     if (!tokenParam) {
       setTokenError("No review token provided. Please use the link from your email.");
       return;
     }
+
+    initialized.current = true;
     setToken(tokenParam);
 
-    // Clean URL
+    // Clean URL (remove token from address bar for security)
     if (window.history.replaceState) {
       window.history.replaceState({}, document.title, "/review");
     }
