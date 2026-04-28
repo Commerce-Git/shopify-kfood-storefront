@@ -87,7 +87,7 @@ export default function LoginPage() {
             Welcome 👋
           </h1>
           <p className="text-gray-600">
-            Sign in to track your orders and manage your account
+            View your <span className="font-semibold text-orange-600">coupons</span>, track orders & manage your account
           </p>
         </div>
 
@@ -152,16 +152,16 @@ export default function LoginPage() {
                 transition-all disabled:opacity-50 disabled:cursor-not-allowed
                 shadow-lg shadow-orange-500/25"
             >
-              {loading ? "Sending..." : "Send Magic Link ✉️"}
+              {loading ? "Sending..." : "Send Me a Login Link ✉️"}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Secure, passwordless login.
-              <br />
-              No account? One will be created automatically.
-            </p>
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+              <span className="flex items-center gap-1">🔒 Secure</span>
+              <span className="flex items-center gap-1">⚡ No password needed</span>
+              <span className="flex items-center gap-1">✨ Auto-create</span>
+            </div>
           </div>
         </div>
 
