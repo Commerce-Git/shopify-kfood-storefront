@@ -77,7 +77,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="min-h-[80vh] pt-24 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1
@@ -150,7 +150,7 @@ export default function LoginPage() {
               className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-red-500 
                 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
                 transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                shadow-lg shadow-orange-500/25"
+                shadow-lg shadow-orange-500/25 outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
             >
               {loading ? "Sending..." : "Yes, Send My Access Link! ✉️"}
             </button>
