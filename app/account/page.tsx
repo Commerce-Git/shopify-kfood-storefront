@@ -189,10 +189,10 @@ export default function AccountPage() {
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100 p-6 mb-8 text-center">
           <p className="text-2xl mb-2">🎁</p>
           <p className="text-sm font-semibold text-gray-800 mb-1">
-            No coupons yet
+            Want 15% OFF Your Next Box?
           </p>
           <p className="text-xs text-gray-500">
-            Write a review after your purchase to earn an exclusive discount!
+            Check your email for the review link, share your experience, and get your coupon instantly!
           </p>
         </div>
       ) : (
