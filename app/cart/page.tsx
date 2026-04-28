@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "../components/CartProvider";
@@ -32,6 +32,32 @@ export default function CartPage() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Coupon state
+  interface AvailableCoupon {
+    code: string;
+    discountLabel: string;
+    expiresAt: string;
+  }
+  const [availableCoupon, setAvailableCoupon] = useState<AvailableCoupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  // Fetch available coupons for logged-in users
+  useEffect(() => {
+    if (!user?.email) return;
+    setCouponLoading(true);
+    fetch("/api/my-coupons")
+      .then((res) => res.json())
+      .then((data) => {
+        const active = data.coupons?.find(
+          (c: AvailableCoupon & { status: string }) => c.status === "active"
+        );
+        if (active) setAvailableCoupon(active);
+      })
+      .catch(() => {})
+      .finally(() => setCouponLoading(false));
+  }, [user?.email]);
+
   async function handleCheckout() {
     if (items.length === 0) return;
 
@@ -46,6 +72,7 @@ export default function CartPage() {
 
       const data = await storefrontFetch<CartResponse>(CREATE_CART, {
         lines,
+        discountCodes: appliedCoupon ? [appliedCoupon] : undefined,
       });
 
       const { cart, userErrors } = data.cartCreate;
@@ -257,6 +284,67 @@ export default function CartPage() {
             </button>
           </div>
           */}
+
+          {/* Coupon Banner */}
+          {!couponLoading && availableCoupon && !appliedCoupon && (
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-5 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎫</span>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">
+                      You have a {availableCoupon.discountLabel} coupon!
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Code: <code className="font-semibold">{availableCoupon.code}</code>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAppliedCoupon(availableCoupon.code)}
+                  className="text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 
+                    hover:from-orange-600 hover:to-red-600 px-4 py-2 rounded-xl transition-all shadow-sm"
+                >
+                  Yes, Apply My Coupon! 🎉
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Applied Coupon */}
+          {appliedCoupon && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">✅</span>
+                  <span className="text-sm font-semibold text-green-800">
+                    {availableCoupon?.discountLabel} coupon applied!
+                  </span>
+                  <code className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                    {appliedCoupon}
+                  </code>
+                </div>
+                <button
+                  onClick={() => setAppliedCoupon(null)}
+                  className="text-xs text-gray-500 hover:text-red-500 font-medium transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+              <p className="text-xs text-green-600 mt-1 ml-7">
+                Discount will be applied at checkout
+              </p>
+            </div>
+          )}
+
+          {/* Login nudge for non-logged-in users */}
+          {!user && !couponLoading && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 text-center">
+              <p className="text-xs text-gray-500">
+                💡 <Link href="/account/login" className="text-orange-600 hover:text-orange-700 font-medium underline">Log in</Link> to auto-apply your coupons
+              </p>
+            </div>
+          )}
 
           {/* Value Propositions / Guarantees */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">

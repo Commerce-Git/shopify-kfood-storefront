@@ -75,10 +75,11 @@
 ### API 라우트
 | 경로 | 메서드 | 설명 |
 |------|:------:|------|
-| `/api/review` | POST | 리뷰 제출 + 쿠폰 생성 |
-| `/api/review` | GET | 승인된 리뷰 조회 |
+| `/api/review` | POST | 리뷰 제출 + 쿠폰 생성 + 확인 이메일 |
+| `/api/review` | GET | 승인된 리뷰 조회 / 토큰 상태 조회 |
+| `/api/my-coupons` | GET | 로그인 사용자의 쿠폰 목록 조회 |
 | `/api/orders` | GET | 주문 조회 |
-| `/api/cancel-order` | POST | 주문 취소 + 환불 |
+| `/api/cancel-order` | POST | 주문 취소 + 환불 + 쿠폰 자동 재발급 |
 | `/api/track-order` | GET | 배송 추적 |
 | `/api/cron/send-review-request` | GET | 리뷰 요청 크론잡 |
 | `/api/cron/coupon-reminder` | GET | 쿠폰 리마인더 크론잡 |

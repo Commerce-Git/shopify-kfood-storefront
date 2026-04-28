@@ -112,8 +112,8 @@ export const GET_ALL_PRODUCTS = `
 
 /** Create a cart → returns the Shopify checkout URL */
 export const CREATE_CART = `
-  mutation CartCreate($lines: [CartLineInput!]!) {
-    cartCreate(input: { lines: $lines }) {
+  mutation CartCreate($lines: [CartLineInput!]!, $discountCodes: [String!]) {
+    cartCreate(input: { lines: $lines, discountCodes: $discountCodes }) {
       cart {
         id
         checkoutUrl
