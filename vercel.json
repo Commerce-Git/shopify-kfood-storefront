@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/send-feedback",
+      "path": "/api/cron/send-review-request",
       "schedule": "0 1 * * *"
     },
     {

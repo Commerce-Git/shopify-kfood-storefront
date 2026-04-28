@@ -2,7 +2,7 @@ import Hero from "./components/Hero";
 import StorySection from "./components/StorySection";
 import OfferStack from "./components/OfferStack";
 import TrustBadges from "./components/TrustBadges";
-import CustomerReviews from "./components/CustomerReviews";
+import Reviews from "./components/Reviews";
 import FAQ from "./components/FAQ";
 import StickyBuyBar from "./components/StickyBuyBar";
 import { getAllProducts, getFirstVariantId } from "@/lib/shopify/api";
@@ -27,7 +27,7 @@ export default async function Home() {
       <TrustBadges />
 
       {/* 5. Social Proof — 실제 후기 */}
-      <CustomerReviews />
+      <Reviews />
 
       {/* 6. FAQ — 구매 전 걱정 해소 */}
       <FAQ />

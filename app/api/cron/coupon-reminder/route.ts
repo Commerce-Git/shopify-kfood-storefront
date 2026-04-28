@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
+import { adminGraphQL } from "@/lib/shopify/admin";
 import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 
@@ -19,32 +20,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
 
-const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!;
-const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
-const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET!;
-
-async function getShopifyAccessToken(): Promise<string> {
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: SHOPIFY_CLIENT_ID,
-        client_secret: SHOPIFY_CLIENT_SECRET,
-        grant_type: "client_credentials",
-      }),
-    }
-  );
-  if (!res.ok) throw new Error(`Shopify token failed: ${res.status}`);
-  const data = await res.json();
-  return data.access_token;
-}
-
-async function isDiscountUsed(
-  shopifyToken: string,
-  code: string
-): Promise<boolean> {
+async function isDiscountUsed(code: string): Promise<boolean> {
   const query = `
     {
       codeDiscountNodeByCode(code: "${code}") {
@@ -58,24 +34,14 @@ async function isDiscountUsed(
     }
   `;
 
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2025-10/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": shopifyToken,
-      },
-      body: JSON.stringify({ query }),
-    }
-  );
-
-  if (!res.ok) return false;
-  const data = await res.json();
-  const discount = data?.data?.codeDiscountNodeByCode?.codeDiscount;
-  if (!discount) return false;
-
-  return discount.asyncUsageCount > 0;
+  try {
+    const data = await adminGraphQL(query);
+    const discount = data?.data?.codeDiscountNodeByCode?.codeDiscount;
+    if (!discount) return false;
+    return discount.asyncUsageCount > 0;
+  } catch {
+    return false;
+  }
 }
 
 export async function GET(request: Request) {
@@ -99,7 +65,7 @@ export async function GET(request: Request) {
       .not("coupon_code", "is", null)
       .eq("reminder_sent", false)
       .lte("coupon_expires_at", reminderCutoff.toISOString())
-      .gt("coupon_expires_at", new Date().toISOString()); // 아직 만료 안 됨
+      .gt("coupon_expires_at", new Date().toISOString());
 
     if (error) {
       console.error("[Coupon Reminder] DB error:", error);
@@ -110,7 +76,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "No reminders to send today." });
     }
 
-    const shopifyToken = await getShopifyAccessToken();
     const results = [];
 
     const discountLabel =
@@ -121,10 +86,9 @@ export async function GET(request: Request) {
     for (const review of pendingReminders) {
       try {
         // Shopify에서 쿠폰 사용 여부 확인
-        const used = await isDiscountUsed(shopifyToken, review.coupon_code);
+        const used = await isDiscountUsed(review.coupon_code);
 
         if (used) {
-          // 이미 사용됨 → 리마인더 스킵
           await supabase
             .from("reviews")
             .update({ reminder_sent: true })

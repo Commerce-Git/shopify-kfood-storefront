@@ -18,7 +18,8 @@ const SHOPIFY_CLIENT_ID =
 const SHOPIFY_CLIENT_SECRET =
   process.env.SHOPIFY_CLIENT_SECRET || "";
 
-const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10`;
+const ADMIN_API_VERSION = "2025-10";
+const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_API_VERSION}`;
 const TOKEN_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`;
 
 // Supabase admin client (service_role — bypasses RLS)
@@ -132,6 +133,37 @@ async function adminFetch(
 
   // Should never reach here, but TypeScript needs it
   throw new Error("[Admin API] Max retries exceeded");
+}
+
+/**
+ * Execute a GraphQL query against the Shopify Admin API.
+ * Handles token acquisition, rate limiting, and retries automatically.
+ * Use this for all Admin GraphQL operations (discounts, tags, orders, etc.).
+ */
+export async function adminGraphQL(
+  query: string,
+  variables?: Record<string, unknown>
+) {
+  const token = await getAdminToken();
+
+  const response = await adminFetch(
+    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": token,
+      },
+      body: JSON.stringify({ query, variables }),
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`[Admin GraphQL] HTTP ${response.status}: ${text}`);
+  }
+
+  return response.json();
 }
 
 // ---- Types (Admin REST API format) ----

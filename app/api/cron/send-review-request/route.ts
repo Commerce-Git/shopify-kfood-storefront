@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
-import { FeedbackEmail } from "@/emails/FeedbackEmail";
+import { adminGraphQL } from "@/lib/shopify/admin";
+import { ReviewRequestEmail } from "@/emails/ReviewRequestEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 
 /**
@@ -21,58 +22,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
 
-const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!;
-const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
-const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET!;
-
-// ---- Shopify Admin API 헬퍼 함수 ----
-
-async function getShopifyAccessToken(): Promise<string> {
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: SHOPIFY_CLIENT_ID,
-        client_secret: SHOPIFY_CLIENT_SECRET,
-        grant_type: "client_credentials",
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error(`Shopify token request failed: ${res.status}`);
-  }
-
-  const data = await res.json();
-  return data.access_token;
-}
-
-async function shopifyGraphQL(
-  token: string,
-  query: string,
-  variables?: Record<string, unknown>
-) {
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2025-10/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": token,
-      },
-      body: JSON.stringify({ query, variables }),
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error(`Shopify GraphQL request failed: ${res.status}`);
-  }
-
-  return res.json();
-}
-
 // ---- Cron Job 핸들러 ----
 
 export async function GET(request: Request) {
@@ -86,10 +35,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. Shopify Access Token 발급
-    const token = await getShopifyAccessToken();
-
-    // 2. 배송 완료 + review_requested 태그 없는 주문 조회
+    // 1. 배송 완료 + review_requested 태그 없는 주문 조회
     const ordersQuery = `
       {
         orders(first: 50, query: "fulfillment_status:fulfilled -tag:review_requested") {
@@ -112,10 +58,10 @@ export async function GET(request: Request) {
       }
     `;
 
-    const { data } = await shopifyGraphQL(token, ordersQuery);
+    const { data } = await adminGraphQL(ordersQuery);
     const orders = data?.orders?.edges || [];
 
-    // 3. 21일 이상 전에 배송된 주문만 필터링
+    // 2. 21일 이상 전에 배송된 주문만 필터링
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - 21);
 
@@ -142,7 +88,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // 4. 리뷰 토큰 생성 + 이메일 발송 + 태그 추가
+    // 3. 리뷰 토큰 생성 + 이메일 발송 + 태그 추가
     const results = [];
 
     for (const edge of eligibleOrders) {
@@ -184,14 +130,14 @@ export async function GET(request: Request) {
           from: "Seoul Snack Box <onboarding@resend.dev>", // 도메인 인증 후 변경
           to: [order.email],
           subject: "How was your Seoul Snack Box? Share & get 15% off 🎁",
-          react: FeedbackEmail({
+          react: ReviewRequestEmail({
             customerName: firstName,
             reviewToken,
           }) as React.ReactElement,
         });
 
         // Shopify 주문에 'review_requested' 태그 추가 (중복 발송 방지)
-        await shopifyGraphQL(token, TAG_MUTATION, {
+        await adminGraphQL(TAG_MUTATION, {
           id: order.id,
           tags: ["review_requested"],
         });

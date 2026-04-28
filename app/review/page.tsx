@@ -7,7 +7,7 @@ import {
   SNACK_OPTIONS,
   CATEGORY_OPTIONS,
   STAR_LABELS,
-} from "@/lib/feedback-options";
+} from "@/lib/snack-options";
 
 // ---- Review Form Component ----
 

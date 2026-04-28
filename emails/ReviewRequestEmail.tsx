@@ -15,15 +15,15 @@ import {
 } from "@react-email/components";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 
-interface FeedbackEmailProps {
+interface ReviewRequestEmailProps {
   customerName: string;
   reviewToken: string;
 }
 
-export const FeedbackEmail = ({
+export const ReviewRequestEmail = ({
   customerName,
   reviewToken,
-}: FeedbackEmailProps) => {
+}: ReviewRequestEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://shopify-kfood-storefront.vercel.app";
@@ -94,4 +94,4 @@ export const FeedbackEmail = ({
   );
 };
 
-export default FeedbackEmail;
+export default ReviewRequestEmail;

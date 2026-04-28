@@ -4,7 +4,7 @@
  */
 
 import { Resend } from "resend";
-import { FeedbackEmail } from "../emails/FeedbackEmail";
+import { ReviewRequestEmail } from "../emails/ReviewRequestEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -17,7 +17,7 @@ async function main() {
     from: "Seoul Snack Box <onboarding@resend.dev>",
     to: [testEmail],
     subject: "How was your Seoul Snack Box? 🎁 (TEST)",
-    react: FeedbackEmail({
+    react: ReviewRequestEmail({
       customerName: "Junseo",
       reviewToken: "test-token-12345",
     }) as React.ReactElement,

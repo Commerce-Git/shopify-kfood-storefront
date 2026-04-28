@@ -7,44 +7,22 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { getReviewStatus } from "@/lib/review-filter";
 import {
   VALID_SNACK_IDS,
   VALID_CATEGORY_IDS,
-} from "@/lib/feedback-options";
+} from "@/lib/snack-options";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
 
-const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!;
-const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
-const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET!;
-
-// ---- Shopify 헬퍼 ----
-
-async function getShopifyAccessToken(): Promise<string> {
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: SHOPIFY_CLIENT_ID,
-        client_secret: SHOPIFY_CLIENT_SECRET,
-        grant_type: "client_credentials",
-      }),
-    }
-  );
-  if (!res.ok) throw new Error(`Shopify token failed: ${res.status}`);
-  const data = await res.json();
-  return data.access_token;
-}
+// ---- Shopify 쿠폰 생성 ----
 
 async function createShopifyDiscount(
-  shopifyToken: string,
   couponCode: string,
   expiresAt: Date
 ) {
@@ -87,20 +65,7 @@ async function createShopifyDiscount(
     }
   `;
 
-  const res = await fetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2025-10/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": shopifyToken,
-      },
-      body: JSON.stringify({ query: mutation }),
-    }
-  );
-
-  if (!res.ok) throw new Error(`Shopify discount creation failed: ${res.status}`);
-  const result = await res.json();
+  const result = await adminGraphQL(mutation);
   const errors = result.data?.discountCodeBasicCreate?.userErrors;
   if (errors?.length > 0) {
     throw new Error(`Shopify discount error: ${JSON.stringify(errors)}`);
@@ -179,8 +144,7 @@ export async function POST(request: NextRequest) {
     const couponExpiresAt = new Date();
     couponExpiresAt.setDate(couponExpiresAt.getDate() + COUPON_CONFIG.validityDays);
 
-    const shopifyToken = await getShopifyAccessToken();
-    await createShopifyDiscount(shopifyToken, couponCode, couponExpiresAt);
+    await createShopifyDiscount(couponCode, couponExpiresAt);
 
     // 5. Supabase 업데이트
     const { error: updateError } = await supabase
