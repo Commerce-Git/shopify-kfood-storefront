@@ -394,92 +394,123 @@ export default function CartPage() {
           </div>
 
           {/* Summary */}
-          <div className="bg-surface-dim rounded-2xl p-6 space-y-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-text-muted">Subtotal</span>
-              <span className="font-semibold text-dark">
-                ${subtotal.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-text-muted">Shipping</span>
-              <span className="font-semibold text-green-600">FREE</span>
-            </div>
-            <div className="border-t border-border pt-4 flex justify-between">
-              <span
-                className="text-base font-bold text-dark"
-                style={{ fontFamily: "var(--font-heading)" }}
-              >
-                Total
-              </span>
-              <span
-                className="text-xl font-extrabold text-dark"
-                style={{ fontFamily: "var(--font-heading)" }}
-              >
-                ${subtotal.toFixed(2)}
-              </span>
-            </div>
+          {(() => {
+            // Calculate discount when coupon is applied
+            let discountAmount = 0;
+            if (appliedCoupon && availableCoupon) {
+              const match = availableCoupon.discountLabel.match(/(\d+)%/);
+              if (match) {
+                discountAmount = subtotal * (parseInt(match[1]) / 100);
+              }
+            }
+            const total = subtotal - discountAmount;
 
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className={`btn-primary w-full text-base py-4 mt-2 ${loading ? "opacity-70 cursor-wait" : ""
-                }`}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
+            return (
+              <div className="bg-surface-dim rounded-2xl p-6 space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-muted">Subtotal</span>
+                  <span className="font-semibold text-dark">
+                    ${subtotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-muted">Shipping</span>
+                  <span className="font-semibold text-green-600">FREE</span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600 font-medium">
+                      🎫 {availableCoupon?.discountLabel} Discount
+                    </span>
+                    <span className="font-semibold text-green-600">
+                      -${discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                <div className="border-t border-border pt-4 flex justify-between">
+                  <span
+                    className="text-base font-bold text-dark"
+                    style={{ fontFamily: "var(--font-heading)" }}
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Redirecting to checkout...
-                </span>
-              ) : (
-                "Yes! Send Me The Snack Box! 🚀"
-              )}
-            </button>
+                    Total
+                  </span>
+                  <div className="text-right">
+                    {discountAmount > 0 && (
+                      <span className="text-sm text-text-muted line-through mr-2">
+                        ${subtotal.toFixed(2)}
+                      </span>
+                    )}
+                    <span
+                      className={`text-xl font-extrabold ${discountAmount > 0 ? "text-green-600" : "text-dark"}`}
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      ${total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
 
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  className={`btn-primary w-full text-base py-4 mt-2 ${loading ? "opacity-70 cursor-wait" : ""
+                    }`}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        className="animate-spin h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      Redirecting to checkout...
+                    </span>
+                  ) : (
+                    "Yes! Send Me The Snack Box! 🚀"
+                  )}
+                </button>
 
-            {/* Trust Badges */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span>🔒</span> Secure Shopify Checkout
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span>🔄</span> Free Cancellation before shipment
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span>📦</span> Ships from Seoul via EMS
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span>🇺🇸</span> FDA Compliant
-              </div>
-            </div>
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
 
-            {user?.email && (
-              <p className="text-xs text-text-muted/70">
-                💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
-              </p>
-            )}
-          </div>
+                {/* Trust Badges */}
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                    <span>🔒</span> Secure Shopify Checkout
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                    <span>🔄</span> Free Cancellation before shipment
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                    <span>📦</span> Ships from Seoul via EMS
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                    <span>🇺🇸</span> FDA Compliant
+                  </div>
+                </div>
+
+                {user?.email && (
+                  <p className="text-xs text-text-muted/70">
+                    💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="text-center mt-6">
             <Link
@@ -507,12 +538,21 @@ export default function CartPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-text-muted">Total</p>
-            <p
-              className="text-lg font-extrabold text-dark"
-              style={{ fontFamily: "var(--font-heading)" }}
-            >
-              ${subtotal.toFixed(2)}
-            </p>
+            {(() => {
+              let discount = 0;
+              if (appliedCoupon && availableCoupon) {
+                const m = availableCoupon.discountLabel.match(/(\d+)%/);
+                if (m) discount = subtotal * (parseInt(m[1]) / 100);
+              }
+              return (
+                <p
+                  className={`text-lg font-extrabold ${discount > 0 ? "text-green-600" : "text-dark"}`}
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  ${(subtotal - discount).toFixed(2)}
+                </p>
+              );
+            })()}
           </div>
           <button
             onClick={handleCheckout}
