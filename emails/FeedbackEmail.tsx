@@ -61,9 +61,17 @@ export const FeedbackEmail = ({
               </Button>
             </Section>
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-            <Text className="text-[#666666] text-[12px] leading-[24px] text-center">
+            <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email was intended for {customerName}. If you didn&apos;t order a
               Seoul Snack Box, please ignore this email.
+            </Text>
+            <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
+              Blank Palette LLC<br />
+              30 N Gould St, STE R, Sheridan, WY 82801, USA<br />
+              <br />
+              <Link href="#" className="text-[#999999] underline">
+                Unsubscribe
+              </Link>
             </Text>
           </Container>
         </Body>
