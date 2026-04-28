@@ -84,7 +84,7 @@ export default function LoginPage() {
             className="text-3xl font-bold mb-2"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Welcome 👋
+            Access Your Snack Box Dashboard
           </h1>
           <p className="text-gray-600">
             View your <span className="font-semibold text-orange-600">coupons</span>, track orders & manage your account
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 transition-all disabled:opacity-50 disabled:cursor-not-allowed
                 shadow-lg shadow-orange-500/25"
             >
-              {loading ? "Sending..." : "Send Me a Login Link ✉️"}
+              {loading ? "Sending..." : "Yes, Send My Access Link! ✉️"}
             </button>
           </form>
 
@@ -170,7 +170,7 @@ export default function LoginPage() {
             href="/order-lookup"
             className="text-sm text-gray-500 hover:text-gray-700 underline"
           >
-            Track order without an account →
+            Just checking an order? Click here →
           </Link>
         </div>
       </div>

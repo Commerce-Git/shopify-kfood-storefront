@@ -81,7 +81,7 @@ export const CouponConfirmationEmail = ({
                 className="bg-[#f97316] rounded-md text-white text-[14px] font-semibold no-underline text-center px-6 py-3"
                 href={siteUrl}
               >
-                Shop Now & Use My Coupon →
+                Yes, I Want More Snacks (Claim My {discountLabel}) →
               </Button>
             </Section>
 

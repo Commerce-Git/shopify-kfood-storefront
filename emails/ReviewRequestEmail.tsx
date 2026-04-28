@@ -66,7 +66,7 @@ export const ReviewRequestEmail = ({
                 className="bg-[#f97316] rounded-md text-white text-[14px] font-semibold no-underline text-center px-6 py-3"
                 href={reviewUrl}
               >
-                Yes, I&apos;ll Write a Review! →
+                Yes, I Want {discountLabel} OFF! (Write a Quick Review) →
               </Button>
             </Section>
             <Text className="text-[#999999] text-[11px] leading-[18px] text-center">

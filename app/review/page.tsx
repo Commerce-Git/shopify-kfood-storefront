@@ -239,12 +239,12 @@ function ReviewForm() {
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">✍️</div>
+          <div className="text-5xl mb-4">🎫</div>
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-heading)" }}>
-            Share Your Experience
+            Claim Your 15% OFF Coupon!
           </h1>
           <p className="text-gray-500">
-            Write a review & unlock your exclusive discount!
+            Tell us about your snack box to instantly unlock your next discount.
           </p>
         </div>
 
@@ -523,7 +523,7 @@ function ReviewForm() {
                     Submitting...
                   </span>
                 ) : (
-                  "Submit & Get My Coupon 🎁"
+                  "Yes, Give Me My Coupon! 🎁"
                 )}
               </button>
             )}

@@ -121,7 +121,7 @@ export default function CartPage() {
       <div className="pt-20 min-h-screen flex items-center justify-center">
         <div className="text-center px-4">
           <div className="text-6xl mb-6">🛒</div>
-          <h1 className="heading-md text-dark mb-3">Your cart is empty</h1>
+          <h1 className="heading-md text-dark mb-3">Your Snack Box is Waiting!</h1>
           <p className="text-text-muted mb-8">
             Looks like you haven&apos;t added any K-Food snacks yet!
           </p>
@@ -155,7 +155,7 @@ export default function CartPage() {
           )}
 
           <Link href="/" className="btn-primary">
-            Get My Seoul Snack Box →
+            Yes, Build My Snack Box! →
           </Link>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function CartPage() {
       <div className="section">
         <div className="section-inner max-w-3xl">
           <h1 className="heading-lg text-dark mb-2">
-            Your <span className="gradient-text">Cart</span>
+            Secure <span className="gradient-text">Checkout</span>
           </h1>
           <p className="text-text-muted mb-6">
             {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
@@ -450,7 +450,7 @@ export default function CartPage() {
                   Redirecting to checkout...
                 </span>
               ) : (
-                "Yes! Complete My Order 🎉"
+                "Yes! Send Me The Snack Box! 🚀"
               )}
             </button>
 
@@ -520,7 +520,7 @@ export default function CartPage() {
             className={`btn-primary flex-1 py-3.5 text-base ${loading ? "opacity-70 cursor-wait" : ""
               }`}
           >
-            {loading ? "Processing..." : "Complete Order 🎉"}
+            {loading ? "Processing..." : "Send My Snack Box 🚀"}
           </button>
         </div>
       </div>

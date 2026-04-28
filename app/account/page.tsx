@@ -412,7 +412,7 @@ export default function AccountPage() {
         <div className="mt-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 text-center border border-orange-100">
           <p className="text-2xl mb-2">🇰🇷</p>
           <p className="font-semibold text-gray-800 mb-1">
-            Craving more K-Snacks?
+            Ready for Your Next Box? 🇰🇷
           </p>
           <p className="text-sm text-gray-500 mb-4">
             Your next Seoul Snack Box is just a click away.
@@ -422,7 +422,7 @@ export default function AccountPage() {
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold 
               px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md"
           >
-            Order Another Box →
+            Yes, Send Me Another Box! 🚀
           </Link>
         </div>
         </>
