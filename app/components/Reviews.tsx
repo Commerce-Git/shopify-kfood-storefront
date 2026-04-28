@@ -84,32 +84,10 @@ export default function Reviews() {
   // Don't render until loaded
   if (!loaded) return null;
 
-  // No reviews yet — show a friendly CTA
-  if (reviews.length === 0) {
-    return (
-      <section className="section bg-surface-dim" id="reviews-section">
-        <div className="section-inner">
-          <div className="text-center py-8">
-            <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
-              Reviews
-            </span>
-            <h2 className="heading-lg text-dark mb-4">
-              Be the First to{" "}
-              <span className="gradient-text">Share Your Experience</span>
-            </h2>
-            <p className="text-text-muted mb-6 max-w-md mx-auto">
-              Order your Seoul Snack Box and tell us what you think — your honest review helps us pick the best snacks!
-            </p>
-            <Link
-              href="/"
-              className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25"
-            >
-              Yes, Send Me The Snack Box! 🚀
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
+  // Hide completely until we have a critical mass of social proof (10 reviews)
+  // Weak social proof (e.g., only 1-3 reviews) hurts conversion rates.
+  if (reviews.length < 10) {
+    return null;
   }
 
   return (
