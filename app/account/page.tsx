@@ -174,106 +174,100 @@ export default function AccountPage() {
       </div>
 
       {/* Coupon Vault */}
-      <h2
-        className="text-xl font-bold mb-4"
-        style={{ fontFamily: "var(--font-heading)" }}
-      >
-        🎫 My Coupons
-      </h2>
+      {(couponsLoading || coupons.length > 0) && (
+        <>
+          <h2
+            className="text-xl font-bold mb-4"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            🎫 My Coupons
+          </h2>
 
-      {couponsLoading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8 animate-pulse">
-          <div className="h-16 bg-gray-100 rounded-xl" />
-        </div>
-      ) : coupons.length === 0 ? (
-        <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100 p-6 mb-8 text-center">
-          <p className="text-2xl mb-2">🎁</p>
-          <p className="text-sm font-semibold text-gray-800 mb-1">
-            Want 15% OFF Your Next Box?
-          </p>
-          <p className="text-xs text-gray-500">
-            Check your email for the review link, share your experience, and get your coupon instantly!
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3 mb-8">
-          {coupons.map((coupon) => {
-            const isActive = coupon.status === "active";
-            const isUsed = coupon.status === "used";
-            const expiryDate = new Date(coupon.expiresAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
+          {couponsLoading ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8 animate-pulse">
+              <div className="h-16 bg-gray-100 rounded-xl" />
+            </div>
+          ) : (
+            <div className="space-y-3 mb-8">
+              {coupons.map((coupon) => {
+                const isActive = coupon.status === "active";
+                const isUsed = coupon.status === "used";
+                const expiryDate = new Date(coupon.expiresAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                });
 
-            return (
-              <div
-                key={coupon.code}
-                className={`rounded-2xl border p-5 transition-all ${
-                  isActive
-                    ? "bg-white border-orange-200 shadow-sm"
-                    : "bg-gray-50 border-gray-100 opacity-60"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                        isActive
-                          ? "bg-green-100 text-green-700"
-                          : isUsed
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
-                    >
-                      {isActive ? "Active" : isUsed ? "Used" : "Expired"}
-                    </span>
-                    <span className="font-bold text-orange-600">
-                      {coupon.discountLabel}
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    from {coupon.orderName}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between mt-3">
-                  <div>
-                    <code className="text-lg font-bold tracking-wider text-gray-800">
-                      {coupon.code}
-                    </code>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {isActive ? `Valid until ${expiryDate}` : isUsed ? "Already redeemed" : `Expired ${expiryDate}`}
-                    </p>
-                  </div>
-                  {isActive && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(coupon.code);
-                          setCopiedCode(coupon.code);
-                          setTimeout(() => setCopiedCode(null), 2000);
-                        }}
-                        className="text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        {copiedCode === coupon.code ? "Copied!" : "Copy"}
-                      </button>
-                      <button
-                        onClick={() => router.push("/cart")}
-                        className="text-xs font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 px-4 py-1.5 rounded-lg transition-all shadow-sm"
-                      >
-                        Use →
-                      </button>
+                return (
+                  <div
+                    key={coupon.code}
+                    className={`rounded-2xl border p-5 transition-all ${
+                      isActive
+                        ? "bg-white border-orange-200 shadow-sm"
+                        : "bg-gray-50 border-gray-100 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                            isActive
+                              ? "bg-green-100 text-green-700"
+                              : isUsed
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
+                        >
+                          {isActive ? "Active" : isUsed ? "Used" : "Expired"}
+                        </span>
+                        <span className="font-bold text-orange-600">
+                          {coupon.discountLabel}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        from {coupon.orderName}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+
+                    <div className="flex items-center justify-between mt-3">
+                      <div>
+                        <code className="text-lg font-bold tracking-wider text-gray-800">
+                          {coupon.code}
+                        </code>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {isActive ? `Valid until ${expiryDate}` : isUsed ? "Already redeemed" : `Expired ${expiryDate}`}
+                        </p>
+                      </div>
+                      {isActive && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(coupon.code);
+                              setCopiedCode(coupon.code);
+                              setTimeout(() => setCopiedCode(null), 2000);
+                            }}
+                            className="text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            {copiedCode === coupon.code ? "Copied!" : "Copy"}
+                          </button>
+                          <button
+                            onClick={() => router.push("/cart")}
+                            className="text-xs font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 px-4 py-1.5 rounded-lg transition-all shadow-sm"
+                          >
+                            Use →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Orders */}
+      {/* Order History */}
       <h2
         className="text-xl font-bold mb-4"
         style={{ fontFamily: "var(--font-heading)" }}
