@@ -1,8 +1,10 @@
 /**
- * 피드백 이메일 테스트 발송 스크립트
- * 실행: npx tsx scripts/test-feedback-email.ts
+ * 리뷰 요청 이메일 테스트 발송 스크립트
+ * 실행: npx tsx scripts/test-review-email.ts
  */
 
+import { config } from "dotenv";
+config({ path: ".env.local" });
 import { Resend } from "resend";
 import { ReviewRequestEmail } from "../emails/ReviewRequestEmail";
 
