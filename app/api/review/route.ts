@@ -1,14 +1,17 @@
 /**
  * Review API
  *
- * POST /api/review — 리뷰 제출 + Shopify 쿠폰 자동 생성
+ * POST /api/review — 리뷰 제출 + Shopify 쿠폰 자동 생성 + 확인 이메일 발송
  * GET  /api/review — 승인된 공개 리뷰 조회 (상품 페이지용)
+ * GET  /api/review?token=xxx — 토큰 상태 조회 (리뷰 페이지 재방문용)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
+import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
 import { getReviewStatus } from "@/lib/review-filter";
 import {
   VALID_SNACK_IDS,
@@ -19,6 +22,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ---- Shopify 쿠폰 생성 ----
 
@@ -170,14 +175,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save review." }, { status: 500 });
     }
 
+    const discountLabel =
+      COUPON_CONFIG.discountType === "percentage"
+        ? `${COUPON_CONFIG.discountValue}% OFF`
+        : `$${COUPON_CONFIG.discountValue} OFF`;
+
+    // 6. 쿠폰 확인 이메일 발송 (fire-and-forget)
+    resend.emails
+      .send({
+        from: "Seoul Snack Box <onboarding@resend.dev>",
+        to: [review.customer_email],
+        subject: `🎉 Your ${discountLabel} coupon is ready! — Seoul Snack Box`,
+        react: CouponConfirmationEmail({
+          customerName: review.customer_name.split(" ")[0],
+          couponCode,
+          discountLabel,
+          expiresAt: couponExpiresAt.toISOString(),
+          reviewToken: token,
+        }) as React.ReactElement,
+      })
+      .catch((err) => console.error("[Review API] Confirmation email error:", err));
+
     return NextResponse.json({
       success: true,
       couponCode,
       couponExpiresAt: couponExpiresAt.toISOString(),
-      discountLabel:
-        COUPON_CONFIG.discountType === "percentage"
-          ? `${COUPON_CONFIG.discountValue}% OFF`
-          : `$${COUPON_CONFIG.discountValue} OFF`,
+      discountLabel,
     });
   } catch (err) {
     console.error("[Review API] Error:", err);
@@ -185,10 +208,41 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// ---- GET: 승인된 리뷰 조회 ----
+// ---- GET: 승인된 리뷰 조회 / 토큰 상태 확인 ----
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get("token");
+
+    // 토큰이 있으면 → 토큰 상태 조회 (리뷰 페이지 재방문용)
+    if (token) {
+      const { data: review, error: fetchError } = await supabase
+        .from("reviews")
+        .select("rating, coupon_code, coupon_expires_at")
+        .eq("token", token)
+        .single();
+
+      if (fetchError || !review) {
+        return NextResponse.json({ status: "not_found" }, { status: 404 });
+      }
+
+      if (review.rating !== null && review.coupon_code) {
+        return NextResponse.json({
+          status: "submitted",
+          couponCode: review.coupon_code,
+          couponExpiresAt: review.coupon_expires_at,
+          discountLabel:
+            COUPON_CONFIG.discountType === "percentage"
+              ? `${COUPON_CONFIG.discountValue}% OFF`
+              : `$${COUPON_CONFIG.discountValue} OFF`,
+        });
+      }
+
+      return NextResponse.json({ status: "pending" });
+    }
+
+    // 토큰 없으면 → 공개 리뷰 목록 조회
     const { data: reviews, error } = await supabase
       .from("reviews")
       .select(
@@ -204,7 +258,6 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to fetch reviews." }, { status: 500 });
     }
 
-    // 평균 별점 계산
     const totalRating = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
     const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 

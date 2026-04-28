@@ -54,7 +54,27 @@ function ReviewForm() {
       window.history.replaceState({}, document.title, "/review");
     }
 
-    setStep(1); // Token present, start form
+    // Check if this token was already used (re-visit scenario)
+    fetch(`/api/review?token=${tokenParam}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "submitted" && data.couponCode) {
+          // Already submitted → show coupon immediately
+          setCouponCode(data.couponCode);
+          setCouponExpiresAt(data.couponExpiresAt);
+          setDiscountLabel(data.discountLabel);
+          setStep(totalSteps + 1);
+        } else if (data.status === "not_found") {
+          setTokenError("Review link not found or expired.");
+        } else {
+          // Pending → show review form
+          setStep(1);
+        }
+      })
+      .catch(() => {
+        // API error → still show form (will validate on submit)
+        setStep(1);
+      });
   }, [searchParams]);
 
   const toggleSelection = useCallback(
