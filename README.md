@@ -1,134 +1,95 @@
 # K-Food Headless Storefront
 
-> **이 문서를 읽는 AI에게**: 이 프로젝트의 구현 계획서입니다. 아래 내용에 따라 코드를 작성해 주세요.
+> **이 문서를 읽는 AI 및 에이전트에게**: 이 프로젝트의 구현 계획 및 상세 아키텍처 문서입니다. 본 프로젝트는 단순한 랜딩 페이지가 아닌, 사용자 결제 이탈 방지와 고도화된 Shopify API 제어 로직이 포함된 **프로덕션 레벨의 세일즈 퍼널(Sales Funnel)**입니다. 코드를 수정하거나 기능을 추가할 때 아래 내용을 반드시 꼼꼼하게 숙지해 주세요.
 
-## 프로젝트 개요
+## 1. 프로젝트 개요
 
-한국 K-Food 스낵 큐레이션 박스를 미국 시장에 D2C(Direct-to-Consumer)로 판매하는 **원 프로덕트(One-Product) 랜딩 페이지**입니다..
+한국 K-Food 스낵 큐레이션 박스를 미국 시장에 D2C(Direct-to-Consumer)로 판매하는 **원 프로덕트(One-Product) 랜딩 페이지 및 헤드리스 커머스**입니다.
 
 - **아키텍처**: Headless Commerce (Next.js 프론트엔드 + Shopify 결제 백엔드)
-- **핵심 전략**: 상품 1개(큐레이션 박스)만 판매하는 랜딩 페이지형 스토어
+- **핵심 전략**: 상품 1개(큐레이션 박스)만 판매하는 랜딩 페이지형 스토어 (Russell Brunson의 Sales Funnel 프레임워크 적용)
 - **브랜드 슬로건**: "Gift a Piece of Korea" (한국을 선물하세요)
 - **브랜드 이름**: 미정 (임시로 "K-Food Store" 사용, 추후 변경 예정)
 - **법인명**: Blank Palette LLC (DBA: 추후 결정)
 
-## 기술 스택
-
-| 항목 | 기술 |
-|---|---|
-| 프레임워크 | Next.js 16 + React 19 |
-| 스타일링 | TailwindCSS 4 |
-| 결제 | Shopify Storefront API (GraphQL) |
-| 배포 | Vercel (예정) |
-| 언어 | TypeScript |
-
-## 관련 프로젝트
+## 2. 관련 프로젝트 및 아키텍처
 
 이 프로젝트는 **프론트엔드(고객 화면)** 전용입니다. 백엔드 관리 기능(주문 수집, EMS 예약, FDA PN 신고, 상품 등록)은 별도 프로젝트인 `shopify-git`에서 처리됩니다. 두 프로젝트는 Shopify를 중앙 허브로 연결됩니다.
 
-```
+```text
 [이 프로젝트: 고객 화면]              [shopify-git: 관리자 백오피스]
-  Storefront API (읽기)                Admin API (읽기/쓰기)
+  Storefront API (읽기/체크아웃)       Admin API (읽기/쓰기/자동화)
          ↓                                    ↓
     ┌─────────────────────────────────────────────┐
     │              Shopify (중앙 DB)               │
-    │  상품, 주문, 재고, 결제 데이터 저장            │
+    │  상품, 주문, 재고, 쿠폰, 결제 데이터 저장        │
     └─────────────────────────────────────────────┘
 ```
 
-## 디자인 시스템
+## 3. 기술 스택
 
-### 브랜드 컬러
-- **Primary (네온 핑크)**: `#FF1E56`
-- **Background (쿨 화이트)**: `#FAFAFA`
-- **Dark**: `#121212`
-- **Accent**: 필요 시 추가
+| 항목 | 기술 |
+|---|---|
+| 프레임워크 | Next.js 16 (App Router) + React 19 |
+| 스타일링 | TailwindCSS 4 |
+| 결제/커머스 | Shopify Storefront API (GraphQL) & Admin REST/GraphQL API |
+| 데이터베이스 | Supabase (PostgreSQL - 리뷰, 피드백, 토큰 캐시) |
+| 이메일 발송 | Resend + React Email |
+| 배포 | Vercel (예정, Vercel Cron 사용) |
+| 언어 | TypeScript |
 
-### 타이포그래피
-- **헤딩**: Google Fonts `Outfit` (Bold, ExtraBold)
-- **본문**: Google Fonts `Inter` (Regular, Medium)
+## 4. 고도화된 핵심 구현 로직 (AI 에이전트 필독)
 
-### 디자인 톤
-- 팝(Pop)하고 활기찬 무드, 네온사인 스타일
-- K-Pop 뮤직비디오처럼 대비가 뚜렷하고 트렌디한 색상
-- 친근하고 약간의 호들갑(Excited)이 있는 톤
-- 프리미엄하면서도 MZ세대에게 어필하는 디자인
+기존의 단순 프론트엔드 템플릿과 다릅니다. 아래의 핵심 로직들이 구현되어 있으므로, 관련 파일 수정 시 의도된 동작이 깨지지 않도록 주의하세요.
 
-## 구현 계획
+### 4.1. 장바구니 및 체크아웃 이탈 방지 (Cart Backup System)
+- **관련 파일**: `app/components/CartProvider.tsx`, `app/cart/page.tsx`
+- **구현 내용**: 
+  - 사용자가 결제 버튼을 눌러 Shopify Checkout으로 리다이렉트 될 때, 장바구니 데이터를 `localStorage`(`kfood-checkout-backup`)에 안전하게 백업합니다.
+  - 결제를 미완료하고 이탈한 후 다시 돌아왔을 때, "Restore My Cart" 복구 배너를 띄워 원클릭으로 장바구니를 복구할 수 있게 설계되었습니다.
+  - 결제 링크 생성 대기 중에 발생하는 UX 저하를 막기 위해 풀스크린 오버레이("Redirecting to Secure Checkout")를 띄웁니다.
 
-### Phase 1: GitHub 연동
-- `Commerce-Git` 조직에 `shopify-kfood-storefront` Private 레포 생성
-- SSH 키: `github.com-commerce` 사용
-- 초기 커밋 및 Push
+### 4.2. 고도화된 Shopify Admin API 통신
+- **관련 파일**: `lib/shopify/admin.ts`
+- **구현 내용**: 
+  - **토큰 스마트 캐싱**: 2025-10 최신 OAuth 규격(Client Credentials)에 맞춰 Supabase 및 메모리 이중 캐싱을 통해 액세스 토큰을 관리하고 불필요한 재발급을 막습니다.
+  - **Rate Limit (429) 대응**: API 호출 한계 초과 시 지수 백오프(Exponential Backoff)를 통한 자동 재시도 로직이 내장되어 있습니다.
+  - **원클릭 환불/취소**: `cancelOrder` 함수는 Calculate ➡️ Refund Execute ➡️ Order Cancel 로 이어지는 복잡한 Shopify REST API 플로우를 원자적으로 처리합니다.
 
-### Phase 2: Shopify Storefront API 연동
+### 4.3. 정교한 리뷰 및 쿠폰 자동화 (Review & Coupon System)
+- **관련 파일**: `app/api/review/route.ts`, `lib/coupon-config.ts`
+- **구현 내용**: 
+  - 사용자가 고유 토큰으로 리뷰 폼을 제출하면 서버에서 토큰 유효성, 중복 여부, 만료 여부를 검증합니다.
+  - 리뷰 텍스트 필터링(`getReviewStatus`)을 통과한 리뷰에 대해, 즉각적으로 Shopify Admin GraphQL을 호출해 리뷰 보상 할인 쿠폰을 자동 생성합니다.
+  - DB 업데이트 후 Resend를 활용해 이메일 발송(`CouponConfirmationEmail`)을 비동기(fire-and-forget)로 처리하여 API 응답 시간을 최소화합니다.
 
-#### 환경 변수 (`.env.local`)
-```env
-NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=tv7r0x-zn.myshopify.com
-NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=<Storefront API 토큰>
-```
+## 5. 디자인 시스템 및 세일즈 퍼널
 
-#### 필요한 파일
-1. `lib/shopify/storefront.ts` — Storefront API GraphQL 클라이언트 (공개 토큰)
-2. `lib/shopify/queries.ts` — 상품 조회 쿼리 + checkoutCreate mutation
+일반적인 브로셔 웹사이트가 아닌 **세일즈 퍼널(Sales Funnel)**로 디자인되었습니다.
 
-#### 핵심 로직: "Buy Now" 버튼
-```typescript
-// checkoutCreate mutation으로 결제 URL을 생성한 뒤 리다이렉트
-async function handleBuyNow(variantId: string) {
-  const { checkoutUrl } = await storefrontClient.mutate(CHECKOUT_CREATE, {
-    lineItems: [{ variantId, quantity: 1 }]
-  });
-  window.location.href = checkoutUrl; // 쇼피파이 체크아웃으로 이동
-}
-```
+### 5.1. 디자인 톤
+- **Primary (네온 핑크)**: `#FF1E56` / **Background (쿨 화이트)**: `#FAFAFA`
+- **타이포그래피**: Google Fonts `Outfit` (헤딩), `Inter` (본문)
+- K-Pop, K-Drama 스타일의 활기찬 무드, 네온사인 스타일, 프리미엄 글래스모피즘 및 다이나믹 애니메이션 적용.
 
-### Phase 3: 원 프로덕트 랜딩 페이지 (핵심)
+### 5.2. 랜딩 페이지 흐름 (Hook-Story-Offer)
+위에서 아래로 자연스럽게 스크롤하며 구매를 유도합니다. (`app/page.tsx` 및 `app/components/*`)
 
-위에서 아래로 스크롤하는 구조. 홈페이지 전체가 하나의 거대한 세일즈 페이지 역할.
+1. **Hero**: 3초 훅 + 긴급성 부여 ("✈️ Order now to catch this week's direct shipment from Seoul")
+2. **Story Section**: Epiphany Bridge 형식의 공감대 형성 스토리
+3. **Offer Stack**: 단일 상품 판매를 넘은 혜택 강화 패키징 소개
+4. **Trust Badges**: FDA Compliant, 100% Authentic, Direct from Seoul 배지
+5. **Reviews**: 실제 인스타그램/틱톡 스타일 고객 후기 (초기 목업 ➡️ Supabase 연동)
+6. **FAQ**: 구매 전환율을 높이기 위한 배송/관세 불안감 해소
+7. **Sticky Buy Bar**: 스크롤에 관계없이 항시 따라다니는 "Buy Now" CTA
 
-| 순서 | 섹션 | 설명 |
-|---|---|---|
-| ① | **Hero** | 풀스크린 배경 이미지 + "Gift a Piece of Korea" 카피 + CTA 버튼 |
-| ② | **Product Showcase** | 박스 이미지(온전히 보이게) 좌측 + 가격/설명/Buy Now 우측 |
-| ③ | **What's Inside** | 구성품 타일 (스크롤 시 하나씩 등장하는 애니메이션) |
-| ④ | **Trust Badges** | ✈️ Direct from Seoul / ✅ FDA Compliant / 💯 Authentic |
-| ⑤ | **Reviews** | 인스타그램 스타일 고객 후기 카드 (초기엔 목업 데이터) |
-| ⑥ | **FAQ** | 배송 기간, 관세, 유통기한 등 아코디언 UI |
-| ⑦ | **Sticky Buy Bar** | 하단 고정 바: 가격 + "Buy Now" 버튼 (스크롤 위치 무관) |
+## 6. 중요 참고사항
 
-#### 컴포넌트 목록
-- `app/components/Hero.tsx`
-- `app/components/ProductShowcase.tsx`
-- `app/components/WhatsInside.tsx`
-- `app/components/TrustBadges.tsx`
-- `app/components/Reviews.tsx`
-- `app/components/FAQ.tsx`
-- `app/components/StickyBuyBar.tsx`
-- `app/components/BuyButton.tsx` — Storefront API checkoutCreate 호출
+### 6.1. 체크아웃 도메인
+Headless 구조에서 "Buy Now" 또는 카트에서 결제 클릭 시, 브라우저가 쇼피파이 체크아웃 도메인(`[store].myshopify.com`)으로 리다이렉트됩니다. 
 
-### Phase 4: 이미지 에셋
-- `public/images/` 디렉토리에 히어로 배경, 구성품 이미지 등 배치
-- AI 이미지 생성 도구를 활용하여 K-Food 스낵 박스 모카업 생성
+### 6.2. 환경 변수 관리 (`.env.local`)
+프론트엔드에는 절대 비밀 키가 노출되어선 안 됩니다. `NEXT_PUBLIC_`이 붙은 환경 변수 외에는 모두 서버 사이드(`app/api/*` 또는 `getServerSideProps` 등)에서만 사용해야 합니다.
 
-### Phase 5: SEO 메타데이터
-- `app/layout.tsx`에 title, meta description, OG 이미지 설정
-- Google Fonts (Inter, Outfit) 로드
-
-### Phase 6: 배포
-- Vercel에서 GitHub 레포 Import → 자동 CI/CD
-- 커스텀 도메인 연결 (추후)
-
-## 중요 참고사항
-
-### 체크아웃 도메인
-Headless 구조에서 "Buy Now" 클릭 시 브라우저가 쇼피파이 체크아웃 도메인으로 리다이렉트됩니다. 버튼 근처에 "Secure checkout powered by Shopify" 문구를 표시하여 고객 신뢰감을 확보해야 합니다.
-
-### Storefront API vs Admin API
-- **이 프로젝트**: Storefront API만 사용 (공개 토큰, 읽기 전용 + 결제 생성)
-- **shopify-git 프로젝트**: Admin API 사용 (비밀 토큰, 읽기/쓰기)
-- 이 프로젝트에 Admin API 키를 절대 넣지 마세요!
-
-### 타겟 고객
-K-Pop, K-Drama 등 K-Culture에 관심이 많은 미국 현지인 (10대 후반 ~ 30대). 자기 자신에게 또는 K-Culture를 사랑하는 친구에게 특별한 선물을 주고 싶어하는 사람들.
+### 6.3. 타겟 고객
+K-Pop, K-Drama 등 K-Culture에 관심이 많은 미국 현지인 (10대 후반 ~ 30대). 자기 자신에게 또는 K-Culture를 사랑하는 친구/가족에게 특별한 선물을 주고 싶어하는 소비자를 타겟으로 직접적이고 친근한 카피(Direct Response Copywriting)를 유지하세요.
