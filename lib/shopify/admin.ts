@@ -9,7 +9,7 @@
  * Server-side only — never import this from client components.
  */
 
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const SHOPIFY_STORE_DOMAIN =
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
@@ -21,12 +21,6 @@ const SHOPIFY_CLIENT_SECRET =
 const ADMIN_API_VERSION = "2025-10";
 const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_API_VERSION}`;
 const TOKEN_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`;
-
-// Supabase admin client (service_role — bypasses RLS)
-const supabaseAdmin = createSupabaseAdmin(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
 
 // ---- Token Cache (in-memory for same-process reuse) ----
 

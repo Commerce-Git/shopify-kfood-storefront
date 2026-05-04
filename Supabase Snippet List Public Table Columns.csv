@@ -1,0 +1,149 @@
+table_name,column_name,data_type,is_nullable,column_default
+customer_feedback,id,uuid,NO,gen_random_uuid()
+customer_feedback,name,text,YES,null
+customer_feedback,email,text,YES,null
+customer_feedback,content,text,NO,null
+customer_feedback,ip_address,text,YES,null
+customer_feedback,created_at,timestamp with time zone,YES,now()
+email_opt_out,id,uuid,NO,gen_random_uuid()
+email_opt_out,email,text,NO,null
+email_opt_out,opted_out_at,timestamp with time zone,YES,now()
+ems_history,shopify_id,text,NO,null
+ems_history,order_number,text,NO,null
+ems_history,tracking_number,text,YES,null
+ems_history,epost_reqno,text,YES,null
+ems_history,postage,integer,YES,null
+ems_history,submitted_at,timestamp with time zone,YES,now()
+feedback,id,uuid,NO,gen_random_uuid()
+feedback,rating,integer,NO,null
+feedback,favorite_snacks,ARRAY,YES,'{}'::text[]
+feedback,want_next,ARRAY,YES,'{}'::text[]
+feedback,comment,text,YES,null
+feedback,email,text,YES,null
+feedback,created_at,timestamp with time zone,YES,now()
+feedback,least_favorite_snacks,ARRAY,YES,'{}'::text[]
+inventory_settings,sku,text,NO,null
+inventory_settings,vendor_id,uuid,YES,null
+inventory_settings,safety_stock_min,integer,NO,10
+inventory_settings,target_stock_max,integer,NO,50
+inventory_settings,lead_time_days,integer,YES,3
+orders,id,uuid,NO,gen_random_uuid()
+orders,shopify_id,text,YES,null
+orders,order_number,text,NO,null
+orders,sync_status,text,YES,'PENDING'::text
+orders,error_reason,text,YES,null
+orders,raw_data,jsonb,YES,null
+orders,recipient_name,text,YES,null
+orders,recipient_email,text,YES,null
+orders,recipient_phone,text,YES,null
+orders,recipient_address,text,YES,null
+orders,recipient_city,text,YES,null
+orders,recipient_state,text,YES,null
+orders,recipient_zip,text,YES,null
+orders,recipient_country_code,text,YES,null
+orders,items,jsonb,YES,null
+orders,created_at,timestamp with time zone,YES,now()
+orders,updated_at,timestamp with time zone,YES,now()
+orders,tracking_number,text,YES,null
+orders,epost_reqno,text,YES,null
+pn_requests,id,uuid,NO,gen_random_uuid()
+pn_requests,order_number,text,NO,null
+pn_requests,tracking_number,text,YES,null
+pn_requests,items,jsonb,NO,'[]'::jsonb
+pn_requests,recipient,jsonb,YES,null
+pn_requests,status,text,YES,'PENDING'::text
+pn_requests,csv_filename,text,YES,null
+pn_requests,created_at,timestamp with time zone,YES,now()
+pn_requests,updated_at,timestamp with time zone,YES,now()
+pn_requests,is_headless,boolean,YES,true
+pn_requests,run_mode,text,YES,null
+pn_requests,fda_entry_id,text,YES,null
+pn_requests,failure_reason,text,YES,null
+pn_requests,shopify_fulfillment_status,text,YES,null
+products,id,uuid,NO,gen_random_uuid()
+products,sku,text,NO,null
+products,name_en,text,NO,null
+products,unit_price_usd,numeric,NO,0
+products,unit_weight_g,integer,NO,0
+products,hscode,text,YES,null
+products,fda_product_code,text,YES,null
+products,fda_common_name,text,YES,null
+products,fda_package_type,text,YES,null
+products,manufacturer_ffr,text,YES,null
+products,manufacturer_name,text,YES,null
+products,manufacturer_address,text,YES,null
+products,manufacturer_country,text,YES,null
+products,created_at,timestamp with time zone,YES,now()
+products,updated_at,timestamp with time zone,YES,now()
+products,is_package,boolean,YES,false
+products,package_contents,jsonb,YES,null
+purchase_order_items,id,uuid,NO,gen_random_uuid()
+purchase_order_items,po_number,text,YES,null
+purchase_order_items,sku,text,NO,null
+purchase_order_items,product_name,text,YES,null
+purchase_order_items,ordered_qty,integer,NO,0
+purchase_order_items,received_qty,integer,YES,null
+purchase_orders,po_number,text,NO,null
+purchase_orders,vendor_id,uuid,YES,null
+purchase_orders,status,text,NO,'DRAFT'::text
+purchase_orders,vendor_tracking,text,YES,null
+purchase_orders,reject_reason,text,YES,null
+purchase_orders,access_token,uuid,YES,gen_random_uuid()
+purchase_orders,token_expires_at,timestamp with time zone,YES,(now() + '7 days'::interval)
+purchase_orders,created_at,timestamp with time zone,YES,now()
+purchase_orders,approved_at,timestamp with time zone,YES,null
+purchase_orders,shipped_at,timestamp with time zone,YES,null
+purchase_orders,received_at,timestamp with time zone,YES,null
+reviews,id,uuid,NO,gen_random_uuid()
+reviews,token,text,NO,null
+reviews,token_expires_at,timestamp with time zone,NO,null
+reviews,order_id,text,NO,null
+reviews,order_name,text,NO,null
+reviews,customer_name,text,NO,null
+reviews,customer_email,text,NO,null
+reviews,rating,integer,YES,null
+reviews,title,text,YES,null
+reviews,body,text,YES,null
+reviews,photo_urls,ARRAY,YES,'{}'::text[]
+reviews,favorite_snacks,ARRAY,YES,'{}'::text[]
+reviews,least_favorite_snacks,ARRAY,YES,'{}'::text[]
+reviews,want_next,ARRAY,YES,'{}'::text[]
+reviews,private_comment,text,YES,null
+reviews,status,text,YES,'approved'::text
+reviews,coupon_code,text,YES,null
+reviews,coupon_expires_at,timestamp with time zone,YES,null
+reviews,reminder_sent,boolean,YES,false
+reviews,created_at,timestamp with time zone,YES,now()
+reviews,submitted_at,timestamp with time zone,YES,null
+settings,key,text,NO,null
+settings,value,jsonb,NO,'{}'::jsonb
+settings,updated_at,timestamp with time zone,YES,now()
+shopify_token_cache,id,text,NO,'admin_token'::text
+shopify_token_cache,access_token,text,NO,null
+shopify_token_cache,expires_at,timestamp with time zone,NO,null
+shopify_token_cache,updated_at,timestamp with time zone,YES,now()
+storefront_cancel_requests,id,uuid,NO,gen_random_uuid()
+storefront_cancel_requests,customer_id,uuid,YES,null
+storefront_cancel_requests,customer_email,text,NO,null
+storefront_cancel_requests,shopify_order_id,text,NO,null
+storefront_cancel_requests,order_number,text,NO,null
+storefront_cancel_requests,reason,text,YES,null
+storefront_cancel_requests,status,text,YES,'pending'::text
+storefront_cancel_requests,requested_at,timestamp with time zone,YES,now()
+storefront_cancel_requests,processed_at,timestamp with time zone,YES,null
+storefront_customers,id,uuid,NO,null
+storefront_customers,email,text,NO,null
+storefront_customers,first_name,text,YES,null
+storefront_customers,last_name,text,YES,null
+storefront_customers,avatar_url,text,YES,null
+storefront_customers,shopify_customer_id,text,YES,null
+storefront_customers,shopify_access_token,text,YES,null
+storefront_customers,shopify_token_expires_at,timestamp with time zone,YES,null
+storefront_customers,marketing_consent,boolean,YES,false
+storefront_customers,created_at,timestamp with time zone,YES,now()
+storefront_customers,updated_at,timestamp with time zone,YES,now()
+vendors,id,uuid,NO,gen_random_uuid()
+vendors,name,text,NO,null
+vendors,contact_name,text,YES,null
+vendors,contact_email,text,YES,null
+vendors,created_at,timestamp with time zone,YES,now()

@@ -5,9 +5,10 @@ import BuyButton from "./BuyButton";
 
 interface HeroProps {
   variantId?: string;
+  price?: string;
 }
 
-export default function Hero({ variantId }: HeroProps) {
+export default function Hero({ variantId, price }: HeroProps) {
   return (
     <section
       className="relative w-full min-h-screen flex items-center overflow-hidden"
@@ -76,7 +77,7 @@ export default function Hero({ variantId }: HeroProps) {
               style={{ animationDelay: "0.7s", animationFillMode: "both" }}
             >
               <span className="text-3xl sm:text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                $45.00
+                ${price ? `$${parseFloat(price).toFixed(2)}` : "$45.00"}
               </span>
             </div>
 

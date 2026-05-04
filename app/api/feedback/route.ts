@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // Simple in-memory rate limiting (per-IP, 1 request per minute)
 const recentSubmissions = new Map<string, number>();
@@ -52,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to Supabase
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseAdmin
       .from("customer_feedback")
       .insert({
         content: content.trim().slice(0, 5000),

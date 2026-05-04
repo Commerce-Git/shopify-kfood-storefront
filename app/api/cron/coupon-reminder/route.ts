@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@supabase/supabase-js";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Vercel Cron Job #2 — 매일 02:00 UTC 실행
@@ -16,15 +16,10 @@ import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
-
 async function isDiscountUsed(code: string): Promise<boolean> {
   const query = `
-    {
-      codeDiscountNodeByCode(code: "${code}") {
+    query CheckDiscountUsage($code: String!) {
+      codeDiscountNodeByCode(code: $code) {
         codeDiscount {
           ... on DiscountCodeBasic {
             usageLimit
@@ -36,7 +31,7 @@ async function isDiscountUsed(code: string): Promise<boolean> {
   `;
 
   try {
-    const data = await adminGraphQL(query);
+    const data = await adminGraphQL(query, { code });
     const discount = data?.data?.codeDiscountNodeByCode?.codeDiscount;
     if (!discount) return false;
     return discount.asyncUsageCount > 0;
@@ -60,7 +55,7 @@ export async function GET(request: Request) {
     const reminderCutoff = new Date();
     reminderCutoff.setDate(reminderCutoff.getDate() + reminderDays);
 
-    const { data: pendingReminders, error } = await supabase
+    const { data: pendingReminders, error } = await supabaseAdmin
       .from("reviews")
       .select("*")
       .not("coupon_code", "is", null)
@@ -89,7 +84,7 @@ export async function GET(request: Request) {
         // 수신 거부 확인
         if (await isOptedOut(review.customer_email)) {
           // opt-out이지만 reminder_sent는 true로 표시하여 다음 날 다시 조회되지 않도록
-          await supabase
+          await supabaseAdmin
             .from("reviews")
             .update({ reminder_sent: true })
             .eq("id", review.id);
@@ -101,7 +96,7 @@ export async function GET(request: Request) {
         const used = await isDiscountUsed(review.coupon_code);
 
         if (used) {
-          await supabase
+          await supabaseAdmin
             .from("reviews")
             .update({ reminder_sent: true })
             .eq("id", review.id);
@@ -136,7 +131,7 @@ export async function GET(request: Request) {
           }) as React.ReactElement,
         });
 
-        await supabase
+        await supabaseAdmin
           .from("reviews")
           .update({ reminder_sent: true })
           .eq("id", review.id);

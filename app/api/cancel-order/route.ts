@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 import { cancelOrder, adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { Resend } from "resend";
 import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Service-role Supabase client (bypasses RLS)
-const supabaseAdmin = createSupabaseAdmin(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
 
 // ---- 쿠폰 재발급 헬퍼 ----
 
@@ -25,14 +19,15 @@ const supabaseAdmin = createSupabaseAdmin(
 async function handleCouponReplacement(shopifyOrderGid: string) {
   try {
     // 1. 취소된 주문의 할인 코드 조회
-    const { data } = await adminGraphQL(`
-      {
-        order(id: "${shopifyOrderGid}") {
+    const { data } = await adminGraphQL(
+      `query GetOrderDiscounts($id: ID!) {
+        order(id: $id) {
           discountCodes
           email
         }
-      }
-    `);
+      }`,
+      { id: shopifyOrderGid }
+    );
 
     const discountCodes: string[] = data?.order?.discountCodes || [];
     const customerEmail: string | null = data?.order?.email || null;
@@ -65,21 +60,28 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
       couponExpiresAt.setDate(new Date().getDate() + COUPON_CONFIG.validityDays);
     }
 
-    const discountValue =
+    const customerGetsValue =
       COUPON_CONFIG.discountType === "percentage"
-        ? `{ percentage: ${COUPON_CONFIG.discountValue / 100} }`
-        : `{ amount: { amount: "${COUPON_CONFIG.discountValue}", currencyCode: USD } }`;
+        ? { percentage: COUPON_CONFIG.discountValue / 100 }
+        : { discountAmount: { amount: String(COUPON_CONFIG.discountValue), appliesOnEachItem: false } };
 
-    await adminGraphQL(`
-      mutation {
+    await adminGraphQL(
+      `mutation CreateReplacementDiscount(
+        $title: String!
+        $code: String!
+        $startsAt: DateTime!
+        $endsAt: DateTime!
+        $usageLimit: Int!
+        $customerGetsValue: DiscountCustomerGetsValueInput!
+      ) {
         discountCodeBasicCreate(basicCodeDiscount: {
-          title: "Review Reward (Replacement) - ${newCouponCode}"
-          code: "${newCouponCode}"
-          startsAt: "${new Date().toISOString()}"
-          endsAt: "${couponExpiresAt.toISOString()}"
-          usageLimit: ${COUPON_CONFIG.usageLimit}
+          title: $title
+          code: $code
+          startsAt: $startsAt
+          endsAt: $endsAt
+          usageLimit: $usageLimit
           customerGets: {
-            value: ${discountValue}
+            value: $customerGetsValue
             items: { all: true }
           }
           customerSelection: { all: true }
@@ -87,8 +89,16 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
           codeDiscountNode { id }
           userErrors { field message }
         }
+      }`,
+      {
+        title: `Review Reward (Replacement) - ${newCouponCode}`,
+        code: newCouponCode,
+        startsAt: new Date().toISOString(),
+        endsAt: couponExpiresAt.toISOString(),
+        usageLimit: COUPON_CONFIG.usageLimit,
+        customerGetsValue,
       }
-    `);
+    );
 
     // 5. Supabase 업데이트 (새 쿠폰 코드로 교체)
     await supabaseAdmin
@@ -159,9 +169,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Backend validation: Verify the cancellation window has not passed
-    if (body.processedAt) {
-      const orderDate = new Date(body.processedAt);
+    // Backend validation: Fetch processedAt from Shopify (don't trust client-provided value)
+    const { data: orderData } = await adminGraphQL(
+      `query GetOrderProcessedAt($id: ID!) {
+        order(id: $id) {
+          processedAt
+        }
+      }`,
+      { id: shopify_order_id }
+    );
+
+    const processedAt = orderData?.order?.processedAt;
+    if (processedAt) {
+      const orderDate = new Date(processedAt);
       const deadline = new Date(orderDate.getTime() + CANCEL_WINDOW_HOURS * 60 * 60 * 1000);
       if (new Date() > deadline) {
         return NextResponse.json(

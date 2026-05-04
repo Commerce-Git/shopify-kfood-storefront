@@ -32,9 +32,11 @@ export const COUPON_CONFIG = {
 /** 랜덤 쿠폰 코드 생성 (예: REVIEW-K7M2P9) */
 export function generateCouponCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 혼동 문자 제외 (0/O, 1/I/L)
+  const randomBytes = new Uint8Array(6);
+  crypto.getRandomValues(randomBytes);
   let code = '';
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(randomBytes[i] % chars.length);
   }
   return `${COUPON_CONFIG.codePrefix}-${code}`;
 }

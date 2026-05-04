@@ -7,18 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
 import { getReviewStatus } from "@/lib/review-filter";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,30 +26,57 @@ async function createShopifyDiscount(
   const startsAt = new Date().toISOString();
   const endsAt = expiresAt.toISOString();
 
-  const discountValue =
+  // Build discount value input based on config
+  const customerGetsValue =
     COUPON_CONFIG.discountType === "percentage"
-      ? `{ percentage: ${COUPON_CONFIG.discountValue / 100} }`
-      : `{ amount: { amount: "${COUPON_CONFIG.discountValue}", currencyCode: USD } }`;
+      ? { percentage: COUPON_CONFIG.discountValue / 100 }
+      : { discountAmount: { amount: String(COUPON_CONFIG.discountValue), appliesOnEachItem: false } };
 
-  const minimumRequirement =
-    COUPON_CONFIG.minimumOrderAmount != null
-      ? `minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: "${COUPON_CONFIG.minimumOrderAmount}" } }`
-      : "";
+  // Build variables object — all dynamic values passed safely via GraphQL variables
+  const variables: Record<string, unknown> = {
+    title: `Review Reward - ${couponCode}`,
+    code: couponCode,
+    startsAt,
+    endsAt,
+    usageLimit: COUPON_CONFIG.usageLimit,
+    customerGetsValue,
+  };
+
+  // Add minimum requirement if configured
+  const minimumRequirementFragment = COUPON_CONFIG.minimumOrderAmount != null
+    ? `minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: $minimumSubtotal } }`
+    : "";
+
+  if (COUPON_CONFIG.minimumOrderAmount != null) {
+    variables.minimumSubtotal = String(COUPON_CONFIG.minimumOrderAmount);
+  }
+
+  const minimumSubtotalParam = COUPON_CONFIG.minimumOrderAmount != null
+    ? "$minimumSubtotal: Decimal!"
+    : "";
 
   const mutation = `
-    mutation {
+    mutation CreateDiscount(
+      $title: String!
+      $code: String!
+      $startsAt: DateTime!
+      $endsAt: DateTime!
+      $usageLimit: Int!
+      $customerGetsValue: DiscountCustomerGetsValueInput!
+      ${minimumSubtotalParam}
+    ) {
       discountCodeBasicCreate(basicCodeDiscount: {
-        title: "Review Reward - ${couponCode}"
-        code: "${couponCode}"
-        startsAt: "${startsAt}"
-        endsAt: "${endsAt}"
-        usageLimit: ${COUPON_CONFIG.usageLimit}
+        title: $title
+        code: $code
+        startsAt: $startsAt
+        endsAt: $endsAt
+        usageLimit: $usageLimit
         customerGets: {
-          value: ${discountValue}
+          value: $customerGetsValue
           items: { all: true }
         }
         customerSelection: { all: true }
-        ${minimumRequirement}
+        ${minimumRequirementFragment}
       }) {
         codeDiscountNode {
           id
@@ -67,7 +89,7 @@ async function createShopifyDiscount(
     }
   `;
 
-  const result = await adminGraphQL(mutation);
+  const result = await adminGraphQL(mutation, variables);
   const errors = result.data?.discountCodeBasicCreate?.userErrors;
   if (errors?.length > 0) {
     throw new Error(`Shopify discount error: ${JSON.stringify(errors)}`);
@@ -87,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. 토큰 검증
-    const { data: review, error: fetchError } = await supabase
+    const { data: review, error: fetchError } = await supabaseAdmin
       .from("reviews")
       .select("*")
       .eq("token", token)
@@ -141,7 +163,7 @@ export async function POST(request: NextRequest) {
     await createShopifyDiscount(couponCode, couponExpiresAt);
 
     // 5. Supabase 업데이트
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("reviews")
       .update({
         rating,
@@ -213,7 +235,7 @@ export async function GET(request: NextRequest) {
 
     // 토큰이 있으면 → 토큰 상태 조회 (리뷰 페이지 재방문용)
     if (token) {
-      const { data: review, error: fetchError } = await supabase
+      const { data: review, error: fetchError } = await supabaseAdmin
         .from("reviews")
         .select("rating, coupon_code, coupon_expires_at")
         .eq("token", token)
@@ -239,7 +261,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 토큰 없으면 → 공개 리뷰 목록 조회
-    const { data: reviews, error } = await supabase
+    const { data: reviews, error } = await supabaseAdmin
       .from("reviews")
       .select(
         "id, customer_name, rating, title, body, photo_urls, submitted_at"

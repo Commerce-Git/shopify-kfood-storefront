@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
-import { getOrderStep } from "@/lib/shopify/customer";
+import { getOrderStep } from "@/lib/shopify/order-utils";
 import type { MappedOrder } from "@/lib/shopify/admin";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import CancelButton from "@/app/components/CancelButton";

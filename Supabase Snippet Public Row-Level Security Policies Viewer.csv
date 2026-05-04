@@ -1,0 +1,7 @@
+tablename,policyname,cmd,qual,with_check
+reviews,Anyone can read approved reviews,SELECT,((rating IS NOT NULL) AND (status = 'approved'::text)),null
+reviews,Service role has full access,ALL,true,true
+storefront_customers,customers_own_data,ALL,(auth.uid() = id),null
+storefront_cancel_requests,cancel_own_requests,ALL,(auth.uid() = customer_id),null
+feedback,Allow public feedback inserts,INSERT,null,true
+feedback,Allow service role to read feedback,SELECT,true,null

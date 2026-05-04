@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@supabase/supabase-js";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { ReviewRequestEmail } from "@/emails/ReviewRequestEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Vercel Cron Job — 매일 01:00 UTC 실행
@@ -17,11 +17,6 @@ import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
  */
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
 
 // ---- Cron Job 핸들러 ----
 
@@ -118,7 +113,7 @@ export async function GET(request: Request) {
         const displayName = `${firstName}${lastInitial}`;
 
         // Supabase에 빈 껍데기 리뷰 행 생성
-        const { error: dbError } = await supabase.from("reviews").insert({
+        const { error: dbError } = await supabaseAdmin.from("reviews").insert({
           token: reviewToken,
           token_expires_at: tokenExpiresAt.toISOString(),
           order_id: order.id,

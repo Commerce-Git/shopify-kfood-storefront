@@ -19,17 +19,18 @@ interface CouponItem {
 
 async function isDiscountUsed(code: string): Promise<boolean> {
   try {
-    const data = await adminGraphQL(`
-      {
-        codeDiscountNodeByCode(code: "${code}") {
+    const data = await adminGraphQL(
+      `query CheckDiscountUsage($code: String!) {
+        codeDiscountNodeByCode(code: $code) {
           codeDiscount {
             ... on DiscountCodeBasic {
               asyncUsageCount
             }
           }
         }
-      }
-    `);
+      }`,
+      { code }
+    );
     const discount = data?.data?.codeDiscountNodeByCode?.codeDiscount;
     if (!discount) return false;
     return discount.asyncUsageCount > 0;
@@ -72,28 +73,42 @@ export async function GET() {
         ? `${COUPON_CONFIG.discountValue}% OFF`
         : `$${COUPON_CONFIG.discountValue} OFF`;
 
+    // Parallel check: only query Shopify for non-expired coupons
+    const nonExpiredIndices: number[] = [];
+    const usageChecks: Promise<boolean>[] = [];
     const now = new Date();
-    const coupons: CouponItem[] = [];
 
-    for (const review of reviews) {
+    for (let i = 0; i < reviews.length; i++) {
+      if (new Date(reviews[i].coupon_expires_at) >= now) {
+        nonExpiredIndices.push(i);
+        usageChecks.push(isDiscountUsed(reviews[i].coupon_code));
+      }
+    }
+
+    const usageResults = await Promise.allSettled(usageChecks);
+
+    // Build coupon items
+    const coupons: CouponItem[] = reviews.map((review, i) => {
       const expired = new Date(review.coupon_expires_at) < now;
 
       let status: CouponItem["status"];
       if (expired) {
         status = "expired";
       } else {
-        const used = await isDiscountUsed(review.coupon_code);
+        const checkIndex = nonExpiredIndices.indexOf(i);
+        const result = usageResults[checkIndex];
+        const used = result?.status === "fulfilled" && result.value;
         status = used ? "used" : "active";
       }
 
-      coupons.push({
+      return {
         code: review.coupon_code,
         discountLabel,
         expiresAt: review.coupon_expires_at,
         status,
         orderName: review.order_name,
-      });
-    }
+      };
+    });
 
     // active → used → expired 순, active 내에서는 만료 임박 순 (이미 ascending)
     coupons.sort((a, b) => {

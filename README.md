@@ -32,10 +32,10 @@
 |---|---|
 | 프레임워크 | Next.js 16 (App Router) + React 19 |
 | 스타일링 | TailwindCSS 4 |
-| 결제/커머스 | Shopify Storefront API (GraphQL) & Admin REST/GraphQL API |
-| 데이터베이스 | Supabase (PostgreSQL - 리뷰, 피드백, 토큰 캐시) |
+| 결제/커머스 | Shopify Storefront API & Admin GraphQL API (2025-10) |
+| 데이터베이스 | Supabase (PostgreSQL - 리뷰, 피드백, 토큰 캐시, 고객, 취소 요청) |
 | 이메일 발송 | Resend + React Email |
-| 배포 | Vercel (예정, Vercel Cron 사용) |
+| 배포 | Vercel (Vercel Cron으로 자동화 스케줄링) |
 | 언어 | TypeScript |
 
 ## 4. 고도화된 핵심 구현 로직 (AI 에이전트 필독)
@@ -55,6 +55,7 @@
   - **토큰 스마트 캐싱**: 2025-10 최신 OAuth 규격(Client Credentials)에 맞춰 Supabase 및 메모리 이중 캐싱을 통해 액세스 토큰을 관리하고 불필요한 재발급을 막습니다.
   - **Rate Limit (429) 대응**: API 호출 한계 초과 시 지수 백오프(Exponential Backoff)를 통한 자동 재시도 로직이 내장되어 있습니다.
   - **원클릭 환불/취소**: `cancelOrder` 함수는 Calculate ➡️ Refund Execute ➡️ Order Cancel 로 이어지는 복잡한 Shopify REST API 플로우를 원자적으로 처리합니다.
+  - **서버 사이드 취소 윈도우 검증**: 주문 취소 시 클라이언트 값에 의존하지 않고, Shopify Admin API에서 `processedAt`을 직접 조회하여 취소 가능 시간을 서버에서 검증합니다.
 
 ### 4.3. 정교한 리뷰 및 쿠폰 자동화 (Review & Coupon System)
 - **관련 파일**: `app/api/review/route.ts`, `lib/coupon-config.ts`
@@ -62,6 +63,7 @@
   - 사용자가 고유 토큰으로 리뷰 폼을 제출하면 서버에서 토큰 유효성, 중복 여부, 만료 여부를 검증합니다.
   - 리뷰 텍스트 필터링(`getReviewStatus`)을 통과한 리뷰에 대해, 즉각적으로 Shopify Admin GraphQL을 호출해 리뷰 보상 할인 쿠폰을 자동 생성합니다.
   - DB 업데이트 후 Resend를 활용해 이메일 발송(`CouponConfirmationEmail`)을 비동기(fire-and-forget)로 처리하여 API 응답 시간을 최소화합니다.
+  - 쿠폰 코드는 `crypto.getRandomValues()`를 사용하여 암호학적으로 안전하게 생성됩니다.
 
 ## 5. 디자인 시스템 및 세일즈 퍼널
 
@@ -83,13 +85,47 @@
 6. **FAQ**: 구매 전환율을 높이기 위한 배송/관세 불안감 해소
 7. **Sticky Buy Bar**: 스크롤에 관계없이 항시 따라다니는 "Buy Now" CTA
 
-## 6. 중요 참고사항
+## 6. 코드 컨벤션 및 보안 규칙 (AI 에이전트 필독)
 
-### 6.1. 체크아웃 도메인
+### 6.1. GraphQL은 반드시 Variables 사용
+Shopify Admin API GraphQL 호출 시, **문자열 보간(Template Literal)으로 값을 직접 쿼리에 삽입하지 마세요.** 반드시 GraphQL Variables를 사용해야 합니다 (GraphQL Injection 방어).
+
+```typescript
+// ❌ 금지 — 문자열 보간
+await adminGraphQL(`{ order(id: "${orderId}") { ... } }`);
+
+// ✅ 올바름 — Variables 사용
+await adminGraphQL(
+  `query($id: ID!) { order(id: $id) { ... } }`,
+  { id: orderId }
+);
+```
+
+### 6.2. Supabase Admin Client는 싱글톤 사용
+Service Role Key를 사용하는 Supabase 클라이언트는 `lib/supabase/admin.ts`의 싱글톤(`supabaseAdmin`)을 import하세요. API Route에서 직접 `createClient()`를 호출하지 마세요.
+
+```typescript
+// ❌ 금지 — 중복 인스턴스 생성
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(url, serviceRoleKey);
+
+// ✅ 올바름 — 싱글톤 사용
+import { supabaseAdmin } from "@/lib/supabase/admin";
+```
+
+### 6.3. 환경 변수 관리
+`NEXT_PUBLIC_`이 붙은 환경 변수 외에는 모두 서버 사이드(`app/api/*`)에서만 사용해야 합니다. 전체 환경 변수 목록은 `OPERATIONS.md`에 정리되어 있습니다.
+
+### 6.4. Storefront API 캐싱
+`lib/shopify/storefront.ts`의 `storefrontFetch()`는 `next: { revalidate: 300 }` (5분 ISR)이 적용되어 있습니다. 실시간 데이터가 필요한 경우 `{ cache: 'no-store' }` 옵션을 전달하세요.
+
+## 7. 체크아웃 및 운영 참고사항
+
+### 7.1. 체크아웃 도메인
 Headless 구조에서 "Buy Now" 또는 카트에서 결제 클릭 시, 브라우저가 쇼피파이 체크아웃 도메인(`[store].myshopify.com`)으로 리다이렉트됩니다. 
 
-### 6.2. 환경 변수 관리 (`.env.local`)
-프론트엔드에는 절대 비밀 키가 노출되어선 안 됩니다. `NEXT_PUBLIC_`이 붙은 환경 변수 외에는 모두 서버 사이드(`app/api/*` 또는 `getServerSideProps` 등)에서만 사용해야 합니다.
+### 7.2. Supabase DB 스키마
+`supabase/migrations/` 디렉터리에 이 프로젝트 소유 테이블의 SQL 마이그레이션 파일이 정리되어 있습니다. 동일 Supabase DB에 백오피스(`shopify-git`) 테이블도 공존합니다.
 
-### 6.3. 타겟 고객
+### 7.3. 타겟 고객
 K-Pop, K-Drama 등 K-Culture에 관심이 많은 미국 현지인 (10대 후반 ~ 30대). 자기 자신에게 또는 K-Culture를 사랑하는 친구/가족에게 특별한 선물을 주고 싶어하는 소비자를 타겟으로 직접적이고 친근한 카피(Direct Response Copywriting)를 유지하세요.

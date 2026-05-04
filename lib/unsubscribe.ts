@@ -6,17 +6,12 @@
  */
 
 import { createHmac } from "crypto";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || "";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   "https://shopify-kfood-storefront.vercel.app";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
 
 /** HMAC 토큰 생성 */
 function generateToken(email: string): string {
@@ -43,7 +38,7 @@ export function verifyUnsubscribeToken(
 
 /** 수신 거부 여부 확인 (크론잡에서 사용) */
 export async function isOptedOut(email: string): Promise<boolean> {
-  const { data } = await supabase
+  const { data } = await supabaseAdmin
     .from("email_opt_out")
     .select("id")
     .eq("email", email.toLowerCase().trim())
@@ -54,7 +49,7 @@ export async function isOptedOut(email: string): Promise<boolean> {
 
 /** 수신 거부 등록 */
 export async function optOut(email: string): Promise<{ error: string | null }> {
-  const { error } = await supabase.from("email_opt_out").upsert(
+  const { error } = await supabaseAdmin.from("email_opt_out").upsert(
     { email: email.toLowerCase().trim() },
     { onConflict: "email" }
   );

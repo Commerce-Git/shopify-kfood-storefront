@@ -5,7 +5,7 @@ const SHOPIFY_STORE_DOMAIN =
 const SHOPIFY_STOREFRONT_TOKEN =
   process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "";
 
-const STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-10/graphql.json`;
+const STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2025-10/graphql.json`;
 
 /**
  * Shopify Storefront API GraphQL client.
@@ -30,6 +30,7 @@ export async function storefrontFetch<T>(
       "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
     },
     body: JSON.stringify({ query, variables }),
+    next: { revalidate: 300 }, // ISR: revalidate every 5 minutes
   });
 
   if (!response.ok) {

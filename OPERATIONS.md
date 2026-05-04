@@ -114,13 +114,16 @@
 | 변수 | 용도 |
 |------|------|
 | `NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN` | Shopify 스토어 도메인 |
+| `NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN` | Shopify Storefront API 공개 토큰 |
 | `SHOPIFY_CLIENT_ID` | Shopify Admin API 인증 |
 | `SHOPIFY_CLIENT_SECRET` | Shopify Admin API 인증 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서버측 인증 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 브라우저측 인증 (RLS 적용) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서버측 인증 (RLS 우회) |
 | `RESEND_API_KEY` | Resend 이메일 발송 |
 | `NEXT_PUBLIC_SITE_URL` | 이메일 내 링크 기본 URL |
 | `CRON_SECRET` | Vercel 크론잡 보안 토큰 |
+| `UNSUBSCRIBE_SECRET` | 이메일 수신 거부 HMAC 서명 키 |
 | `NEXT_PUBLIC_CANCEL_WINDOW_HOURS` | 주문 취소 가능 시간 (기본 12) |
 
 ---
@@ -130,5 +133,9 @@
 | 테이블 | 용도 |
 |--------|------|
 | `reviews` | 리뷰 + 피드백 + 쿠폰 통합 |
-| `feedback` | (레거시) 기존 피드백 데이터 보존용 |
+| `storefront_customers` | Supabase Auth 기반 고객 프로필 |
+| `storefront_cancel_requests` | 주문 취소 요청 이력 |
+| `customer_feedback` | 고객 피드백 (Contact Us) |
+| `email_opt_out` | 이메일 수신 거부 목록 |
 | `shopify_token_cache` | Shopify Admin API 토큰 캐시 |
+| `feedback` | (레거시) 기존 피드백 데이터 보존용 |

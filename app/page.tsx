@@ -11,11 +11,12 @@ export default async function Home() {
   const products = await getAllProducts();
   const featuredProduct = products[0] || null;
   const variantId = featuredProduct ? getFirstVariantId(featuredProduct) : undefined;
+  const price = featuredProduct?.priceRange?.minVariantPrice?.amount;
 
   return (
     <>
       {/* 1. Hero — 3초 안에 "과자 박스다" 인지 + 바로 결제 */}
-      <Hero variantId={variantId} />
+      <Hero variantId={variantId} price={price} />
 
       {/* 2. Story — Epiphany Bridge */}
       <StorySection />
