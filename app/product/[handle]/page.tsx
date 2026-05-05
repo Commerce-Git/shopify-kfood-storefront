@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import BuyButton from "@/app/components/BuyButton";
 import TrustBadges from "@/app/components/TrustBadges";
 import Reviews from "@/app/components/Reviews";
@@ -62,11 +62,7 @@ export default async function ProductPage({ params }: PageProps) {
       : null;
 
   // SEO: 리뷰 구조화 데이터 (Google Rich Snippets)
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  );
-  const { data: reviewData } = await supabase
+  const { data: reviewData } = await supabaseAdmin
     .from("reviews")
     .select("customer_name, rating, title, body, submitted_at")
     .not("rating", "is", null)

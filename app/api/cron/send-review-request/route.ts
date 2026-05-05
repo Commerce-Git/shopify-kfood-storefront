@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     // 1. 배송 완료 + review_requested 태그 없는 주문 조회
     const ordersQuery = `
       {
-        orders(first: 50, query: "fulfillment_status:fulfilled -tag:review_requested") {
+        orders(first: 250, query: "fulfillment_status:fulfilled -tag:review_requested") {
           edges {
             node {
               id
