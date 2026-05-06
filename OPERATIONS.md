@@ -1,4 +1,4 @@
-# 📋 Seoul Snack Box — 운영 가이드
+# 📋 Blank Seoul — 운영 가이드
 
 > 이 문서는 스토어프론트의 모든 자동화, 스케줄, 설정을 한눈에 볼 수 있는 운영 가이드입니다.
 > 기능을 추가하거나 변경할 때 이 문서도 함께 업데이트해 주세요.
@@ -22,7 +22,7 @@
 | 쿠폰 발급 확인 | 리뷰 작성 직후 (즉시) | `emails/CouponConfirmationEmail.tsx` |
 | 쿠폰 만료 리마인더 | 쿠폰 만료 7일 전 (크론잡 #2) | `emails/CouponReminderEmail.tsx` |
 
-> **발신자**: `Seoul Snack Box <onboarding@resend.dev>` (도메인 인증 후 변경 예정)
+> **발신자**: `Blank Seoul <support@blankseoul.com>`
 
 ---
 

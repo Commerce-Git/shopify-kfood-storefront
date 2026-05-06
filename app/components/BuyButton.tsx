@@ -18,7 +18,7 @@ interface BuyButtonProps {
 
 export default function BuyButton({
   variantId,
-  productTitle = "Seoul Snack Box",
+  productTitle = "Blank Seoul",
   productHandle = "seoul-snack-box",
   price = "45.00",
   label = "Add to Cart 🛒",

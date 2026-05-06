@@ -114,7 +114,7 @@ export async function GET(request: Request) {
 
         // 리마인더 이메일 발송
         await resend.emails.send({
-          from: "Seoul Snack Box <onboarding@resend.dev>",
+          from: "Blank Seoul <support@blankseoul.com>",
           to: [review.customer_email],
           subject: `⏰ Your ${discountLabel} coupon expires in ${daysLeft} days!`,
           headers: {

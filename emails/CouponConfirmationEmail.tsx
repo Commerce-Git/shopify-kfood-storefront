@@ -60,7 +60,7 @@ export const CouponConfirmationEmail = ({
               Hi {customerName},
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              Thank you for sharing your Seoul Snack Box experience! Your honest
+              Thank you for sharing your Blank Seoul box experience! Your honest
               review helps us make every box better. As promised, here&apos;s
               your exclusive discount:
             </Text>
@@ -98,7 +98,7 @@ export const CouponConfirmationEmail = ({
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email was intended for {customerName}. If you didn&apos;t
-              order a Seoul Snack Box, please ignore this email.
+              order a Blank Seoul box, please ignore this email.
             </Text>
             <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
               Blank Palette LLC

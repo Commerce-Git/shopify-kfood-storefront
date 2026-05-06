@@ -11,7 +11,7 @@ const FOOTER_LINKS = {
   ],
   Support: [
     { label: "FAQ", href: "/faq" },
-    { label: "Contact Us", href: "mailto:thec9rqwer@gmail.com" },
+    { label: "Contact Us", href: "mailto:support@blankseoul.com" },
     { label: "Track Order", href: "/order-lookup" },
     { label: "Feedback", href: "/feedback" },
   ],

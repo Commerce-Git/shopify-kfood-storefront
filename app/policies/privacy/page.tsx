@@ -361,7 +361,7 @@ export default function PrivacyPolicyPage() {
         Should you have any questions about our privacy practices or this Privacy
         Policy, or if you would like to exercise any of the rights available to
         you, please email us at{" "}
-        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a> or
+        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> or
         contact us at:
       </p>
       <p>

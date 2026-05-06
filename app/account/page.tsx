@@ -339,7 +339,7 @@ export default function AccountPage() {
                       {order.name}
                     </span>
                     <h3 className="font-semibold text-lg mt-1">
-                      {firstItem?.title || "Seoul Snack Box"}
+                      {firstItem?.title || "Blank Seoul"}
                     </h3>
                     <p className="text-gray-500 text-sm">
                       ${parseFloat(order.totalPrice.amount).toFixed(2)}
@@ -403,7 +403,7 @@ export default function AccountPage() {
             Ready for Your Next Box? 🇰🇷
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            Your next Seoul Snack Box is just a click away.
+            Your next Blank Seoul box is just a click away.
           </p>
           <Link
             href="/"

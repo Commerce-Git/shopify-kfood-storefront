@@ -11,14 +11,14 @@ import { ReviewRequestEmail } from "../emails/ReviewRequestEmail";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function main() {
-  const testEmail = "thec9rqwer@gmail.com"; // 관리자님 이메일
+  const testEmail = "support@blankseoul.com"; // 관리자님 이메일
 
   console.log(`📧 Sending test feedback email to ${testEmail}...`);
 
   const { data, error } = await resend.emails.send({
-    from: "Seoul Snack Box <onboarding@resend.dev>",
+    from: "Blank Seoul <support@blankseoul.com>",
     to: [testEmail],
-    subject: "How was your Seoul Snack Box? 🎁 (TEST)",
+    subject: "How was your Blank Seoul box? 🎁 (TEST)",
     react: ReviewRequestEmail({
       customerName: "Junseo",
       reviewToken: "test-token-12345",

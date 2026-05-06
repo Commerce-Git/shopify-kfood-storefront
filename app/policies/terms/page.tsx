@@ -80,7 +80,7 @@ export default function TermsPage() {
       <h2>Contact</h2>
       <p>
         For questions about these terms, please contact us at{" "}
-        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a>.
+        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>.
       </p>
     </>
   );

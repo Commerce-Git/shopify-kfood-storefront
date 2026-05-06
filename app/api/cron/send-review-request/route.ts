@@ -140,9 +140,9 @@ export async function GET(request: Request) {
 
         // Resend로 이메일 발송
         await resend.emails.send({
-          from: "Seoul Snack Box <onboarding@resend.dev>", // 도메인 인증 후 변경
+          from: "Blank Seoul <support@blankseoul.com>",
           to: [order.email],
-          subject: "How was your Seoul Snack Box? Share & get 15% off 🎁",
+          subject: "How was your Blank Seoul box? Share & get 15% off 🎁",
           headers: {
             "List-Unsubscribe": `<${unsubscribeUrl}>`,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

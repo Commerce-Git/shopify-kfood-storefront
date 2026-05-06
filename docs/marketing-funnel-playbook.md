@@ -1,4 +1,4 @@
-# Seoul Snack Box — Marketing Playbook v2.1
+# Blank Seoul — Marketing Playbook v2.1
 
 > 현실적인 마케팅 전략. "지금 필요한 것"과 "나중에 할 것"을 명확히 구분합니다.
 
@@ -6,7 +6,7 @@
 
 ## 현재 상황
 
-- **상품**: Seoul Snack Box 1종 ($39.99)
+- **상품**: Blank Seoul 1종 ($39.99)
 - **고객**: 0명
 - **리뷰**: 0건
 - **브랜드 인지도**: 없음

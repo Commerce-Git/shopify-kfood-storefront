@@ -176,10 +176,10 @@ export default function OrderLookupPage() {
                   <p className="text-xs text-gray-400">
                     Still need help? Contact us at{" "}
                     <a
-                      href="mailto:thec9rqwer@gmail.com"
+                      href="mailto:support@blankseoul.com"
                       className="text-orange-500 hover:underline"
                     >
-                      thec9rqwer@gmail.com
+                      support@blankseoul.com
                     </a>
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export default function OrderLookupPage() {
                     🎉 Love K-Food?
                   </p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Order your next Seoul Snack Box while you wait!
+                    Order your next Blank Seoul box while you wait!
                   </p>
                   <Link
                     href="/"
@@ -357,7 +357,7 @@ export default function OrderLookupPage() {
                       text-white text-sm font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
                       transition-all shadow-md shadow-orange-500/25"
                   >
-                    Shop Seoul Snack Box →
+                    Shop Blank Seoul →
                   </Link>
                 </div>
               </>

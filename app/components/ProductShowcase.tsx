@@ -13,7 +13,7 @@ import {
 
 // Fallback mock data when no product is available from API
 const FALLBACK = {
-  title: "Seoul Snack Box",
+  title: "Blank Seoul",
   price: "39.99",
   compareAtPrice: "54.99",
   currency: "USD",

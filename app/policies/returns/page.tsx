@@ -3,7 +3,7 @@ import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Return & Refund Policy",
-  description: "Our return and refund policy for Seoul Snack Box orders.",
+  description: "Our return and refund policy for Blank Seoul orders.",
 };
 
 export default function ReturnPolicyPage() {
@@ -23,14 +23,14 @@ export default function ReturnPolicyPage() {
       <p>
         If your order has not yet been shipped, you may also request cancellation
         by emailing us at{" "}
-        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a>.
+        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>.
         We will do our best to cancel before fulfillment.
       </p>
 
       <h2>Damaged or Defective Items</h2>
       <p>
         If any items in your box arrive damaged or defective, please email us at{" "}
-        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a>{" "}
+        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>{" "}
         within <strong>14 days</strong> of delivery with:
       </p>
       <ul>
@@ -87,8 +87,8 @@ export default function ReturnPolicyPage() {
       <h2>Contact Us</h2>
       <p>
         For any return or refund inquiries, email{" "}
-        <a href="mailto:thec9rqwer@gmail.com">
-          thec9rqwer@gmail.com
+        <a href="mailto:support@blankseoul.com">
+          support@blankseoul.com
         </a>{" "}
         with your order number. We respond within 24 hours.
       </p>

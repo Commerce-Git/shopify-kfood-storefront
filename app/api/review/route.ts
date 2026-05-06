@@ -196,9 +196,9 @@ export async function POST(request: NextRequest) {
 
     resend.emails
       .send({
-        from: "Seoul Snack Box <onboarding@resend.dev>",
+        from: "Blank Seoul <support@blankseoul.com>",
         to: [review.customer_email],
-        subject: `🎉 Your ${discountLabel} coupon is ready! — Seoul Snack Box`,
+        subject: `🎉 Your ${discountLabel} coupon is ready! — Blank Seoul`,
         headers: {
           "List-Unsubscribe": `<${unsubscribeUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

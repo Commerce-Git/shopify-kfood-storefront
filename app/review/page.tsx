@@ -138,7 +138,7 @@ function ReviewForm() {
             href="/"
             className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg"
           >
-            Visit Seoul Snack Box →
+            Visit Blank Seoul →
           </Link>
         </div>
       </div>
@@ -208,7 +208,7 @@ function ReviewForm() {
             href="/"
             className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25"
           >
-            Shop Seoul Snack Box →
+            Shop Blank Seoul →
           </Link>
         </div>
       </div>
@@ -235,7 +235,7 @@ function ReviewForm() {
           {step === 1 && (
             <div className="text-center">
               <h2 className="text-lg font-bold text-gray-900 mb-6">
-                How was your Seoul Snack Box?
+                How was your Blank Seoul box?
               </h2>
               <div className="flex justify-center gap-2 mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (

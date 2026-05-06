@@ -120,9 +120,9 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
     const unsubscribeUrl = generateUnsubscribeUrl(emailTo);
 
     await resend.emails.send({
-      from: "Seoul Snack Box <onboarding@resend.dev>",
+      from: "Blank Seoul <support@blankseoul.com>",
       to: [emailTo],
-      subject: `Your ${discountLabel} coupon has been restored! — Seoul Snack Box`,
+      subject: `Your ${discountLabel} coupon has been restored! — Blank Seoul`,
       headers: {
         "List-Unsubscribe": `<${unsubscribeUrl}>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

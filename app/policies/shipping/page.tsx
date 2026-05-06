@@ -64,7 +64,7 @@ export default function ShippingPolicyPage() {
       <p>
         If your package has not arrived within 15 business days of shipment, please contact
         us at{" "}
-        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a> with your order
+        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> with your order
         number, and we will investigate with the carrier.
       </p>
     </>
