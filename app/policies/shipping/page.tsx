@@ -20,9 +20,9 @@ export default function ShippingPolicyPage() {
 
       <h2>Delivery Times</h2>
       <ul>
-        <li><strong>United States (Contiguous 48 states):</strong> 5-10 business days</li>
-        <li><strong>Hawaii & Alaska:</strong> 7-14 business days</li>
-        <li><strong>US Territories:</strong> 10-15 business days</li>
+        <li><strong>United States (Contiguous 48 states):</strong> 7-14 business days</li>
+        <li><strong>Hawaii & Alaska:</strong> 10-18 business days</li>
+        <li><strong>US Territories:</strong> 14-21 business days</li>
       </ul>
       <p>
         Please note that delivery times are estimates and may vary due to customs
@@ -64,7 +64,7 @@ export default function ShippingPolicyPage() {
       <p>
         If your package has not arrived within 15 business days of shipment, please contact
         us at{" "}
-        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a> with your order
+        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a> with your order
         number, and we will investigate with the carrier.
       </p>
     </>

@@ -460,3 +460,115 @@ export async function cancelOrder(
     };
   }
 }
+
+// ---- Marketing Consent Helpers ----
+
+/**
+ * Check if a customer is subscribed to email marketing.
+ * Queries Shopify Admin API by email to get marketing consent state.
+ * Returns true only if the customer exists and has explicitly subscribed.
+ */
+export async function isMarketingSubscribed(email: string): Promise<boolean> {
+  try {
+    const query = `
+      query CheckMarketingConsent($query: String!) {
+        customers(first: 1, query: $query) {
+          edges {
+            node {
+              emailMarketingConsent {
+                marketingState
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const result = await adminGraphQL(query, {
+      query: `email:${email}`,
+    });
+
+    const customer = result?.data?.customers?.edges?.[0]?.node;
+    if (!customer) return false;
+
+    return customer.emailMarketingConsent?.marketingState === "SUBSCRIBED";
+  } catch (err) {
+    console.error("[Admin API] Marketing consent check failed:", err);
+    return false; // Fail-safe: don't send if we can't verify
+  }
+}
+
+/**
+ * Update a customer's email marketing consent in Shopify.
+ * Used when a customer clicks "Unsubscribe" in our emails.
+ * This is the Single Source of Truth — no local DB needed.
+ */
+export async function updateMarketingConsent(
+  email: string,
+  state: "SUBSCRIBED" | "UNSUBSCRIBED"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Find customer by email
+    const searchQuery = `
+      query FindCustomer($query: String!) {
+        customers(first: 1, query: $query) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    `;
+
+    const searchResult = await adminGraphQL(searchQuery, {
+      query: `email:${email}`,
+    });
+
+    const customerId = searchResult?.data?.customers?.edges?.[0]?.node?.id;
+    if (!customerId) {
+      return { success: false, error: "Customer not found in Shopify." };
+    }
+
+    // 2. Update marketing consent
+    const mutation = `
+      mutation UpdateMarketingConsent($input: CustomerEmailMarketingConsentUpdateInput!) {
+        customerEmailMarketingConsentUpdate(input: $input) {
+          customer {
+            id
+            emailMarketingConsent {
+              marketingState
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const result = await adminGraphQL(mutation, {
+      input: {
+        customerId,
+        emailMarketingConsent: {
+          marketingState: state,
+          consentUpdatedAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    const userErrors = result?.data?.customerEmailMarketingConsentUpdate?.userErrors;
+    if (userErrors?.length > 0) {
+      return { success: false, error: userErrors[0].message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("[Admin API] Marketing consent update failed:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}

@@ -73,13 +73,14 @@ export default function TermsPage() {
       <h2>Governing Law</h2>
       <p>
         These Terms of Service shall be governed by and construed in accordance with the
-        laws of the United States, without regard to conflict of law provisions.
+        laws of the State of Wyoming, United States, without regard to conflict of law provisions.
+        Any disputes shall be resolved in the courts of Sheridan County, Wyoming.
       </p>
 
       <h2>Contact</h2>
       <p>
         For questions about these terms, please contact us at{" "}
-        <a href="mailto:support@seoulsnackbox.com">support@seoulsnackbox.com</a>.
+        <a href="mailto:thec9rqwer@gmail.com">thec9rqwer@gmail.com</a>.
       </p>
     </>
   );

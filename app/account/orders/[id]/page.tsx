@@ -240,7 +240,7 @@ export default function OrderDetailPage() {
           Issue with your order?
         </p>
         <a
-          href="mailto:support@seoulsnackbox.com"
+          href="mailto:thec9rqwer@gmail.com"
           className="text-sm text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
         >
           Contact us and we&apos;ll help you out →

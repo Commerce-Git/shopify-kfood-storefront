@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { ReviewRequestEmail } from "@/emails/ReviewRequestEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
-import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
@@ -43,6 +43,9 @@ export async function GET(request: Request) {
               customer {
                 firstName
                 lastName
+                emailMarketingConsent {
+                  marketingState
+                }
               }
               tags
               fulfillments(first: 1) {
@@ -65,7 +68,11 @@ export async function GET(request: Request) {
       id: string;
       name: string;
       email: string | null;
-      customer: { firstName: string; lastName: string } | null;
+      customer: {
+        firstName: string;
+        lastName: string;
+        emailMarketingConsent: { marketingState: string } | null;
+      } | null;
       tags: string[];
       fulfillments: { createdAt: string }[];
     }
@@ -92,9 +99,10 @@ export async function GET(request: Request) {
       if (!order.email) continue;
 
       try {
-        // 수신 거부 확인
-        if (await isOptedOut(order.email)) {
-          results.push({ order: order.name, status: "skipped (opted out)" });
+        // Shopify 마케팅 동의 확인 (Single Source of Truth)
+        const marketingState = order.customer?.emailMarketingConsent?.marketingState;
+        if (marketingState !== "SUBSCRIBED") {
+          results.push({ order: order.name, status: "skipped (not subscribed)" });
           continue;
         }
 

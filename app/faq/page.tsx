@@ -20,10 +20,10 @@ export default function FAQPage() {
           <p className="text-text-muted">
             Can&apos;t find what you&apos;re looking for? Email us at{" "}
             <a
-              href="mailto:support@seoulsnackbox.com"
+              href="mailto:thec9rqwer@gmail.com"
               className="text-primary hover:text-primary-hover transition-colors font-medium"
             >
-              support@seoulsnackbox.com
+              thec9rqwer@gmail.com
             </a>
           </p>
         </div>

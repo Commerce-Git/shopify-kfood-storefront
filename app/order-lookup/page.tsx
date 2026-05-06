@@ -176,10 +176,10 @@ export default function OrderLookupPage() {
                   <p className="text-xs text-gray-400">
                     Still need help? Contact us at{" "}
                     <a
-                      href="mailto:support@seoulsnackbox.com"
+                      href="mailto:thec9rqwer@gmail.com"
                       className="text-orange-500 hover:underline"
                     >
-                      support@seoulsnackbox.com
+                      thec9rqwer@gmail.com
                     </a>
                   </p>
                 </div>

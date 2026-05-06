@@ -1,12 +1,14 @@
 /**
- * Unsubscribe 유틸 — HMAC 토큰 생성/검증 + opt-out 확인
+ * Unsubscribe 유틸 — HMAC 토큰 생성/검증
  *
  * 보안: 이메일 주소를 HMAC-SHA256으로 서명하여,
  * 본인만 자신의 수신 거부 링크를 사용할 수 있도록 합니다.
+ *
+ * 마케팅 동의 상태 관리는 Shopify를 Single Source of Truth로 사용합니다.
+ * (lib/shopify/admin.ts의 isMarketingSubscribed, updateMarketingConsent 참조)
  */
 
 import { createHmac } from "crypto";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || "";
 const SITE_URL =
@@ -34,25 +36,4 @@ export function verifyUnsubscribeToken(
 ): boolean {
   const expected = generateToken(email);
   return expected === token;
-}
-
-/** 수신 거부 여부 확인 (크론잡에서 사용) */
-export async function isOptedOut(email: string): Promise<boolean> {
-  const { data } = await supabaseAdmin
-    .from("email_opt_out")
-    .select("id")
-    .eq("email", email.toLowerCase().trim())
-    .maybeSingle();
-
-  return !!data;
-}
-
-/** 수신 거부 등록 */
-export async function optOut(email: string): Promise<{ error: string | null }> {
-  const { error } = await supabaseAdmin.from("email_opt_out").upsert(
-    { email: email.toLowerCase().trim() },
-    { onConflict: "email" }
-  );
-
-  return { error: error?.message || null };
 }

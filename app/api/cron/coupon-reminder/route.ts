@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { adminGraphQL } from "@/lib/shopify/admin";
+import { adminGraphQL, isMarketingSubscribed } from "@/lib/shopify/admin";
 import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
-import { isOptedOut, generateUnsubscribeUrl } from "@/lib/unsubscribe";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
@@ -81,14 +81,14 @@ export async function GET(request: Request) {
 
     for (const review of pendingReminders) {
       try {
-        // 수신 거부 확인
-        if (await isOptedOut(review.customer_email)) {
+        // Shopify 마케팅 동의 확인 (Single Source of Truth)
+        if (!(await isMarketingSubscribed(review.customer_email))) {
           // opt-out이지만 reminder_sent는 true로 표시하여 다음 날 다시 조회되지 않도록
           await supabaseAdmin
             .from("reviews")
             .update({ reminder_sent: true })
             .eq("id", review.id);
-          results.push({ order: review.order_name, status: "skipped (opted out)" });
+          results.push({ order: review.order_name, status: "skipped (not subscribed)" });
           continue;
         }
 
