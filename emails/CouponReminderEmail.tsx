@@ -60,7 +60,7 @@ export const CouponReminderEmail = ({
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
               Just a quick reminder — your{" "}
-              <strong>{discountLabel}</strong> coupon from your Blank Seoul box
+              <strong>{discountLabel}</strong> coupon from your Seoul Box
               review expires on <strong>{expiryDate}</strong> ({daysLeft} days
               left!).
             </Text>
@@ -90,7 +90,7 @@ export const CouponReminderEmail = ({
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email was intended for {customerName}. If you didn&apos;t
-              order a Blank Seoul box, please ignore this email.
+              order a Seoul Box, please ignore this email.
             </Text>
             <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
               Blank Palette LLC

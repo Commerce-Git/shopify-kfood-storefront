@@ -121,7 +121,7 @@ export default function CartPage() {
       <div className="pt-20 min-h-screen flex items-center justify-center">
         <div className="text-center px-4">
           <div className="text-6xl mb-6">🛒</div>
-          <h1 className="heading-md text-dark mb-3">Your Snack Box is Waiting!</h1>
+          <h1 className="heading-md text-dark mb-3">Your Seoul Box is Waiting!</h1>
           <p className="text-text-muted mb-8">
             Looks like you haven&apos;t added any K-Food snacks yet!
           </p>
@@ -155,7 +155,7 @@ export default function CartPage() {
           )}
 
           <Link href="/" className="btn-primary">
-            Yes, Build My Snack Box! →
+            Yes, Build My Seoul Box! →
           </Link>
         </div>
       </div>
@@ -277,7 +277,7 @@ export default function CartPage() {
             <span className="text-3xl">🌶️</span>
             <div className="flex-1">
               <p className="font-semibold text-sm text-gray-900">Add Spicy Ramen Pack?</p>
-              <p className="text-xs text-gray-600">Only $8.00 — pairs perfectly with your Snack Box!</p>
+              <p className="text-xs text-gray-600">Only $8.00 — pairs perfectly with your Seoul Box!</p>
             </div>
             <button className="text-xs font-semibold text-orange-600 bg-white border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-50">
               + Add
@@ -479,7 +479,7 @@ export default function CartPage() {
                       Redirecting to checkout...
                     </span>
                   ) : (
-                    "Yes! Send Me The Snack Box! 🚀"
+                    "Yes! Send Me The Seoul Box! 🚀"
                   )}
                 </button>
 
@@ -560,7 +560,7 @@ export default function CartPage() {
             className={`btn-primary flex-1 py-3.5 text-base ${loading ? "opacity-70 cursor-wait" : ""
               }`}
           >
-            {loading ? "Processing..." : "Send My Snack Box 🚀"}
+            {loading ? "Processing..." : "Send My Seoul Box 🚀"}
           </button>
         </div>
       </div>

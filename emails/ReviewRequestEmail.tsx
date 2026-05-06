@@ -35,7 +35,7 @@ export const ReviewRequestEmail = ({
       ? `${COUPON_CONFIG.discountValue}% OFF`
       : `$${COUPON_CONFIG.discountValue} OFF`;
 
-  const previewText = `Your Blank Seoul box arrived! Share your experience & get ${discountLabel}`;
+  const previewText = `Your Seoul Box arrived! Share your experience & get ${discountLabel}`;
 
   return (
     <Html>
@@ -48,13 +48,13 @@ export const ReviewRequestEmail = ({
               <Text className="text-4xl m-0">🇰🇷 📦</Text>
             </Section>
             <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
-              How was your <strong>Blank Seoul box</strong>?
+              How was your <strong>Seoul Box</strong>?
             </Heading>
             <Text className="text-black text-[14px] leading-[24px]">
               Hi {customerName},
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              Your Blank Seoul box arrived a few weeks ago — we&apos;d love to
+              Your Seoul Box arrived a few weeks ago — we&apos;d love to
               hear what you think! Every review helps us pick better snacks for
               the next box. Your honest opinion shapes what goes in! 🙌
             </Text>
@@ -77,7 +77,7 @@ export const ReviewRequestEmail = ({
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email was intended for {customerName}. If you didn&apos;t
-              order a Blank Seoul box, please ignore this email.
+              order a Seoul Box, please ignore this email.
             </Text>
             <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
               Blank Palette LLC

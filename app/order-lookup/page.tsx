@@ -349,7 +349,7 @@ export default function OrderLookupPage() {
                     🎉 Love K-Food?
                   </p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Order your next Blank Seoul box while you wait!
+                    Order your next Seoul Box while you wait!
                   </p>
                   <Link
                     href="/"

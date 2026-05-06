@@ -22,8 +22,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "K-Food Store — Gift a Piece of Korea 🇰🇷",
-    template: "%s | K-Food Store",
+    default: "Blank Seoul — Gift a Piece of Korea 🇰🇷",
+    template: "%s | Blank Seoul",
   },
   description:
     "Discover curated K-Food snack boxes shipped direct from Seoul. Premium Korean snacks, ramen, and treats — the perfect gift for K-Culture lovers.",
@@ -40,14 +40,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "K-Food Store",
-    title: "K-Food Store — Gift a Piece of Korea 🇰🇷",
+    siteName: "Blank Seoul",
+    title: "Blank Seoul — Gift a Piece of Korea 🇰🇷",
     description:
       "Curated K-Food snack boxes shipped direct from Seoul. The perfect gift for K-Culture lovers.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "K-Food Store — Gift a Piece of Korea",
+    title: "Blank Seoul — Gift a Piece of Korea",
     description:
       "Curated K-Food snack boxes shipped direct from Seoul.",
   },

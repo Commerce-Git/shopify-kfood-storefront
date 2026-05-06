@@ -77,7 +77,7 @@ export default function Hero({ variantId, price }: HeroProps) {
               style={{ animationDelay: "0.7s", animationFillMode: "both" }}
             >
               <span className="text-3xl sm:text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                ${price ? `$${parseFloat(price).toFixed(2)}` : "$45.00"}
+                {price ? `$${parseFloat(price).toFixed(2)}` : "$45.00"}
               </span>
             </div>
 
@@ -89,7 +89,7 @@ export default function Hero({ variantId, price }: HeroProps) {
               {variantId ? (
                 <BuyButton
                   variantId={variantId}
-                  label="Yes! Send Me The Snack Box 🎁"
+                  label="Yes! Send Me The Seoul Box 🎁"
                   size="lg"
                   showSecureBadge={false}
                 />

@@ -235,7 +235,7 @@ function ReviewForm() {
           {step === 1 && (
             <div className="text-center">
               <h2 className="text-lg font-bold text-gray-900 mb-6">
-                How was your Blank Seoul box?
+                How was your Seoul Box?
               </h2>
               <div className="flex justify-center gap-2 mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (

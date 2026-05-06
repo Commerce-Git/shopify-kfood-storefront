@@ -65,9 +65,9 @@ export default function Header() {
               <span className="text-xl sm:text-2xl font-extrabold tracking-tight"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                <span className="gradient-text">K-Food</span>
+                <span className="gradient-text">Blank</span>
                 <span className={isSolidHeader ? "text-dark" : "text-white"}>
-                  {" "}Store
+                  {" "}Seoul
                 </span>
               </span>
             </Link>

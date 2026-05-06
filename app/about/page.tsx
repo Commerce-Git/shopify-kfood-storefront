@@ -88,7 +88,7 @@ export default function AboutPage() {
                   store selections.
                 </p>
                 <p>
-                  That&apos;s why we created K-Food Store — to bridge that gap.
+                  That&apos;s why we created Blank Seoul — to bridge that gap.
                   We curate the best snacks directly from Seoul, package them
                   with care, and ship them to your door. Each box is a little
                   piece of Korea, ready to be unwrapped and enjoyed.

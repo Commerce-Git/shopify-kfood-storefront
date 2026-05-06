@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How K-Food Store collects, uses, and protects your personal information.",
+    "How Blank Seoul collects, uses, and protects your personal information.",
 };
 
 export default function PrivacyPolicyPage() {

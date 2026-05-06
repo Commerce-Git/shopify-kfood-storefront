@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms and conditions for using K-Food Store.",
+  description: "Terms and conditions for using Blank Seoul.",
 };
 
 export default function TermsPage() {
@@ -13,7 +13,7 @@ export default function TermsPage() {
 
       <h2>Agreement to Terms</h2>
       <p>
-        By accessing or using the K-Food Store website and services, you agree to be
+        By accessing or using the Blank Seoul website and services, you agree to be
         bound by these Terms of Service. If you do not agree to these terms, please do
         not use our website.
       </p>
@@ -57,7 +57,7 @@ export default function TermsPage() {
 
       <h2>Limitation of Liability</h2>
       <p>
-        K-Food Store and Blank Palette LLC shall not be liable for any indirect,
+        Blank Seoul and Blank Palette LLC shall not be liable for any indirect,
         incidental, or consequential damages arising from the use of our website or
         products. Our total liability shall not exceed the amount you paid for your order.
       </p>

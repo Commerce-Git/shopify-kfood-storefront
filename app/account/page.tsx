@@ -403,7 +403,7 @@ export default function AccountPage() {
             Ready for Your Next Box? 🇰🇷
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            Your next Blank Seoul box is just a click away.
+            Your next Seoul Box is just a click away.
           </p>
           <Link
             href="/"

@@ -18,7 +18,7 @@ async function main() {
   const { data, error } = await resend.emails.send({
     from: "Blank Seoul <support@blankseoul.com>",
     to: [testEmail],
-    subject: "How was your Blank Seoul box? 🎁 (TEST)",
+    subject: "How was your Seoul Box? 🎁 (TEST)",
     react: ReviewRequestEmail({
       customerName: "Junseo",
       reviewToken: "test-token-12345",
