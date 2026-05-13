@@ -4,7 +4,7 @@ import FAQ from "../components/FAQ";
 export const metadata: Metadata = {
   title: "FAQ",
   description:
-    "Frequently asked questions about Blank Seoul snack boxes — shipping, customs, ingredients, returns, and more.",
+    "Frequently asked questions about Blank Seoul boxes — shipping, customs, ingredients, returns, and more.",
 };
 
 export default function FAQPage() {

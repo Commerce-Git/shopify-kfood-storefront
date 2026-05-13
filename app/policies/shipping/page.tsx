@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Shipping Policy",
-  description: "Learn about our shipping process, delivery times, and tracking for K-Food snack boxes shipped from Seoul, Korea.",
+  description: "Learn about our shipping process, delivery times, and tracking for Blank Seoul boxes shipped from Seoul, Korea.",
 };
 
 export default function ShippingPolicyPage() {
@@ -48,14 +48,14 @@ export default function ShippingPolicyPage() {
       <h2>Shipping Costs</h2>
       <p>
         We are currently offering <strong>Free International Shipping</strong> on all our
-        snack box orders via Korea Post EMS. There are no hidden shipping fees calculated
+        box orders via Korea Post EMS. There are no hidden shipping fees calculated
         at checkout.
       </p>
 
       <h2>Customs & Duties</h2>
       <p>
         Packages valued under $800 USD are generally exempt from US customs duties for
-        personal imports. Our snack boxes are well below this threshold. In rare cases,
+        personal imports. Our boxes are well below this threshold. In rare cases,
         there may be a small processing fee charged by the carrier. Any such fees are the
         responsibility of the buyer.
       </p>

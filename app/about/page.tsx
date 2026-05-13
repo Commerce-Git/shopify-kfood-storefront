@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about our mission to bring the best of Korean snack culture to your doorstep. Gift a Piece of Korea — curated snack boxes shipped direct from Seoul.",
+    "Learn about our mission to bring the best of Korean culture to your doorstep. Curate Korea, Deliver Culture — premium K-Culture boxes shipped direct from Seoul.",
 };
 
 const VALUES = [
@@ -57,7 +57,7 @@ export default function AboutPage() {
           </h1>
           <p className="text-lg text-white/70 leading-relaxed">
             We believe the best way to experience a culture is through its food.
-            Our mission is to bring the vibrant, exciting world of Korean snacks
+            Our mission is to bring the vibrant, exciting world of Korean culture
             to K-Culture fans across America.
           </p>
         </div>
@@ -83,13 +83,13 @@ export default function AboutPage() {
                 </p>
                 <p>
                   We realized that while K-Pop and K-Dramas had conquered the
-                  world, K-Food snacks were still a hidden treasure. Most fans
+                  world, K-Culture products were still a hidden treasure. Most fans
                   had to rely on overpriced imports or limited Asian grocery
                   store selections.
                 </p>
                 <p>
                   That&apos;s why we created Blank Seoul — to bridge that gap.
-                  We curate the best snacks directly from Seoul, package them
+                  We curate the best of Korea directly from Seoul, package it
                   with care, and ship them to your door. Each box is a little
                   piece of Korea, ready to be unwrapped and enjoyed.
                 </p>
@@ -157,8 +157,8 @@ export default function AboutPage() {
             <span className="gradient-text">Korea?</span>
           </h2>
           <p className="text-white/60 mb-8">
-            Order your curated K-Food snack box today and discover a world of
-            flavors from Seoul.
+            Order your curated Blank Seoul Box today and discover a world of
+            culture from Seoul.
           </p>
           <Link href="/" className="btn-primary text-lg px-10 py-4">
             Shop Now

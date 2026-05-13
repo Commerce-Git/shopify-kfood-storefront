@@ -142,7 +142,7 @@ export async function GET(request: Request) {
         await resend.emails.send({
           from: "Blank Seoul <support@blankseoul.com>",
           to: [order.email],
-          subject: "How was your Seoul Box? Share & get 15% off 🎁",
+          subject: "How was your Blank Seoul Box? Share & get 15% off 🎁",
           headers: {
             "List-Unsubscribe": `<${unsubscribeUrl}>`,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

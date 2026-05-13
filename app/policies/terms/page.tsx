@@ -64,7 +64,7 @@ export default function TermsPage() {
 
       <h2>Allergen Disclaimer</h2>
       <p>
-        Our snack boxes may contain common allergens including but not limited to: nuts,
+        Our boxes may contain common allergens including but not limited to: nuts,
         soy, wheat, milk, eggs, sesame, and shellfish. Please check individual product
         labels for specific allergen information. We are not responsible for allergic
         reactions to any products.

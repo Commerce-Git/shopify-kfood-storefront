@@ -52,7 +52,7 @@ export default function EpiphanyStory() {
               to those mysterious convenience store treats. But when we tried to
               find them? The local Asian mart had outdated stock. Amazon sold
               bulk packs of the same old thing. And nothing came close to what
-              they actually eat in Seoul right now.
+              Korean Gen Z is actually using and eating right now.
             </p>
 
             <p className="text-text-muted">
@@ -65,15 +65,15 @@ export default function EpiphanyStory() {
             <p className="text-text-muted">
               Now, every month, we curate a box of{" "}
               <span className="text-dark font-semibold">
-                the exact snacks Korean Gen Z is eating right now
+                the exact products Korean Gen Z is obsessing over right now
               </span>{" "}
-              — the viral TikTok ones, the hidden gems, the flavors you simply
-              can&apos;t get anywhere else. FDA-cleared, shipped via EMS from Seoul to
+              — the viral snacks, the cult-favorite K-Beauty, the hidden lifestyle gems
+              you simply can&apos;t get anywhere else. FDA-cleared, shipped via EMS from Seoul to
               your doorstep in 5-10 days.
             </p>
 
             <p className="text-dark font-semibold text-xl" style={{ fontFamily: "var(--font-heading)" }}>
-              This isn&apos;t just a snack box.{" "}
+              This isn&apos;t just a box.{" "}
               <span className="gradient-text">It&apos;s a piece of Seoul.</span>
             </p>
           </div>

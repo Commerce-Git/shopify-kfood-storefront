@@ -75,8 +75,7 @@ function UnsubscribeContent() {
               Unsubscribe
             </h1>
             <p className="text-gray-500 mb-2">
-              Are you sure you want to stop receiving emails from Seoul Snack
-              Box?
+              Are you sure you want to stop receiving emails from Blank Seoul?
             </p>
             <p className="text-sm text-gray-400 mb-8">
               Email: <span className="font-medium text-gray-600">{email}</span>

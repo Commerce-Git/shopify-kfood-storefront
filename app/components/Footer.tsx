@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const FOOTER_LINKS = {
   Shop: [
-    { label: "Seoul Box", href: "/" },
+    { label: "Blank Seoul Box", href: "/" },
     { label: "All Products", href: "/" },
   ],
   Company: [
@@ -59,13 +59,13 @@ export default function Footer() {
                 className="text-xl font-extrabold tracking-tight"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                <span className="gradient-text">K-Food</span> Store
+                <span className="gradient-text">Blank</span> Seoul
               </span>
             </Link>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
               Gift a Piece of Korea 🇰🇷
               <br />
-              Curated K-Food snack boxes, shipped direct from Seoul.
+              Korea's trendiest culture — curated and delivered from Seoul.
             </p>
 
             {/* Social Icons */}

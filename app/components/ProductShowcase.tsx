@@ -13,22 +13,22 @@ import {
 
 // Fallback mock data when no product is available from API
 const FALLBACK = {
-  title: "Blank Seoul",
+  title: "Blank Seoul Box",
   price: "39.99",
   compareAtPrice: "54.99",
   currency: "USD",
   description:
-    "10+ viral Korean snacks shipped directly from Seoul's trendiest convenience stores. The exact treats you see in K-Dramas — sweet, savory, and spicy all in one curated box.",
+    "10+ curated items from Seoul — trending K-Food, K-Beauty essentials, and lifestyle goods, all in one premium box delivered to your door.",
   highlights: [
-    "10+ unique Korean snacks",
-    "Mix of sweet, savory & spicy flavors",
-    "Includes viral K-Drama snacks",
-    "English flavor guide included",
+    "10+ curated K-Culture items",
+    "K-Food, K-Beauty & lifestyle mix",
+    "Trending items from Seoul right now",
+    "English guide included",
     "Ships from Seoul via EMS (5-10 days)",
     "100% satisfaction guarantee",
   ],
   variantId: "",
-  image: "/images/seoul-snack-box.jpg",
+  image: "/images/blank-seoul-box-v2.png",
 };
 
 interface ProductShowcaseProps {

@@ -16,7 +16,7 @@ interface StickyBuyBarProps {
 export default function StickyBuyBar({ product }: StickyBuyBarProps) {
   const [visible, setVisible] = useState(false);
 
-  const title = product?.title || "The Ultimate Seoul Box";
+  const title = product?.title || "Blank Seoul Box";
   const pricing = product
     ? getProductPricing(product)
     : { price: "45.00", compareAtPrice: null, currency: "USD" };

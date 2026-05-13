@@ -62,7 +62,7 @@ export default function OfferStack({ variantId }: OfferStackProps) {
             {variantId ? (
               <BuyButton 
                 variantId={variantId} 
-                label="Yes! Send Me The Seoul Box 🚀" 
+                label="Yes! Send Me The Blank Seoul Box 🚀" 
                 size="lg" 
               />
             ) : (

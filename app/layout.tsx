@@ -22,34 +22,34 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Blank Seoul — Gift a Piece of Korea 🇰🇷",
+    default: "Blank Seoul — Curate Korea, Deliver Culture 🇰🇷",
     template: "%s | Blank Seoul",
   },
   description:
-    "Discover curated K-Food snack boxes shipped direct from Seoul. Premium Korean snacks, ramen, and treats — the perfect gift for K-Culture lovers.",
+    "We curate Korea's trendiest culture — from snacks to beauty to lifestyle — and deliver it to your door. Premium K-Culture boxes shipped direct from Seoul.",
   keywords: [
+    "K-Culture",
+    "Korean culture box",
+    "K-Beauty",
+    "Korean lifestyle",
     "Korean snacks",
-    "K-Food",
-    "Korean food box",
-    "snack box",
-    "K-Pop snacks",
     "gift box",
-    "Korean treats",
-    "Seoul snacks",
+    "Seoul",
+    "K-Food",
   ],
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "Blank Seoul",
-    title: "Blank Seoul — Gift a Piece of Korea 🇰🇷",
+    title: "Blank Seoul — Curate Korea, Deliver Culture 🇰🇷",
     description:
-      "Curated K-Food snack boxes shipped direct from Seoul. The perfect gift for K-Culture lovers.",
+      "Korea's trendiest culture — snacks, beauty, lifestyle — curated and delivered from Seoul.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blank Seoul — Gift a Piece of Korea",
+    title: "Blank Seoul — Curate Korea, Deliver Culture",
     description:
-      "Curated K-Food snack boxes shipped direct from Seoul.",
+      "Korea's trendiest culture — curated and delivered from Seoul.",
   },
   robots: {
     index: true,

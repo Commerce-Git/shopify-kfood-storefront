@@ -54,8 +54,8 @@ export default function Hero({ variantId, price }: HeroProps) {
               className="heading-xl text-white animate-fade-in-up"
               style={{ animationDelay: "0.4s", animationFillMode: "both" }}
             >
-              Stop Watching K-Dramas.{" "}
-              <span className="gradient-text">Start Tasting Them.</span>
+              Korea&apos;s Culture, Curated.{" "}
+              <span className="gradient-text">Delivered to Your Door.</span>
             </h1>
 
             {/* Subtitle */}
@@ -67,8 +67,8 @@ export default function Hero({ variantId, price }: HeroProps) {
                 animationFillMode: "both",
               }}
             >
-              Seoul&apos;s viral convenience store snacks — the ones you see in
-              every K-Drama — curated in one premium box and shipped to your door.
+              From trending K-Food to K-Beauty to lifestyle essentials — we
+              curate the best of Seoul and ship it directly to you.
             </p>
 
             {/* Price hint */}
@@ -89,7 +89,7 @@ export default function Hero({ variantId, price }: HeroProps) {
               {variantId ? (
                 <BuyButton
                   variantId={variantId}
-                  label="Yes! Send Me The Seoul Box 🎁"
+                  label="Yes! Send Me The Blank Seoul Box 🎁"
                   size="lg"
                   showSecureBadge={false}
                 />
@@ -106,7 +106,7 @@ export default function Hero({ variantId, price }: HeroProps) {
               style={{ animationDelay: "1s", animationFillMode: "both" }}
             >
               {[
-                { value: "10+", label: "Unique Snacks" },
+                { value: "10+", label: "Curated Items" },
                 { value: "5-10", label: "Day Delivery" },
                 { value: "FDA", label: "Compliant" },
               ].map((stat) => (
@@ -135,8 +135,8 @@ export default function Hero({ variantId, price }: HeroProps) {
               <div className="absolute inset-8 bg-primary/20 rounded-full blur-[80px] pointer-events-none" />
 
               <Image
-                src="/images/seoul-snack-box.jpg"
-                alt="The Ultimate Seoul Box — Premium Korean Treats"
+                src="/images/blank-seoul-box-v2.png"
+                alt="Blank Seoul Box — Premium Korean Culture, Delivered"
                 fill
                 className="object-contain drop-shadow-2xl relative z-10"
                 sizes="(max-width: 1024px) 90vw, 45vw"

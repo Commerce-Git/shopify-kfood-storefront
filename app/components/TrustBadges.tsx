@@ -33,7 +33,7 @@ export default function TrustBadges() {
           </span>
           <h2 className="heading-lg text-dark">
             Trusted by{" "}
-            <span className="gradient-text">K-Food Lovers</span>
+            <span className="gradient-text">K-Culture Lovers</span>
           </h2>
         </div>
 

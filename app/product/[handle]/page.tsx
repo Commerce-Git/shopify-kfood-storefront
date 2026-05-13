@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const HIGHLIGHTS = [
-  "10+ unique Korean snacks per box",
+  "10+ curated Korean items per box",
   "Mix of sweet, savory & spicy flavors",
   "Includes trending K-Drama snacks",
   "English flavor guide included",

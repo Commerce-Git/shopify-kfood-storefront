@@ -16,7 +16,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Do I have to pay customs or duties?",
     answer:
-      "In most cases, no! Packages under $800 in value are exempt from customs duties for personal imports to the US. Our snack boxes are well under this threshold. On rare occasions, there may be a small processing fee from the carrier.",
+      "In most cases, no! Packages under $800 in value are exempt from customs duties for personal imports to the US. Our boxes are well under this threshold. On rare occasions, there may be a small processing fee from the carrier.",
   },
   {
     question: "Are the snacks safe & FDA compliant?",
@@ -26,7 +26,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What's the shelf life of the snacks?",
     answer:
-      "We carefully curate each box to ensure all items have at least 3+ months of shelf life remaining at the time of delivery. Most sealed Korean snacks have a shelf life of 6-12 months.",
+      "We carefully curate each box to ensure all items have at least 3+ months of shelf life remaining at the time of delivery. Most sealed Korean products have a shelf life of 6-12 months.",
   },
   {
     question: "Can I see what's in the box before buying?",
@@ -72,7 +72,7 @@ export default function FAQ({ showAll = false }: { showAll?: boolean }) {
             <span className="gradient-text">Questions?</span>
           </h2>
           <p className="text-text-muted">
-            Everything you need to know about our K-Food snack boxes.
+            Everything you need to know about Blank Seoul.
           </p>
         </div>
 

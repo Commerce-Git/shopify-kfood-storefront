@@ -226,7 +226,7 @@ function ReviewForm() {
             Claim Your 15% OFF Coupon!
           </h1>
           <p className="text-gray-500">
-            Tell us about your snack box to instantly unlock your next discount.
+            Tell us about your Blank Seoul Box to instantly unlock your next discount.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ function ReviewForm() {
           {step === 1 && (
             <div className="text-center">
               <h2 className="text-lg font-bold text-gray-900 mb-6">
-                How was your Seoul Box?
+                How was your Blank Seoul Box?
               </h2>
               <div className="flex justify-center gap-2 mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -285,7 +285,7 @@ function ReviewForm() {
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="What did you love about your snack box? Any favorites?"
+                placeholder="What did you love about your Blank Seoul Box? Any favorites?"
                 maxLength={2000}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 resize-none"

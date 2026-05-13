@@ -3,21 +3,21 @@ export default function StorySection() {
     <section className="py-24 px-4 bg-white text-dark">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-10" style={{ fontFamily: "var(--font-heading)" }}>
-          The Problem With Watching K-Dramas...
+          The Problem With Loving Korean Culture...
         </h2>
         
         <div className="space-y-6 text-lg text-gray-700 leading-relaxed" style={{ fontFamily: "var(--font-body)" }}>
           <p>
-            It always happens at 2 AM. You&apos;re deep into an episode, and suddenly the characters are eating ramen at a convenience store or pulling out a mysterious snack you&apos;ve never seen before.
+            It always happens when you&apos;re deep into a K-Drama, scrolling through Korean TikTok, or watching a K-Beauty routine. You see products you&apos;ve never seen before — snacks, skincare, cute stationery — and you want them <em>right now</em>.
           </p>
           <p className="font-bold text-xl text-dark">
-            Your mouth waters. You want it right now.
+            Your heart races. You want it all.
           </p>
           <p>
-            But when you go to your local grocery store, they only have the same boring chips. Even the &quot;international&quot; aisle doesn&apos;t have the <em>real</em> stuff they eat in Seoul.
+            But your local stores only carry the same mainstream stuff. Even the &quot;international&quot; aisle doesn&apos;t have the <em>real</em> trending products from Seoul.
           </p>
           <p>
-            I had this exact problem. I wanted to experience the flavors I saw on screen. So, I started sourcing directly from Korea. But shipping individual snacks cost a fortune ($40+ just for shipping!).
+            I had this exact problem. I wanted to experience the culture I saw on screen — the snacks, the skincare, the lifestyle. So I started sourcing directly from Korea. But buying individual items cost a fortune in shipping.
           </p>
           
           <div className="bg-orange-50 p-8 rounded-2xl border border-orange-100 my-10 relative">
@@ -28,12 +28,12 @@ export default function StorySection() {
               What if there was a better way?
             </h3>
             <p className="text-orange-800">
-              I realized: What if I could curate the ultimate box of the <em>exact</em> viral snacks, ramen, and drinks trending in Korea right now, and ship it directly from Seoul to your door—without the crazy international shipping fees?
+              I realized: What if I could curate the ultimate box of <em>exactly</em> what&apos;s trending in Korea right now — snacks, K-Beauty, lifestyle goods — and ship it directly from Seoul to your door at one flat price?
             </p>
           </div>
           
           <p>
-            That&apos;s why I created <strong>The Ultimate Seoul Box</strong>. It&apos;s not just a box of snacks; it&apos;s a 1st-class ticket to a Korean convenience store.
+            That&apos;s why I created <strong>The Blank Seoul Box</strong>. It&apos;s not just a box; it&apos;s a curated piece of Korean culture, delivered to your door.
           </p>
         </div>
       </div>

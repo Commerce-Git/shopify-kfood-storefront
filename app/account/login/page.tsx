@@ -84,7 +84,7 @@ export default function LoginPage() {
             className="text-3xl font-bold mb-2"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Access Your Seoul Box Dashboard
+            Access Your Blank Seoul Dashboard
           </h1>
           <p className="text-gray-600">
             View your <span className="font-semibold text-orange-600">coupons</span>, track orders & manage your account
