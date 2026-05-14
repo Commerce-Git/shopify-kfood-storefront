@@ -91,7 +91,7 @@ export default function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 z-10">
-              {/* Account Button */}
+              {/* === PRE-LAUNCH: Cart/Login hidden. Uncomment after launch. ===
               <Link
                 href={isLoggedIn ? "/account" : "/account/login"}
                 className={`
@@ -117,7 +117,6 @@ export default function Header() {
                 {isLoggedIn ? (customer?.first_name || "My Orders") : "Login"}
               </Link>
 
-              {/* Cart Button */}
               <Link
                 href="/cart"
                 className={`
@@ -148,6 +147,7 @@ export default function Header() {
                   </span>
                 )}
               </Link>
+              === END PRE-LAUNCH HIDDEN === */}
 
               {/* Mobile Menu Button */}
               <button
@@ -213,36 +213,16 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/cart"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 text-lg font-medium text-dark rounded-xl hover:bg-surface-dim transition-colors flex items-center gap-2"
-            >
-              Cart
-              {itemCount > 0 && (
-                <span className="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              href={isLoggedIn ? "/account" : "/account/login"}
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 text-lg font-medium text-dark rounded-xl hover:bg-surface-dim transition-colors flex items-center gap-2"
-            >
-              {isLoggedIn ? "My Orders" : "Login"}
-            </Link>
           </nav>
-
           <div className="mt-8 pt-8 border-t border-border">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="btn-primary w-full text-center"
-            >
-              Shop Now
-            </Link>
-          </div>
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="btn-primary w-full text-center"
+              >
+                Join Waitlist
+              </Link>
+            </div>
         </div>
       </div>
     </>

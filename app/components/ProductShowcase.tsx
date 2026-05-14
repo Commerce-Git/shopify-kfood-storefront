@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import BuyButton from "./BuyButton";
+import WaitlistForm from "./WaitlistForm";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import {
   getProductImage,
@@ -146,16 +146,9 @@ export default function ProductShowcase({ product }: ProductShowcaseProps) {
               ))}
             </ul>
 
-            {/* Buy Button */}
-            {variantId && (
-              <div className="mt-2">
-                <BuyButton
-                  variantId={variantId}
-                  label={`Yes! Claim My Box — ${formatPrice(pricing.price, pricing.currency)}`}
-                  size="lg"
-                />
-              </div>
-            )}
+            <div className="mt-2">
+              <WaitlistForm size="lg" />
+            </div>
           </div>
         </div>
       </div>

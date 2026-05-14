@@ -22,7 +22,7 @@ export default async function Home() {
       <StorySection />
 
       {/* 3. Offer Stack — 거부할 수 없는 제안 */}
-      <OfferStack variantId={variantId} />
+      <OfferStack />
 
       {/* 4. Trust — 실제 차별점 (서울 직배송, FDA, 정품) */}
       <TrustBadges />

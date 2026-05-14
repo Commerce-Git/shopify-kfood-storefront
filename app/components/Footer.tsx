@@ -8,6 +8,7 @@ const FOOTER_LINKS = {
   Company: [
     { label: "About Us", href: "/about" },
     { label: "Our Story", href: "/about" },
+    { label: "Partnerships", href: "mailto:jun@blankseoul.com" },
   ],
   Support: [
     { label: "FAQ", href: "/faq" },

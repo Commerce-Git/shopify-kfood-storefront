@@ -7,7 +7,7 @@ import {
   getFirstVariantId,
   formatPrice,
 } from "@/lib/shopify/api";
-import BuyButton from "./BuyButton";
+import WaitlistForm from "./WaitlistForm";
 
 interface StickyBuyBarProps {
   product: ShopifyProduct | null;
@@ -68,18 +68,7 @@ export default function StickyBuyBar({ product }: StickyBuyBarProps) {
           </div>
         </div>
 
-        {variantId ? (
-          <BuyButton
-            variantId={variantId}
-            label="Claim My Box 🎁"
-            size="sm"
-            showSecureBadge={false}
-          />
-        ) : (
-          <span className="btn-primary text-sm px-6 py-2.5 opacity-70 cursor-not-allowed">
-            Coming Soon
-          </span>
-        )}
+        <WaitlistForm size="sm" />
       </div>
     </div>
   );

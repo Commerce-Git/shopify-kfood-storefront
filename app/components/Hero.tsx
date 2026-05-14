@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import BuyButton from "./BuyButton";
+import WaitlistForm from "./WaitlistForm";
 
 interface HeroProps {
   variantId?: string;
@@ -34,9 +34,9 @@ export default function Hero({ variantId, price }: HeroProps) {
           <div className="flex flex-col gap-6 text-center lg:text-left">
             {/* Urgency Badge */}
             <div
-              className="inline-block bg-orange-500/10 text-orange-400 font-bold px-4 py-2 rounded-lg border border-orange-500/20 text-sm w-fit mx-auto lg:mx-0 self-center lg:self-start"
+              className="inline-block bg-orange-500/10 text-orange-400 font-bold px-4 py-2 rounded-lg border border-orange-500/20 text-sm w-fit mx-auto lg:mx-0 self-center lg:self-start animate-pulse"
             >
-              ✈️ Order now to catch this week's direct shipment from Seoul
+              🔥 Limited Drop — Join the Waitlist Before It Sells Out
             </div>
 
             {/* Badge */}
@@ -69,36 +69,27 @@ export default function Hero({ variantId, price }: HeroProps) {
             >
               From trending K-Food to K-Beauty to lifestyle essentials — we
               curate the best of Seoul and ship it directly to you.
+              Sign up for early access — limited quantities at launch.
             </p>
 
             {/* Price hint */}
             <div
-              className="flex items-baseline gap-3 justify-center lg:justify-start animate-fade-in-up"
+              className="flex flex-col items-center lg:items-start animate-fade-in-up"
               style={{ animationDelay: "0.7s", animationFillMode: "both" }}
             >
+              <p
+                className="text-sm text-white/50 uppercase tracking-wider font-semibold mb-1"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                Launching Price
+              </p>
               <span className="text-3xl sm:text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
                 {price ? `$${parseFloat(price).toFixed(2)}` : "$45.00"}
               </span>
             </div>
 
             {/* CTA Buttons */}
-            <div
-              className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start animate-fade-in-up"
-              style={{ animationDelay: "0.8s", animationFillMode: "both" }}
-            >
-              {variantId ? (
-                <BuyButton
-                  variantId={variantId}
-                  label="Yes! Send Me The Blank Seoul Box 🎁"
-                  size="lg"
-                  showSecureBadge={false}
-                />
-              ) : (
-                <span className="btn-primary text-lg px-10 py-4 opacity-70 cursor-not-allowed">
-                  Coming Soon
-                </span>
-              )}
-            </div>
+              <WaitlistForm size="lg" />
 
             {/* Stats */}
             <div

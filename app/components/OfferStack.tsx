@@ -1,15 +1,11 @@
-import BuyButton from "./BuyButton";
+import WaitlistForm from "./WaitlistForm";
 
-interface OfferStackProps {
-  variantId?: string;
-}
-
-export default function OfferStack({ variantId }: OfferStackProps) {
+export default function OfferStack() {
   return (
     <section className="py-24 px-4 bg-gray-50 text-dark" id="offer-section">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-12" style={{ fontFamily: "var(--font-heading)" }}>
-          Here&apos;s Exactly What You&apos;re Getting Today:
+          Here&apos;s Exactly What You&apos;re Getting:
         </h2>
 
         <div className="bg-white rounded-[2rem] p-8 sm:p-12 shadow-2xl border border-gray-100 relative overflow-hidden">
@@ -21,29 +17,29 @@ export default function OfferStack({ variantId }: OfferStackProps) {
             <li className="flex items-start gap-4">
               <span className="text-2xl mt-1">✅</span>
               <div>
-                <h3 className="font-bold text-xl text-gray-900">The K-Drama Bestseller Snack Pack</h3>
-                <p className="text-gray-600 mt-1">The 10+ exact snacks trending in Seoul right now. (Value: $35)</p>
+                <h3 className="font-bold text-xl text-gray-900">Curated K-Food Selection</h3>
+                <p className="text-gray-600 mt-1">Seoul&apos;s trendiest snacks &amp; drinks — the exact ones Korean Gen Z is obsessing over right now. (Value: $20)</p>
               </div>
             </li>
             <li className="flex items-start gap-4">
               <span className="text-2xl mt-1">✅</span>
               <div>
-                <h3 className="font-bold text-xl text-gray-900">The &quot;Spicy Ramen Challenge&quot; Kit</h3>
-                <p className="text-gray-600 mt-1">Authentic Korean ramen varieties you can&apos;t easily find locally. (Value: $25)</p>
+                <h3 className="font-bold text-xl text-gray-900">K-Beauty Essentials</h3>
+                <p className="text-gray-600 mt-1">Premium sheet masks &amp; skincare minis from brands like Innisfree, Mediheal, and more. (Value: $25)</p>
               </div>
             </li>
             <li className="flex items-start gap-4 bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-2xl border border-orange-100">
               <span className="text-2xl mt-1">🎁</span>
               <div>
-                <h3 className="font-bold text-xl text-orange-900">Surprise K-Pop Photo Card</h3>
-                <p className="text-orange-800 mt-1">A fun collectible photo card included in every box. (Value: $5)</p>
+                <h3 className="font-bold text-xl text-orange-900">Korean Lifestyle Goods</h3>
+                <p className="text-orange-800 mt-1">Cute stationery, stickers, and accessories that capture Seoul&apos;s aesthetic. (Value: $10)</p>
               </div>
             </li>
             <li className="flex items-start gap-4 bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-2xl border border-orange-100">
               <span className="text-2xl mt-1">🎁</span>
               <div>
-                <h3 className="font-bold text-xl text-orange-900">K-Convenience Store Recipe Guide</h3>
-                <p className="text-orange-800 mt-1">Digital guide to mixing snacks like a Seoul local (Mark&apos;s Meal, etc.). (Value: $5)</p>
+                <h3 className="font-bold text-xl text-orange-900">Surprise K-Culture Collectible</h3>
+                <p className="text-orange-800 mt-1">A different limited-edition item every month — you never know what Seoul surprise awaits! (Value: $10)</p>
               </div>
             </li>
           </ul>
@@ -53,23 +49,13 @@ export default function OfferStack({ variantId }: OfferStackProps) {
               ✈️ Shipped direct from Seoul
             </div>
             
-            <p className="text-gray-500 mb-2 uppercase tracking-wide font-bold">Today&apos;s Price</p>
+            <p className="text-gray-500 mb-2 uppercase tracking-wide font-bold">Launching Price</p>
             <div className="text-6xl font-black mb-8" style={{ fontFamily: "var(--font-heading)" }}>
               <span className="line-through text-gray-300 text-4xl mr-4">$65</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-600">$45</span>
             </div>
             
-            {variantId ? (
-              <BuyButton 
-                variantId={variantId} 
-                label="Yes! Send Me The Blank Seoul Box 🚀" 
-                size="lg" 
-              />
-            ) : (
-              <span className="btn-primary text-lg px-10 py-4 opacity-70 cursor-not-allowed inline-block">
-                Coming Soon
-              </span>
-            )}
+            <WaitlistForm size="lg" />
             
             <div className="flex items-center justify-center gap-4 mt-6 text-sm text-gray-500 font-medium">
               <span className="flex items-center gap-1">✈️ Ships from Seoul</span>
