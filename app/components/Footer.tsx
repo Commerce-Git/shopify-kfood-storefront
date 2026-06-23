@@ -111,12 +111,20 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div className="py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/40">
-            © {new Date().getFullYear()} Blank Palette LLC. All rights reserved.
-          </p>
-          <div className="flex items-center gap-2 text-xs text-white/40">
+        {/* Bottom Bar (Added extra pb-24 to prevent StickyBuyBar overlap) */}
+        <div className="pt-8 pb-24 lg:pb-8 border-t border-white/10 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 lg:gap-4">
+          <div className="text-xs text-white/40 space-y-1.5 text-center lg:text-left">
+            <p className="mb-3">
+              © {new Date().getFullYear()} Blank Palette LLC. All rights reserved.
+            </p>
+            <p className="opacity-75">
+              US: Blank Palette LLC | EIN: 30-1488569 | 30 N Gould St, STE R, Sheridan, WY 82801
+            </p>
+            <p className="opacity-75 break-keep">
+              KR: 마켓토리 | 사업자등록번호: 579-11-02683 | 인천광역시 남동구 남동서로236번길 30, 222-J217호(논현동)
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/40 shrink-0">
             <svg
               width="14"
               height="14"

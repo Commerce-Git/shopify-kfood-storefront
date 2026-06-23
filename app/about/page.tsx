@@ -149,6 +149,62 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Company Information Section */}
+      <section className="section bg-white border-t border-gray-100">
+        <div className="section-inner max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
+              Company Info
+            </span>
+            <h2 className="heading-md text-dark">
+              Business Registration
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-surface-dim rounded-2xl p-8 border border-gray-100/50 hover:shadow-sm transition-shadow">
+              <h3 className="text-xl font-bold text-dark mb-4" style={{ fontFamily: "var(--font-heading)" }}>
+                🇺🇸 US Entity
+              </h3>
+              <ul className="space-y-3 text-sm text-text-muted">
+                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-gray-200 pb-2">
+                  <strong className="text-dark">Company Name</strong>
+                  <span>Blank Palette LLC</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-gray-200 pb-2">
+                  <strong className="text-dark">EIN</strong>
+                  <span>30-1488569</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:justify-between pb-2">
+                  <strong className="text-dark">Address</strong>
+                  <span className="text-left sm:text-right sm:max-w-[200px]">30 N Gould St, STE R, Sheridan, WY 82801, USA</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-surface-dim rounded-2xl p-8 border border-gray-100/50 hover:shadow-sm transition-shadow">
+              <h3 className="text-xl font-bold text-dark mb-4" style={{ fontFamily: "var(--font-heading)" }}>
+                🇰🇷 Korea Entity
+              </h3>
+              <ul className="space-y-3 text-sm text-text-muted">
+                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-gray-200 pb-2">
+                  <strong className="text-dark">상호명</strong>
+                  <span>마켓토리 (Marketory)</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-gray-200 pb-2">
+                  <strong className="text-dark">사업자등록번호</strong>
+                  <span>579-11-02683</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:justify-between pb-2">
+                  <strong className="text-dark">Address</strong>
+                  <span className="text-left sm:text-right sm:max-w-[200px]">인천광역시 남동구 남동서로236번길 30, 222-J217호(논현동)</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="section bg-dark text-white text-center">
         <div className="section-inner max-w-2xl">
