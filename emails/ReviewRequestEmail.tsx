@@ -26,10 +26,10 @@ export const ReviewRequestEmail = ({
   reviewToken,
   unsubscribeUrl,
 }: ReviewRequestEmailProps) => {
-  const siteUrl =
+  const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://shopify-kfood-storefront.vercel.app";
-  const reviewUrl = `${siteUrl}/review?token=${reviewToken}`;
+    "https://blank-seoul-storefront.vercel.app";
+  const reviewUrl = `${baseUrl}/review?token=${reviewToken}`;
   const discountLabel =
     COUPON_CONFIG.discountType === "percentage"
       ? `${COUPON_CONFIG.discountValue}% OFF`
@@ -54,9 +54,9 @@ export const ReviewRequestEmail = ({
               Hi {customerName},
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              Your Blank Seoul Box arrived a few weeks ago — we&apos;d love to
-              hear what you think! Every review helps us pick better snacks for
-              the next box. Your honest opinion shapes what goes in! 🙌
+              Your Blank Seoul order arrived a few weeks ago — we&apos;d love to
+              hear what you think! Every review helps us curate better artisan goods for
+              our collection. Your honest opinion matters! 🙌
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
               As a thank you, you&apos;ll receive an{" "}

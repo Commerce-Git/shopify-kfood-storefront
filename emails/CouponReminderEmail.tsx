@@ -31,9 +31,8 @@ export const CouponReminderEmail = ({
   daysLeft,
   unsubscribeUrl,
 }: CouponReminderEmailProps) => {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://shopify-kfood-storefront.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+    "https://blank-seoul-storefront.vercel.app";
   const expiryDate = new Date(expiresAt).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",

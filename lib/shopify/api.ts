@@ -1,6 +1,6 @@
 import { storefrontFetch } from "./storefront";
-import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE } from "./queries";
-import type { ShopifyProduct } from "./types";
+import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE } from "./queries";
+import type { ShopifyProduct, ShopifyCollection } from "./types";
 
 // ---- API Response Shapes ----
 
@@ -14,6 +14,10 @@ interface ProductsResponse {
 
 interface ProductByHandleResponse {
   product: ShopifyProduct | null;
+}
+
+interface CollectionByHandleResponse {
+  collection: ShopifyCollection | null;
 }
 
 // ---- Public API Functions ----
@@ -53,11 +57,30 @@ export async function getProductByHandle(
   }
 }
 
+/**
+ * Fetch a single collection by its URL handle (slug).
+ * Returns null if not found.
+ */
+export async function getCollectionByHandle(
+  handle: string
+): Promise<ShopifyCollection | null> {
+  try {
+    const data = await storefrontFetch<CollectionByHandleResponse>(
+      GET_COLLECTION_BY_HANDLE,
+      { handle }
+    );
+    return data.collection;
+  } catch (error) {
+    console.error("[getCollectionByHandle]", error);
+    return null;
+  }
+}
+
 // ---- Helper Utilities ----
 
 /** Extract the first image URL from a product, or return a fallback */
 export function getProductImage(product: ShopifyProduct): string {
-  return product.images.edges[0]?.node.url || "/images/snack-box.webp";
+  return product.images.edges[0]?.node.url || "/assets/blank_seoul_symbol.png";
 }
 
 /** Extract the first image alt text */

@@ -13,7 +13,7 @@ import { createHmac } from "crypto";
 const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || "";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://shopify-kfood-storefront.vercel.app";
+  "https://blank-seoul-storefront.vercel.app";
 
 /** HMAC 토큰 생성 */
 function generateToken(email: string): string {

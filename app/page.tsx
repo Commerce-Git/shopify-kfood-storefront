@@ -1,40 +1,37 @@
 import Hero from "./components/Hero";
-import StorySection from "./components/StorySection";
-import OfferStack from "./components/OfferStack";
-import TrustBadges from "./components/TrustBadges";
+import FeaturedProducts from "./components/FeaturedProducts";
+import CollectionGrid from "./components/CollectionGrid";
+import BrandStory from "./components/BrandStory";
+import ArtisanSpotlight from "./components/ArtisanSpotlight";
 import Reviews from "./components/Reviews";
-import FAQ from "./components/FAQ";
-import StickyBuyBar from "./components/StickyBuyBar";
-import { getAllProducts, getFirstVariantId } from "@/lib/shopify/api";
+import NewsletterCTA from "./components/NewsletterCTA";
+import { getAllProducts } from "@/lib/shopify/api";
 
 export default async function Home() {
   const products = await getAllProducts();
-  const featuredProduct = products[0] || null;
-  const variantId = featuredProduct ? getFirstVariantId(featuredProduct) : undefined;
-  const price = featuredProduct?.priceRange?.minVariantPrice?.amount;
 
   return (
     <>
-      {/* 1. Hero — 3초 안에 "과자 박스다" 인지 + 바로 결제 */}
-      <Hero variantId={variantId} price={price} />
+      {/* 1. Hero — Hook: 3초 안에 "한국 수공예 직배송" 인지 */}
+      <Hero />
 
-      {/* 2. Story — Epiphany Bridge */}
-      <StorySection />
+      {/* 2. Featured Products — Value Ladder 프론트엔드 */}
+      <FeaturedProducts products={products} />
 
-      {/* 3. Offer Stack — 거부할 수 없는 제안 */}
-      <OfferStack />
+      {/* 3. Collection Grid — 테마별 컬렉션 진입점 */}
+      <CollectionGrid />
 
-      {/* 4. Trust — 실제 차별점 (서울 직배송, FDA, 정품) */}
-      <TrustBadges />
+      {/* 4. Brand Story — Curator's Note (감정적 연결) */}
+      <BrandStory />
 
-      {/* 5. Social Proof — 실제 후기 */}
+      {/* 5. Why Blank Seoul — 핵심 차별점 (Made in Korea + Direct + Made to Order) */}
+      <ArtisanSpotlight />
+
+      {/* 6. Social Proof — 실제 후기 */}
       <Reviews />
 
-      {/* 6. FAQ — 구매 전 걱정 해소 */}
-      <FAQ />
-
-      {/* 항시 따라다니는 CTA */}
-      <StickyBuyBar product={featuredProduct} />
+      {/* 7. Newsletter — Lead Capture */}
+      <NewsletterCTA />
     </>
   );
 }

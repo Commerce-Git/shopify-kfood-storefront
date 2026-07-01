@@ -29,7 +29,7 @@ export default function ReturnPolicyPage() {
 
       <h2>Damaged or Defective Items</h2>
       <p>
-        If any items in your box arrive damaged or defective, please email us at{" "}
+        If any items in your order arrive damaged or defective, please email us at{" "}
         <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>{" "}
         within <strong>14 days</strong> of delivery with:
       </p>
@@ -43,7 +43,7 @@ export default function ReturnPolicyPage() {
       </p>
       <ul>
         <li>
-          <strong>Full replacement</strong> — We&apos;ll send a new box at no
+          <strong>Full replacement</strong> — We&apos;ll send a new item at no
           charge
         </li>
         <li>
@@ -65,13 +65,13 @@ export default function ReturnPolicyPage() {
 
       <h2>Non-Refundable Situations</h2>
       <p>
-        Due to the perishable nature of food products and international
-        shipping regulations, we <strong>cannot</strong> accept returns or
+        Due to the handmade nature of our artisan products and international
+        shipping logistics, we <strong>cannot</strong> accept returns or
         issue refunds in the following cases:
       </p>
       <ul>
         <li>Change of mind after shipment</li>
-        <li>Items that have been opened or consumed</li>
+        <li>Items that show signs of use</li>
         <li>Incorrect shipping address provided by the customer</li>
         <li>Package refused or unclaimed at delivery</li>
       </ul>

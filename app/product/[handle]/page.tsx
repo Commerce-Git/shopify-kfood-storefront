@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import BuyButton from "@/app/components/BuyButton";
-import TrustBadges from "@/app/components/TrustBadges";
 import Reviews from "@/app/components/Reviews";
 import {
   getProductByHandle,
@@ -20,7 +19,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
-  const product = await getProductByHandle(handle);
+  const decodedHandle = decodeURIComponent(handle);
+  const product = await getProductByHandle(decodedHandle);
 
   if (!product) {
     return { title: "Product Not Found" };
@@ -33,17 +33,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const HIGHLIGHTS = [
-  "10+ curated Korean items per box",
-  "Mix of sweet, savory & spicy flavors",
-  "Includes trending K-Drama snacks",
-  "English flavor guide included",
-  "Ships from Seoul via EMS (5-10 days)",
-  "FDA compliant — properly declared",
+  "Handcrafted by independent Korean artisan",
+  "100% Made to order in Korea",
+  "Ships direct from Seoul via K-Packet (7-14 days)",
+  "Unique — no two pieces are exactly alike",
+  "Beautiful gift packaging included",
+  "Tracking number provided",
 ];
 
 export default async function ProductPage({ params }: PageProps) {
   const { handle } = await params;
-  const product = await getProductByHandle(handle);
+  const decodedHandle = decodeURIComponent(handle);
+  const product = await getProductByHandle(decodedHandle);
 
   if (!product) {
     notFound();
@@ -131,7 +132,7 @@ export default async function ProductPage({ params }: PageProps) {
           <div className="space-y-4">
             <div className="relative aspect-square rounded-2xl overflow-hidden bg-surface-dim">
               <Image
-                src={images[0]?.url || "/images/snack-box.webp"}
+                src={images[0]?.url || "/assets/blank_seoul_symbol.png"}
                 alt={images[0]?.alt || product.title}
                 fill
                 className="object-cover"
@@ -173,9 +174,9 @@ export default async function ProductPage({ params }: PageProps) {
           {/* Product Info */}
           <div className="flex flex-col gap-6 lg:pt-4">
             {product.availableForSale && (
-              <div className="inline-flex self-start items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                {product.tags.includes("limited") ? "Limited Edition" : "In Stock"}
+              <div className="inline-flex self-start items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold uppercase tracking-wider">
+                <span className="w-2 h-2 bg-slate-500 rounded-full" />
+                {product.tags.includes("limited") ? "Low Stock" : "Made to Order"}
               </div>
             )}
 
@@ -201,9 +202,10 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
-            <p className="text-text-muted leading-relaxed">
-              {product.description}
-            </p>
+            <div 
+              className="text-text-muted leading-relaxed prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+            />
 
             {/* Features */}
             <div className="space-y-2.5">
@@ -258,7 +260,7 @@ export default async function ProductPage({ params }: PageProps) {
                   Ships from Seoul, Korea
                 </p>
                 <p className="text-text-muted">
-                  Estimated delivery: 5-10 business days via Korea Post EMS.
+                  Estimated delivery: 7-14 business days via K-Packet.
                   Tracking number provided.
                 </p>
               </div>
@@ -267,7 +269,6 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </section>
 
-      <TrustBadges />
       <Reviews />
     </div>
   );

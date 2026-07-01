@@ -3,22 +3,22 @@ const BADGES = [
     emoji: "✈️",
     title: "Direct from Seoul",
     description:
-      "Every snack is sourced and shipped directly from South Korea. No middleman, no warehouse — just fresh, authentic flavors.",
-    gradient: "from-blue-500/10 to-purple-500/10",
+      "Every piece is sourced and shipped directly from Korean artisans. No middleman, no mass production — straight from the maker's hands to yours.",
+    gradient: "from-emerald-500/10 to-teal-500/10",
   },
   {
-    emoji: "✅",
-    title: "FDA Compliant",
+    emoji: "🧵",
+    title: "Handcrafted with Care",
     description:
-      "All products are properly declared and comply with US FDA regulations. Your safety is our priority.",
-    gradient: "from-green-500/10 to-emerald-500/10",
+      "Each item is made by hand by independent Korean artisans. No two pieces are exactly alike — that's the beauty of handmade.",
+    gradient: "from-amber-500/10 to-orange-500/10",
   },
   {
     emoji: "💯",
-    title: "100% Authentic",
+    title: "100% Made in Korea",
     description:
-      "We only source from verified Korean manufacturers and distributors. Every snack is the real deal.",
-    gradient: "from-pink-500/10 to-rose-500/10",
+      "We only work with artisans who craft their products entirely in Korea. Authentic Korean craftsmanship, guaranteed.",
+    gradient: "from-indigo-500/10 to-blue-500/10",
   },
 ];
 

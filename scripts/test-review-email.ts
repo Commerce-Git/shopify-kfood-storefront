@@ -22,7 +22,7 @@ async function main() {
     react: ReviewRequestEmail({
       customerName: "Junseo",
       reviewToken: "test-token-12345",
-      unsubscribeUrl: "https://shopify-kfood-storefront.vercel.app/unsubscribe?email=test&token=test",
+      unsubscribeUrl: "https://blank-seoul-storefront.vercel.app/unsubscribe?email=test&token=test",
     }) as React.ReactElement,
   });
 

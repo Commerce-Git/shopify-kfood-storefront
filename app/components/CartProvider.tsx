@@ -27,8 +27,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = "kfood-cart";
-const BACKUP_STORAGE_KEY = "kfood-checkout-backup";
+const CART_STORAGE_KEY = "blank-seoul-cart";
+const BACKUP_STORAGE_KEY = "blank-seoul-checkout-backup";
 const BACKUP_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 function loadCart(): CartItem[] {

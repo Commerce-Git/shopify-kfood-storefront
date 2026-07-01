@@ -101,7 +101,7 @@ export default function Reviews() {
             </span>
             <h2 className="heading-lg text-dark">
               Loved by{" "}
-              <span className="gradient-text">Snack Fans</span>
+              <span className="gradient-text">K-Culture Fans</span>
             </h2>
           </div>
 

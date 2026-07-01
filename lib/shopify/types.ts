@@ -1,5 +1,17 @@
 // Shopify Storefront API Types
 
+export interface ShopifyCollection {
+  id: string;
+  handle: string;
+  title: string;
+  description: string;
+  products: {
+    edges: {
+      node: ShopifyProduct;
+    }[];
+  };
+}
+
 export interface ShopifyImage {
   url: string;
   altText: string | null;

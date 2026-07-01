@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
       : [];
 
     // 비공개 피드백 필드 — 폼에서 더 이상 수집하지 않음 (DB 컬럼 유지, 값만 비움)
-    const favoriteSnacks: string[] = [];
-    const leastFavoriteSnacks: string[] = [];
+    const favoriteProducts: string[] = [];
+    const leastFavoriteProducts: string[] = [];
     const wantNext: string[] = [];
     const privateComment = null;
 
@@ -170,8 +170,8 @@ export async function POST(request: NextRequest) {
         title,
         body: reviewBody,
         photo_urls: photoUrls,
-        favorite_snacks: favoriteSnacks,
-        least_favorite_snacks: leastFavoriteSnacks,
+        favorite_snacks: favoriteProducts, // Keep legacy column name for DB
+        least_favorite_snacks: leastFavoriteProducts, // Keep legacy column name for DB
         want_next: wantNext,
         private_comment: privateComment,
         status,

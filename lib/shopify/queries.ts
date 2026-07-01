@@ -110,6 +110,59 @@ export const GET_ALL_PRODUCTS = `
   }
 `;
 
+/** Fetch a single collection by handle and its products */
+export const GET_COLLECTION_BY_HANDLE = `
+  query GetCollectionByHandle($handle: String!, $first: Int = 20) {
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      description
+      products(first: $first) {
+        edges {
+          node {
+            id
+            handle
+            title
+            description
+            availableForSale
+            images(first: 1) {
+              edges {
+                node {
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            variants(first: 1) {
+              edges {
+                node {
+                  id
+                  title
+                  availableForSale
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+
 /** Create a cart → returns the Shopify checkout URL */
 export const CREATE_CART = `
   mutation CartCreate($lines: [CartLineInput!]!, $discountCodes: [String!]) {

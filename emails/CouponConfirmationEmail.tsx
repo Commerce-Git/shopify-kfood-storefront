@@ -33,7 +33,7 @@ export const CouponConfirmationEmail = ({
 }: CouponConfirmationEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://shopify-kfood-storefront.vercel.app";
+    "https://blank-seoul-storefront.vercel.app";
   const reviewUrl = `${siteUrl}/review?token=${reviewToken}`;
   const expiryDate = new Date(expiresAt).toLocaleDateString("en-US", {
     month: "long",
@@ -83,7 +83,7 @@ export const CouponConfirmationEmail = ({
                 className="bg-[#f97316] rounded-md text-white text-[14px] font-semibold no-underline text-center px-6 py-3"
                 href={siteUrl}
               >
-                Yes, I Want More Snacks (Claim My {discountLabel}) →
+                Yes, I Want More Korean Crafts (Claim My {discountLabel}) →
               </Button>
             </Section>
 

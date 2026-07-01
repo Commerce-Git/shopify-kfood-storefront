@@ -344,18 +344,16 @@ export default function OrderLookupPage() {
                 ))}
 
                 {/* Marketing CTA */}
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 text-center border border-orange-100">
-                  <p className="text-lg font-bold text-gray-900 mb-1">
-                    🎉 Love K-Food?
+                <div className="bg-surface-dim rounded-2xl p-6 text-center border border-border-light">
+                  <p className="text-lg font-bold text-dark mb-1" style={{ fontFamily: "var(--font-heading)" }}>
+                    🎉 Love Korean Crafts?
                   </p>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Order your next Seoul Box while you wait!
+                  <p className="text-sm text-text-muted mb-4">
+                    Explore our latest artisan collections while you wait!
                   </p>
                   <Link
-                    href="/"
-                    className="inline-block px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 
-                      text-white text-sm font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
-                      transition-all shadow-md shadow-orange-500/25"
+                    href="/collections"
+                    className="btn-primary inline-block px-6 py-2.5 text-sm"
                   >
                     Shop Blank Seoul →
                   </Link>

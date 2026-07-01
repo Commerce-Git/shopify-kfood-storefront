@@ -499,7 +499,7 @@ export default function CartPage() {
                     <span>📦</span> Ships from Seoul via EMS
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>🇺🇸</span> FDA Compliant
+                    <span>🇰🇷</span> Handcrafted in Korea
                   </div>
                 </div>
 

@@ -9,44 +9,44 @@ interface FAQItem {
 
 const FAQ_ITEMS: FAQItem[] = [
   {
+    question: "Are the products really handmade?",
+    answer:
+      "Yes! Every item in our store is handcrafted by independent Korean artisans. We personally verify each maker and their process. That's why no two pieces are exactly alike — each one carries the artisan's unique touch.",
+  },
+  {
     question: "How long does shipping take?",
     answer:
-      "We ship directly from Seoul, South Korea via Korea Post EMS. Typical delivery time to the US is 5-10 business days. You'll receive a tracking number as soon as your box ships.",
+      "We ship directly from Seoul, South Korea via Korea Post EMS. Typical delivery time to the US is 5-10 business days. You'll receive a tracking number as soon as your order ships.",
   },
   {
     question: "Do I have to pay customs or duties?",
     answer:
-      "In most cases, no! Packages under $800 in value are exempt from customs duties for personal imports to the US. Our boxes are well under this threshold. On rare occasions, there may be a small processing fee from the carrier.",
+      "In most cases, no! Packages under $800 in value are exempt from customs duties for personal imports to the US. Our products are well under this threshold. On rare occasions, there may be a small processing fee from the carrier.",
   },
   {
-    question: "Are the snacks safe & FDA compliant?",
+    question: "Can I return or exchange items?",
     answer:
-      "Yes! All snacks in our boxes are properly declared with the US FDA through Prior Notice submissions. We only source from established Korean manufacturers with proper food safety certifications.",
+      "We want you to love every piece. If an item arrives damaged, email us with a photo within 7 days and we'll send a replacement or issue a full refund. Due to the handmade nature of our products, we cannot accept returns for change of mind.",
   },
   {
-    question: "What's the shelf life of the snacks?",
+    question: "Are these authentic Korean crafts?",
     answer:
-      "We carefully curate each box to ensure all items have at least 3+ months of shelf life remaining at the time of delivery. Most sealed Korean products have a shelf life of 6-12 months.",
-  },
-  {
-    question: "Can I see what's in the box before buying?",
-    answer:
-      "Part of the fun is the surprise! We show you the types of snacks you'll receive (sweet, savory, spicy, etc.) but the specific items are a curated surprise. Think of it as a taste adventure!",
-  },
-  {
-    question: "Do you accommodate allergies or dietary restrictions?",
-    answer:
-      "Currently, our boxes may contain common allergens including nuts, soy, wheat, milk, eggs, and shellfish. We're working on offering allergy-friendly options in the future. Please check the included flavor guide for specific allergen information.",
-  },
-  {
-    question: "What if a snack arrives damaged?",
-    answer:
-      "We carefully package every box, but if something arrives damaged, just email us with a photo and we'll make it right — either with a replacement or refund for that item. Your satisfaction is our priority!",
+      "Absolutely. We work directly with artisans based in Korea who craft every product by hand using traditional techniques. Many of our makers are award-winning artisans and hold master craftsman certifications in Korea.",
   },
   {
     question: "Do you ship outside the US?",
     answer:
       "Currently, we ship to all 50 United States (including Hawaii and Alaska) as well as US Territories. We're planning to expand to Canada, UK, and Australia soon. Join our mailing list to be the first to know!",
+  },
+  {
+    question: "What makes Blank Seoul different from other Korean goods stores?",
+    answer:
+      "We work directly with independent Korean artisans — not factories or wholesalers. Every piece is handmade, and we ship straight from Seoul. No mass-produced products, no middlemen. Just authentic Korean craftsmanship, delivered to your door.",
+  },
+  {
+    question: "Do you offer gift wrapping?",
+    answer:
+      "Many of our artisan products come in beautiful packaging designed by the makers themselves. If you're ordering as a gift, let us know and we'll include a handwritten note card at no extra cost!",
   },
 ];
 
@@ -236,7 +236,7 @@ function FeedbackForm() {
           maxLength={5000}
           rows={3}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 resize-none text-sm"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 resize-none text-sm"
         />
 
         <div className="flex gap-3">
@@ -246,7 +246,7 @@ function FeedbackForm() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={200}
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 text-sm"
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 text-sm"
           />
           <input
             type="email"
@@ -254,7 +254,7 @@ function FeedbackForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email — only if you want a reply"
             maxLength={320}
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 text-sm"
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 text-sm"
           />
         </div>
 
@@ -277,7 +277,7 @@ function FeedbackForm() {
           <button
             type="submit"
             disabled={sending || !content.trim()}
-            className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-md shadow-orange-500/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all shadow-md shadow-primary/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {sending ? "Sending..." : "Send My Message 💌"}
           </button>

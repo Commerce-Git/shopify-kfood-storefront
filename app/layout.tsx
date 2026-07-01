@@ -21,35 +21,46 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://blankseoul.com"),
   title: {
-    default: "Blank Seoul — Curate Korea, Deliver Culture 🇰🇷",
+    default: "Blank Seoul — Handcrafted Korean Artisan Goods 🇰🇷",
     template: "%s | Blank Seoul",
   },
   description:
-    "We curate Korea's trendiest culture — from snacks to beauty to lifestyle — and deliver it to your door. Premium K-Culture boxes shipped direct from Seoul.",
+    "Discover handcrafted Korean artisan goods — traditional pouches, hair accessories, keyrings, and more. Made by independent Korean artisans, delivered direct from Seoul.",
   keywords: [
+    "Korean artisan goods",
+    "Korean handmade",
+    "Korean traditional crafts",
     "K-Culture",
-    "Korean culture box",
-    "K-Beauty",
-    "Korean lifestyle",
-    "Korean snacks",
-    "gift box",
+    "Korean accessories",
+    "Korean gift",
     "Seoul",
-    "K-Food",
+    "Korean pouches",
+    "Korean hair accessories",
+    "hanbok accessories",
   ],
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "Blank Seoul",
-    title: "Blank Seoul — Curate Korea, Deliver Culture 🇰🇷",
+    title: "Blank Seoul — Handcrafted Korean Artisan Goods 🇰🇷",
     description:
-      "Korea's trendiest culture — snacks, beauty, lifestyle — curated and delivered from Seoul.",
+      "Handcrafted Korean artisan goods — traditional pouches, accessories, and keyrings. Direct from Seoul.",
+    images: [
+      {
+        url: "/assets/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Blank Seoul — Korean artisan crafts",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blank Seoul — Curate Korea, Deliver Culture",
+    title: "Blank Seoul — Handcrafted Korean Artisan Goods",
     description:
-      "Korea's trendiest culture — curated and delivered from Seoul.",
+      "Handcrafted Korean artisan goods — direct from Seoul to your door.",
   },
   robots: {
     index: true,
@@ -66,8 +77,10 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${outfit.variable} ${inter.variable} antialiased`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning={true}
     >
-      <body className="min-h-screen flex flex-col bg-background text-text">
+      <body className="min-h-screen flex flex-col bg-background text-text" suppressHydrationWarning={true}>
         <AuthProvider>
           <CartProvider>
             <Header />

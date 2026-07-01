@@ -8,7 +8,11 @@ import { useAuth } from "./AuthProvider";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
+  { href: "/collections/wear-tradition-jewelry-hair", label: "Wear Tradition" },
+  { href: "/collections/carry-art-bags-wallets", label: "Carry Art" },
+  { href: "/collections/living-home-decor", label: "Living Decor" },
+  { href: "/collections/accessories-charms", label: "Accessories" },
+  { href: "/about", label: "Our Story" },
   { href: "/faq", label: "FAQ" },
 ];
 
@@ -73,7 +77,7 @@ export default function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8" id="desktop-nav">
+            <nav className="hidden md:flex items-center gap-5 lg:gap-8" id="desktop-nav">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
@@ -91,36 +95,10 @@ export default function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 z-10">
-              {/* === PRE-LAUNCH: Cart/Login hidden. Uncomment after launch. ===
-              <Link
-                href={isLoggedIn ? "/account" : "/account/login"}
-                className={`
-                  hidden md:flex items-center gap-1.5 text-sm font-medium transition-colors duration-200
-                  hover:text-primary
-                  ${isSolidHeader ? "text-text" : "text-white/90"}
-                `}
-                id="account-button"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                {isLoggedIn ? (customer?.first_name || "My Orders") : "Login"}
-              </Link>
-
               <Link
                 href="/cart"
                 className={`
-                  relative p-2.5 rounded-full transition-all duration-200
+                  relative p-3 rounded-full transition-all duration-200
                   hover:bg-white/10
                   ${isSolidHeader ? "text-dark" : "text-white"}
                 `}
@@ -147,12 +125,11 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-              === END PRE-LAUNCH HIDDEN === */}
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`md:hidden p-2.5 rounded-full hover:bg-white/10 transition-colors ${isSolidHeader ? "text-dark" : "text-white"}`}
+                className={`md:hidden p-3 rounded-full hover:bg-white/10 transition-colors ${isSolidHeader ? "text-dark" : "text-white"}`}
                 id="mobile-menu-button"
                 aria-label="Toggle menu"
               >
@@ -216,11 +193,11 @@ export default function Header() {
           </nav>
           <div className="mt-8 pt-8 border-t border-border">
               <Link
-                href="/"
+                href="/collections"
                 onClick={() => setMobileMenuOpen(false)}
                 className="btn-primary w-full text-center"
               >
-                Join Waitlist
+                Shop Now
               </Link>
             </div>
         </div>
