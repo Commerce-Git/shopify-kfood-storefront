@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 function ProductCard({ product }: { product: ShopifyProduct }) {
   const image = product.images.edges[0]?.node;
   const price = product.priceRange.minVariantPrice.amount;
+  const isSoldOut = !product.availableForSale;
 
   return (
     <Link
@@ -42,6 +43,11 @@ function ProductCard({ product }: { product: ShopifyProduct }) {
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
+        )}
+        {isSoldOut && (
+          <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm border border-white/10">
+            Sold Out
+          </span>
         )}
       </div>
       <div className="p-4">
@@ -65,7 +71,14 @@ export default async function CollectionPage({ params }: PageProps) {
     notFound();
   }
 
-  const products = collection.products?.edges.map((e) => e.node) || [];
+  const rawProducts = collection.products?.edges.map((e) => e.node) || [];
+  const products = [...rawProducts].sort((a, b) => {
+    const availA = a.availableForSale !== false;
+    const availB = b.availableForSale !== false;
+    if (availA && !availB) return -1;
+    if (!availA && availB) return 1;
+    return 0;
+  });
 
   return (
     <div className="pt-24 pb-20">

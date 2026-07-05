@@ -73,21 +73,37 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
         {/* Product Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
           {hasShopifyProducts
-            ? products.slice(0, 6).map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.handle}`}
-                className="group bg-white rounded-2xl overflow-hidden border border-border-light hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="relative aspect-square bg-surface-dim overflow-hidden">
-                  <Image
-                    src={getProductImage(product)}
-                    alt={getProductImageAlt(product)}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                  />
-                </div>
+            ? [...products]
+                .sort((a, b) => {
+                  const availA = a.availableForSale !== false;
+                  const availB = b.availableForSale !== false;
+                  if (availA && !availB) return -1;
+                  if (!availA && availB) return 1;
+                  return 0;
+                })
+                .slice(0, 6)
+                .map((product) => {
+                  const isSoldOut = !product.availableForSale;
+                  return (
+                    <Link
+                  key={product.id}
+                  href={`/product/${product.handle}`}
+                  className="group bg-white rounded-2xl overflow-hidden border border-border-light hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="relative aspect-square bg-surface-dim overflow-hidden">
+                    <Image
+                      src={getProductImage(product)}
+                      alt={getProductImageAlt(product)}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                    />
+                    {isSoldOut && (
+                      <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm border border-white/10">
+                        Sold Out
+                      </span>
+                    )}
+                  </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-dark text-sm line-clamp-2 mb-2" style={{ fontFamily: "var(--font-heading)" }}>
                     {product.title}
@@ -97,7 +113,8 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                   </span>
                 </div>
               </Link>
-            ))
+            );
+          })
             : FALLBACK_PRODUCTS.map((product, i) => (
               <div
                 key={i}

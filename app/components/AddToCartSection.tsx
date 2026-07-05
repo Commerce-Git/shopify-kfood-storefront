@@ -10,6 +10,7 @@ interface AddToCartSectionProps {
   currency: string;
   productTitle: string;
   productHandle: string;
+  availableForSale: boolean;
   productTags?: string[];
 }
 
@@ -19,11 +20,12 @@ export default function AddToCartSection({
   currency,
   productTitle,
   productHandle,
+  availableForSale,
   productTags = [],
 }: AddToCartSectionProps) {
   const [quantity, setQuantity] = useState(1);
   const [stockCount, setStockCount] = useState<number | null>(null);
-  const [currentlyNotInStock, setCurrentlyNotInStock] = useState(false);
+  const [currentlyNotInStock, setCurrentlyNotInStock] = useState(!availableForSale);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

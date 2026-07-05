@@ -210,6 +210,7 @@ export default async function ProductPage({ params }: PageProps) {
                 currency={pricing.currency}
                 productTitle={product.title}
                 productHandle={product.handle}
+                availableForSale={product.availableForSale}
                 productTags={product.tags}
               />
             )}
