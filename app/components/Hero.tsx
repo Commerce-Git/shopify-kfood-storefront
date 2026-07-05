@@ -42,8 +42,8 @@ export default function Hero() {
               className="heading-xl text-white animate-fade-in-up"
               style={{ animationDelay: "0.4s", animationFillMode: "both" }}
             >
-              Korea,{" "}
-              <span className="gradient-text">to Your Door.</span>
+              Artisan Crafts,{" "}
+              <span className="gradient-text">Direct from Seoul.</span>
             </h1>
 
             {/* Subtitle */}
@@ -112,7 +112,7 @@ export default function Hero() {
               {/* Single high-impact lifestyle image */}
               <div className="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <Image
-                  src="/assets/hero-v4.png"
+                  src="/assets/blank_seoul_symbol.png"
                   alt="Korean artisan traditional lifestyle"
                   fill
                   className="object-cover"

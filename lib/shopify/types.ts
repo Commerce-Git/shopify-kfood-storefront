@@ -5,7 +5,8 @@ export interface ShopifyCollection {
   handle: string;
   title: string;
   description: string;
-  products: {
+  image?: ShopifyImage | null;
+  products?: {
     edges: {
       node: ShopifyProduct;
     }[];

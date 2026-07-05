@@ -65,7 +65,7 @@ export default async function CollectionPage({ params }: PageProps) {
     notFound();
   }
 
-  const products = collection.products.edges.map(e => e.node);
+  const products = collection.products?.edges.map((e) => e.node) || [];
 
   return (
     <div className="pt-24 pb-20">

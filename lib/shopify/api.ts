@@ -1,5 +1,5 @@
 import { storefrontFetch } from "./storefront";
-import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE } from "./queries";
+import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS } from "./queries";
 import type { ShopifyProduct, ShopifyCollection } from "./types";
 
 // ---- API Response Shapes ----
@@ -18,6 +18,14 @@ interface ProductByHandleResponse {
 
 interface CollectionByHandleResponse {
   collection: ShopifyCollection | null;
+}
+
+interface CollectionsResponse {
+  collections: {
+    edges: {
+      node: ShopifyCollection;
+    }[];
+  };
 }
 
 // ---- Public API Functions ----
@@ -73,6 +81,22 @@ export async function getCollectionByHandle(
   } catch (error) {
     console.error("[getCollectionByHandle]", error);
     return null;
+  }
+}
+
+/**
+ * Fetch all collections
+ */
+export async function getAllCollections(limit = 20): Promise<ShopifyCollection[]> {
+  try {
+    const data = await storefrontFetch<CollectionsResponse>(
+      GET_ALL_COLLECTIONS,
+      { first: limit }
+    );
+    return data.collections.edges.map((edge) => edge.node);
+  } catch (error) {
+    console.error("[getAllCollections]", error);
+    return [];
   }
 }
 

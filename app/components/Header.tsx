@@ -8,10 +8,9 @@ import { useAuth } from "./AuthProvider";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/collections/wear-tradition-jewelry-hair", label: "Wear Tradition" },
-  { href: "/collections/carry-art-bags-wallets", label: "Carry Art" },
-  { href: "/collections/living-home-decor", label: "Living Decor" },
-  { href: "/collections/accessories-charms", label: "Accessories" },
+  { href: "/collections/wear-tradition-accessories", label: "Accessories" },
+  { href: "/collections/carry-art-bags", label: "Bags & Pouches" },
+  { href: "/collections/living-home-decor", label: "Home Decor" },
   { href: "/about", label: "Our Story" },
   { href: "/faq", label: "FAQ" },
 ];

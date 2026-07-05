@@ -4,8 +4,9 @@ import Image from "next/image";
 const FOOTER_LINKS = {
   Shop: [
     { label: "All Collections", href: "/collections" },
-    { label: "Wear Tradition", href: "/collections/wear-tradition-jewelry-hair" },
-    { label: "Carry Art", href: "/collections/carry-art-bags-wallets" },
+    { label: "Accessories", href: "/collections/wear-tradition-accessories" },
+    { label: "Bags & Pouches", href: "/collections/carry-art-bags" },
+    { label: "Home Decor", href: "/collections/living-home-decor" },
   ],
   Company: [
     { label: "About Us", href: "/about" },

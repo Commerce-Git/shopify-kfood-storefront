@@ -14,6 +14,8 @@ interface BuyButtonProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   showSecureBadge?: boolean;
+  quantity?: number;
+  disabled?: boolean;
 }
 
 export default function BuyButton({
@@ -21,10 +23,12 @@ export default function BuyButton({
   productTitle = "Blank Seoul",
   productHandle = "artisan-product",
   price = "45.00",
-  label = "Add to Cart 🛒",
+  label = "Add to Cart",
   className = "",
   size = "md",
   showSecureBadge = true,
+  quantity = 1,
+  disabled = false,
 }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
@@ -46,7 +50,7 @@ export default function BuyButton({
       title: productTitle,
       variantTitle: "",
       price,
-      quantity: 1,
+      quantity,
       image: null,
     });
 
@@ -58,10 +62,11 @@ export default function BuyButton({
     <div className="flex flex-col items-center gap-2">
       <button
         onClick={handleAddToCart}
-        disabled={loading}
+        disabled={loading || disabled}
         className={`
           btn-primary ${sizeClasses[size]}
           ${loading ? "opacity-70 cursor-wait" : ""}
+          ${disabled ? "opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400 border-gray-400 pointer-events-none" : ""}
           ${className}
         `}
         id="buy-now-button"

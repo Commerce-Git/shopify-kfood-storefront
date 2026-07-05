@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import BuyButton from "@/app/components/BuyButton";
+import ProductGallery from "@/app/components/ProductGallery";
+import AddToCartSection from "@/app/components/AddToCartSection";
 import Reviews from "@/app/components/Reviews";
 import {
   getProductByHandle,
@@ -129,47 +130,7 @@ export default async function ProductPage({ params }: PageProps) {
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-surface-dim">
-              <Image
-                src={images[0]?.url || "/assets/blank_seoul_symbol.png"}
-                alt={images[0]?.alt || product.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
-              {discount && compareNum && (
-                <div className="absolute top-4 left-4 bg-primary text-white text-sm font-bold px-3 py-1.5 rounded-full">
-                  SAVE {formatPrice(String(compareNum - priceNum), pricing.currency)}
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {images.map((img, i) => (
-                  <div
-                    key={i}
-                    className={`
-                      relative aspect-square rounded-xl overflow-hidden bg-surface-dim cursor-pointer
-                      border-2 transition-all duration-200
-                      ${i === 0 ? "border-primary" : "border-transparent hover:border-primary/30"}
-                    `}
-                  >
-                    <Image
-                      src={img.url}
-                      alt={img.alt}
-                      fill
-                      className="object-cover"
-                      sizes="120px"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery images={images} title={product.title} />
 
           {/* Product Info */}
           <div className="flex flex-col gap-6 lg:pt-4">
@@ -243,13 +204,14 @@ export default async function ProductPage({ params }: PageProps) {
 
             {/* Buy */}
             {variantId && (
-              <div className="mt-2 space-y-4">
-                <BuyButton
-                  variantId={variantId}
-                  label={`Buy Now — ${formatPrice(pricing.price, pricing.currency)}`}
-                  size="lg"
-                />
-              </div>
+              <AddToCartSection
+                variantId={variantId}
+                price={pricing.price}
+                currency={pricing.currency}
+                productTitle={product.title}
+                productHandle={product.handle}
+                productTags={product.tags}
+              />
             )}
 
             {/* Shipping Info */}

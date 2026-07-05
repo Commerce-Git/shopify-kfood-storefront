@@ -10,7 +10,7 @@ export default function BrandStory() {
           <div className="lg:col-span-5 relative">
             <div className="relative aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl">
               <Image 
-                src="/assets/story-v3.png" 
+                src="/assets/brand-story-craft.png" 
                 alt="Korean artisan crafts — Blank Seoul"
                 fill
                 className="object-cover"

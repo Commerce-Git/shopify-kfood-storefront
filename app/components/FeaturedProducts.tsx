@@ -50,6 +50,10 @@ interface FeaturedProductsProps {
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   const hasShopifyProducts = products && products.length > 0;
 
+  if (!hasShopifyProducts) {
+    console.warn("⚠️ [FeaturedProducts] No products fetched from Shopify. Falling back to Idus hardcoded data. Make sure collections/products are published to the Headless Sales Channel.");
+  }
+
   return (
     <section className="py-24 px-4 bg-surface-dim" id="featured-products">
       <div className="max-w-[1200px] mx-auto">

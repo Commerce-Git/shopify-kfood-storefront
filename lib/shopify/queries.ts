@@ -162,6 +162,43 @@ export const GET_COLLECTION_BY_HANDLE = `
   }
 `;
 
+/** Fetch all collections */
+export const GET_ALL_COLLECTIONS = `
+  query GetAllCollections($first: Int = 20) {
+    collections(first: $first) {
+      edges {
+        node {
+          id
+          handle
+          title
+          description
+          image {
+            url
+            altText
+            width
+            height
+          }
+          products(first: 1) {
+            edges {
+              node {
+                images(first: 1) {
+                  edges {
+                    node {
+                      url
+                      altText
+                      width
+                      height
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 /** Create a cart → returns the Shopify checkout URL */
 export const CREATE_CART = `
