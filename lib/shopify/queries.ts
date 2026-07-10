@@ -13,7 +13,7 @@ export const GET_PRODUCT_BY_HANDLE = `
       vendor
       productType
       availableForSale
-      images(first: 10) {
+      images(first: 20) {
         edges {
           node {
             url
@@ -66,7 +66,7 @@ export const GET_PRODUCT_BY_HANDLE = `
 
 /** Fetch all products (for catalog / landing page) */
 export const GET_ALL_PRODUCTS = `
-  query GetAllProducts($first: Int = 20) {
+  query GetAllProducts($first: Int = 250) {
     products(first: $first) {
       edges {
         node {
@@ -112,7 +112,7 @@ export const GET_ALL_PRODUCTS = `
 
 /** Fetch a single collection by handle and its products */
 export const GET_COLLECTION_BY_HANDLE = `
-  query GetCollectionByHandle($handle: String!, $first: Int = 20) {
+  query GetCollectionByHandle($handle: String!, $first: Int = 250) {
     collection(handle: $handle) {
       id
       handle

@@ -48,7 +48,7 @@ export default function HowItWorks() {
               3. Global Delivery
             </h3>
             <p className="text-sm text-text-muted">
-              Shipped directly from Seoul via Korea Post K-Packet. Fully tracked, arriving in 7-14 days.
+              Shipped directly from Seoul with reliable international shipping. Fully tracked, arriving in 7-14 days.
             </p>
           </div>
         </div>

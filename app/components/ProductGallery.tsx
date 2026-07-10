@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { ShopifyImage } from "@/lib/shopify/types";
 
 interface ProductGalleryProps {
   images: { url: string; alt: string }[];
   title: string;
+  activeImageUrl?: string;
+  onImageSelect?: (url: string) => void;
 }
 
-export default function ProductGallery({ images, title }: ProductGalleryProps) {
+export default function ProductGallery({ images, title, activeImageUrl, onImageSelect }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (activeImageUrl) {
+      const idx = images.findIndex((img) => img.url === activeImageUrl);
+      if (idx !== -1) {
+        setSelectedIndex(idx);
+      }
+    }
+  }, [activeImageUrl, images]);
   
   if (!images || images.length === 0) {
     return (
@@ -49,7 +60,12 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
           {images.map((img, i) => (
             <button
               key={i}
-              onClick={() => setSelectedIndex(i)}
+              onClick={() => {
+                setSelectedIndex(i);
+                if (onImageSelect) {
+                  onImageSelect(img.url);
+                }
+              }}
               className={`
                 relative aspect-square rounded-xl overflow-hidden bg-surface-dim cursor-pointer
                 border-2 transition-all duration-200
