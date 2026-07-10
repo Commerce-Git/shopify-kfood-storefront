@@ -233,19 +233,8 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
             </div>
           )}
 
-          {/* Shipping Info */}
-          <div className="flex items-start gap-3 p-4 bg-surface-dim rounded-xl text-sm">
-            <span className="text-xl">✈️</span>
-            <div>
-              <p className="font-semibold text-dark">
-                Ships from Seoul, Korea
-              </p>
-              <p className="text-text-muted">
-                Estimated delivery: 7-14 business days.
-                Tracking number provided.
-              </p>
-            </div>
-          </div>
+
+
         </div>
       </div>
 
@@ -264,7 +253,10 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[900px] mx-auto">
               {detailedImages.map((img, idx) => {
                 // Rhythm: first image of every 3 occupies full width, others occupy half width on desktop
-                const isFullWidth = idx % 3 === 0;
+                // Auto-promote last orphan image to full width so there's never an empty gap
+                const isLastImage = idx === detailedImages.length - 1;
+                const wouldBeOrphan = isLastImage && idx % 3 === 1;
+                const isFullWidth = idx % 3 === 0 || wouldBeOrphan;
                 return (
                   <div 
                     key={idx} 

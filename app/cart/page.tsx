@@ -32,6 +32,20 @@ export default function CartPage() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  const [backup, setBackup] = useState<any>(null);
+
+  // Initialize backup safely on client mount to prevent hydration mismatch
+  useEffect(() => {
+    if (itemCount === 0) {
+      setBackup(getCheckoutBackup());
+    }
+  }, [itemCount, getCheckoutBackup]);
+
+  const handleDismissBackup = () => {
+    dismissBackup();
+    setBackup(null);
+  };
+
   // Coupon state
   interface AvailableCoupon {
     code: string;
@@ -116,7 +130,6 @@ export default function CartPage() {
   }
 
   if (itemCount === 0) {
-    const backup = getCheckoutBackup();
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
         <div className="text-center px-4">
@@ -144,7 +157,7 @@ export default function CartPage() {
                   Restore My Cart
                 </button>
                 <button
-                  onClick={dismissBackup}
+                  onClick={handleDismissBackup}
                   className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl
                     border border-gray-200 hover:bg-gray-50 transition-all"
                 >
