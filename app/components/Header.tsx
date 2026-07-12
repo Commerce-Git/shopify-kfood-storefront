@@ -100,10 +100,6 @@ export default function Header() {
             {/* Right Actions */}
             <div className="flex items-center gap-3 z-10">
               {/* User Account Icon (Desktop only) */}
-              <span className="text-white text-xs bg-red-500 px-2 py-1 rounded">
-                {mounted ? `Auth: ${isLoggedIn ? "IN" : "OUT"}` : "SSR"}
-              </span>
-
               <Link
                 href={mounted && isLoggedIn ? "/account" : "/account/login"}
                 className={`
