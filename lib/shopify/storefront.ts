@@ -13,7 +13,8 @@ const STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2025-10/graphql.
  */
 export async function storefrontFetch<T>(
   query: string,
-  variables: Record<string, unknown> = {}
+  variables: Record<string, unknown> = {},
+  tags?: string[]
 ): Promise<T> {
   // If no token configured, throw a helpful error
   if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_TOKEN) {
@@ -30,7 +31,7 @@ export async function storefrontFetch<T>(
       "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
     },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 300 }, // ISR: revalidate every 5 minutes
+    next: { revalidate: 300, tags }, // ISR: revalidate every 5 minutes with tags
   });
 
   if (!response.ok) {

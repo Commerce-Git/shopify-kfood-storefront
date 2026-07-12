@@ -36,9 +36,11 @@ interface CollectionsResponse {
  */
 export async function getAllProducts(count = 20): Promise<ShopifyProduct[]> {
   try {
-    const data = await storefrontFetch<ProductsResponse>(GET_ALL_PRODUCTS, {
-      first: count,
-    });
+    const data = await storefrontFetch<ProductsResponse>(
+      GET_ALL_PRODUCTS,
+      { first: count },
+      ['products']
+    );
     return data.products.edges.map((edge) => edge.node);
   } catch (error) {
     console.error("[getAllProducts]", error);
@@ -56,7 +58,8 @@ export async function getProductByHandle(
   try {
     const data = await storefrontFetch<ProductByHandleResponse>(
       GET_PRODUCT_BY_HANDLE,
-      { handle }
+      { handle },
+      [`product-${handle}`]
     );
     return data.product;
   } catch (error) {
@@ -75,7 +78,8 @@ export async function getCollectionByHandle(
   try {
     const data = await storefrontFetch<CollectionByHandleResponse>(
       GET_COLLECTION_BY_HANDLE,
-      { handle }
+      { handle },
+      [`collection-${handle}`]
     );
     return data.collection;
   } catch (error) {
@@ -91,7 +95,8 @@ export async function getAllCollections(limit = 20): Promise<ShopifyCollection[]
   try {
     const data = await storefrontFetch<CollectionsResponse>(
       GET_ALL_COLLECTIONS,
-      { first: limit }
+      { first: limit },
+      ['collections']
     );
     return data.collections.edges.map((edge) => edge.node);
   } catch (error) {
