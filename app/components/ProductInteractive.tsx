@@ -98,6 +98,17 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
     }
   };
 
+  const isOptionValueSoldOut = (optionName: string, value: string) => {
+    const queryOptions = { ...selectedOptions, [optionName]: value };
+    const matchingVariant = product.variants.edges.find((edge) => {
+      return edge.node.selectedOptions.every(
+        (opt) => queryOptions[opt.name] === opt.value
+      );
+    })?.node;
+    
+    return matchingVariant ? !matchingVariant.availableForSale : true;
+  };
+
   return (
     <div className="space-y-16">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
@@ -190,6 +201,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                   <div className="flex flex-wrap gap-2">
                     {option.values.map((value) => {
                       const isSelected = selectedOptions[option.name] === value;
+                      const isSoldOut = isOptionValueSoldOut(option.name, value);
                       return (
                         <button
                           key={value}
@@ -201,14 +213,21 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                             }))
                           }
                           className={`
-                            px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
+                            relative px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 overflow-hidden
                             ${isSelected
                               ? "border-primary bg-primary text-white shadow-sm"
-                              : "border-border-light bg-white text-dark hover:border-dark/30"
+                              : isSoldOut
+                                ? "border-border-light bg-surface-dim/40 text-text-muted opacity-55 cursor-pointer"
+                                : "border-border-light bg-white text-dark hover:border-dark/30"
                             }
                           `}
                         >
-                          {value}
+                          <span>{value}</span>
+                          {isSoldOut && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-[140%] h-[1px] bg-text-muted/40 rotate-12" />
+                            </div>
+                          )}
                         </button>
                       );
                     })}
