@@ -18,11 +18,16 @@ const NAV_LINKS = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { itemCount, setIsCartOpen } = useCart();
   const { isLoggedIn, customer, user } = useAuth();
   const pathname = usePathname();
 
   const isSolidHeader = scrolled || pathname !== "/";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,6 +99,36 @@ export default function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 z-10">
+              {/* User Account Icon (Desktop only) */}
+              <span className="text-white text-xs bg-red-500 px-2 py-1 rounded">
+                {mounted ? `Auth: ${isLoggedIn ? "IN" : "OUT"}` : "SSR"}
+              </span>
+
+              <Link
+                href={mounted && isLoggedIn ? "/account" : "/account/login"}
+                className={`
+                  hidden md:block p-3 rounded-full transition-all duration-200
+                  hover:bg-white/10
+                  ${isSolidHeader ? "text-dark" : "text-white"}
+                `}
+                id="header-user-profile-link"
+                aria-label="Account"
+              >
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </Link>
+
               <Link
                 href="/cart"
                 className={`
@@ -189,6 +224,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/account"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-3 text-lg font-medium text-dark rounded-xl hover:bg-surface-dim transition-colors border-t border-gray-100 mt-2 pt-4 flex items-center gap-2"
+            >
+              <span>👤</span> {isLoggedIn ? "My Account" : "Sign In / Register"}
+            </Link>
           </nav>
           <div className="mt-8 pt-8 border-t border-border">
               <Link

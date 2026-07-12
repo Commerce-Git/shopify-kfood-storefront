@@ -17,6 +17,7 @@ const FOOTER_LINKS = {
     { label: "FAQ", href: "/faq" },
     { label: "Contact Us", href: "mailto:support@blankseoul.com" },
     { label: "Track Order", href: "/order-lookup" },
+    { label: "My Account", href: "/account" },
     { label: "Feedback", href: "/feedback" },
   ],
   Legal: [
