@@ -268,7 +268,7 @@ function ReorderButton({ order }: { order: MappedOrder }) {
         variantTitle: node.variant?.title || "",
         price: node.variant?.price.amount || "0",
         quantity: node.quantity,
-        image: node.variant?.image || null,
+        image: (node.variant?.image as any) || null,
       });
     });
     router.push("/cart");
