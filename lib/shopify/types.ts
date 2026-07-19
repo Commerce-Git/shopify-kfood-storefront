@@ -89,6 +89,7 @@ export interface CartItem {
   price: string;
   quantity: number;
   image: ShopifyImage | null;
+  stockLimit?: number | null;
 }
 
 // API response wrapper

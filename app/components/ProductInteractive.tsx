@@ -248,6 +248,8 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                 productHandle={product.handle}
                 availableForSale={selectedVariant.availableForSale}
                 productTags={product.tags}
+                variantTitle={selectedVariant.title}
+                image={selectedVariant.image || product.images.edges[0]?.node || null}
               />
             </div>
           )}

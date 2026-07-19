@@ -81,11 +81,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((item) => item.variantId === newItem.variantId);
       if (existing) {
-        return prev.map((item) =>
-          item.variantId === newItem.variantId
-            ? { ...item, quantity: item.quantity + newItem.quantity }
-            : item
-        );
+        return prev.map((item) => {
+          if (item.variantId === newItem.variantId) {
+            const potentialQty = item.quantity + newItem.quantity;
+            const limit = item.stockLimit !== undefined ? item.stockLimit : newItem.stockLimit;
+            const newQty = limit !== undefined && limit !== null
+              ? Math.min(potentialQty, limit)
+              : potentialQty;
+            return { ...item, quantity: newQty, stockLimit: limit };
+          }
+          return item;
+        });
       }
       return [...prev, newItem];
     });
@@ -101,9 +107,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setItems((prev) =>
-      prev.map((item) =>
-        item.variantId === variantId ? { ...item, quantity } : item
-      )
+      prev.map((item) => {
+        if (item.variantId === variantId) {
+          const newQty = item.stockLimit !== undefined && item.stockLimit !== null
+            ? Math.min(quantity, item.stockLimit)
+            : quantity;
+          return { ...item, quantity: newQty };
+        }
+        return item;
+      })
     );
   }, []);
 

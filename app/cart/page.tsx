@@ -56,6 +56,7 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
 
+
   // Fetch available coupons for logged-in users
   useEffect(() => {
     if (!user?.email) return;
@@ -176,17 +177,91 @@ export default function CartPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen pb-24 md:pb-0">
-      <div className="section">
+    <div className="min-h-screen pb-24 md:pb-12 bg-[#faf9f6]">
+      {/* Walled Garden Layout CSS override */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        header, footer {
+          display: none !important;
+        }
+        body {
+          padding-top: 0 !important;
+          background-color: #faf9f6 !important;
+        }
+      `}} />
+
+      {/* Simplified Secure Checkout Header */}
+      <div className="bg-white border-b border-gray-200/60 py-4.5 mb-8 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 grid grid-cols-3 items-center">
+          {/* Col 1: Left-aligned Back Link */}
+          <div className="justify-self-start">
+            <Link
+              href="/"
+              className="text-xs font-semibold text-text-light hover:text-primary transition-colors flex items-center gap-1.5"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M19 12H5M12 5l-7 7 7 7" />
+              </svg>
+              Back to Shop
+            </Link>
+          </div>
+
+          {/* Col 2: Centered Brand Logo matching main Header */}
+          <div className="justify-self-center">
+            <Link href="/" className="flex items-center gap-1">
+              <span
+                className="text-xl sm:text-2xl font-extrabold tracking-tight"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                <span className="gradient-text">Blank</span>
+                <span className="text-dark"> Seoul</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Col 3: Right-aligned Secure Checkout Badge */}
+          <div className="justify-self-end">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50/80 px-3 py-1 rounded-full border border-green-200/50">
+              <span>🔒</span> Secure Checkout
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3-Step Stepper */}
+      <div className="max-w-3xl mx-auto px-4 mb-8">
+        <div className="flex items-center justify-between text-xs font-semibold text-text-muted select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-primary font-bold">
+            <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px]">1</span>
+            <span className="hidden sm:inline">Review Cart</span>
+          </div>
+          <div className="flex-1 h-[2px] bg-gray-200/60 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">2</span>
+            <span className="hidden sm:inline">Shipping Info</span>
+          </div>
+          <div className="flex-1 h-[2px] bg-gray-200/60 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">3</span>
+            <span className="hidden sm:inline">Secure Payment</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="section pt-0">
         <div className="section-inner max-w-3xl">
           <h1 className="heading-lg text-dark mb-2">
-            Secure <span className="gradient-text">Checkout</span>
+            Your Cart
           </h1>
           <p className="text-text-muted mb-6">
             {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
           </p>
-
-
 
           {/* Cart Items */}
           <div className="space-y-4 mb-6">
@@ -238,28 +313,36 @@ export default function CartPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.variantId, item.quantity - 1)
-                      }
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm"
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </button>
-                    <span className="text-sm font-medium w-6 text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.variantId, item.quantity + 1)
-                      }
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm"
-                      aria-label="Increase quantity"
-                    >
-                      +
-                    </button>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.variantId, item.quantity - 1)
+                        }
+                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm"
+                        aria-label="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <span className="text-sm font-medium w-6 text-center">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.variantId, item.quantity + 1)
+                        }
+                        disabled={item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit}
+                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm disabled:opacity-30 disabled:border-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed disabled:pointer-events-none"
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+                    {item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit && (
+                      <span className="text-[9px] text-amber-600 font-semibold mt-1 select-none whitespace-nowrap animate-pulse">
+                        Max stock reached ({item.stockLimit} left)
+                      </span>
+                    )}
                   </div>
 
                   <button
@@ -283,6 +366,8 @@ export default function CartPage() {
               );
             })}
           </div>
+
+
 
           {/* Upsell Placeholder — activate when more products are added */}
           {/* 
@@ -350,14 +435,7 @@ export default function CartPage() {
             </div>
           )}
 
-          {/* Login nudge for non-logged-in users */}
-          {!user && !couponLoading && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 text-center">
-              <p className="text-xs text-gray-500">
-                💡 <Link href="/account/login" className="text-orange-600 hover:text-orange-700 font-medium underline">Log in</Link> to auto-apply your coupons
-              </p>
-            </div>
-          )}
+
 
           {/* Value Propositions / Guarantees */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
@@ -373,8 +451,8 @@ export default function CartPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Free International Shipping</p>
-                  <p className="text-xs text-gray-500">Delivery in 7-14 business days via EMS</p>
+                  <p className="text-sm font-semibold text-gray-900">We Cover Your Shipping</p>
+                  <p className="text-xs text-gray-500">Your order ships for free — tracked all the way to your door.</p>
                 </div>
               </div>
 
@@ -386,8 +464,8 @@ export default function CartPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Risk-Free Purchase</p>
-                  <p className="text-xs text-gray-500">Free cancellation within {CANCEL_WINDOW_HOURS} hour{CANCEL_WINDOW_HOURS !== 1 ? "s" : ""} of order</p>
+                  <p className="text-sm font-semibold text-gray-900">Zero Risk, Guaranteed</p>
+                  <p className="text-xs text-gray-500">Not 100% sure? No problem — cancel it yourself in one click within {CANCEL_WINDOW_HOURS} hours.</p>
                 </div>
               </div>
 
@@ -399,10 +477,48 @@ export default function CartPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Direct From Seoul</p>
-                  <p className="text-xs text-gray-500">100% authentic Korean culture, packed with care</p>
+                  <p className="text-sm font-semibold text-gray-900">You Can&#39;t Get This Anywhere Else</p>
+                  <p className="text-xs text-gray-500">Every piece is handmade by Korean artisans — shipped only from Seoul.</p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Checkout Objection FAQ */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+              Frequently Asked Questions
+            </h3>
+            <div className="space-y-4">
+              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
+                  <span>When will my order ship and arrive?</span>
+                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
+                </summary>
+                <p className="text-xs text-text-muted mt-2 leading-relaxed">
+                  All orders are securely packaged and shipped directly from Seoul within 1-2 business days. Delivery via Tracked Air Mail takes 7-14 business days globally, with full live tracking.
+                </p>
+              </details>
+
+              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer border-t border-gray-100 pt-4">
+                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
+                  <span>How do I cancel my order?</span>
+                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
+                </summary>
+                <p className="text-xs text-text-muted mt-2 leading-relaxed">
+                  You have a {CANCEL_WINDOW_HOURS}-hour grace period to cancel your order directly from your confirmation page in a single click — no customer support emails needed.
+                </p>
+              </details>
+
+              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer border-t border-gray-100 pt-4">
+                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
+                  <span>Are these authentic artisan goods?</span>
+                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
+                </summary>
+                <p className="text-xs text-text-muted mt-2 leading-relaxed">
+                  Yes. We source directly from independent Korean designers and artisans in Seoul. Every piece represents genuine Korean heritage and craftsmanship.
+                </p>
+              </details>
             </div>
           </div>
 
@@ -509,7 +625,7 @@ export default function CartPage() {
                     <span>🔄</span> Free Cancellation before shipment
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>📦</span> Ships from Seoul via EMS
+                    <span>📦</span> Free Tracked Air Shipping
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-text-muted">
                     <span>🇰🇷</span> Handcrafted in Korea

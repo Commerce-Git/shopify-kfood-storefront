@@ -375,10 +375,10 @@ export default function AccountPage() {
                             variantId: node.variantId,
                             productHandle: "",
                             title: node.title,
-                            variantTitle: "",
+                            variantTitle: node.variant?.title || "",
                             price: node.variant?.price.amount || "0",
                             quantity: node.quantity,
-                            image: null,
+                            image: node.variant?.image || null,
                           });
                         });
                         router.push("/cart");

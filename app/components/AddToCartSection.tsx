@@ -12,6 +12,8 @@ interface AddToCartSectionProps {
   productHandle: string;
   availableForSale: boolean;
   productTags?: string[];
+  variantTitle?: string;
+  image?: { url: string; altText?: string | null } | null;
 }
 
 export default function AddToCartSection({
@@ -22,6 +24,8 @@ export default function AddToCartSection({
   productHandle,
   availableForSale,
   productTags = [],
+  variantTitle = "",
+  image = null,
 }: AddToCartSectionProps) {
   const [quantity, setQuantity] = useState(1);
   const [stockCount, setStockCount] = useState<number | null>(null);
@@ -72,8 +76,8 @@ export default function AddToCartSection({
   } else if (isSoldOut) {
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold">
-        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
-        🔴 Out of Stock
+        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
+        🔴 Sold Out (Join the waitlist for the next slots)
       </span>
     );
   } else if (stockCount === null) {
@@ -81,23 +85,23 @@ export default function AddToCartSection({
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
-        ✨ Made to Order
+        ✨ Made to Order (Slots available)
       </span>
     );
   } else if (stockCount <= 5) {
-    // Low stock warning (Urgency)
+    // Low stock warning (Urgency mapped to Crafting Slots)
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold animate-bounce-slow">
         <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-        ⚡ Low Stock! Only {stockCount} left
+        ⚡ Only {stockCount} crafting slot{stockCount !== 1 ? "s" : ""} left to secure right now!
       </span>
     );
   } else {
-    // Normal stock
+    // Normal stock (mapped to Crafting Slots)
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-        🟢 In Stock ({stockCount} available)
+        🟢 In Stock (Crafting slots available right now)
       </span>
     );
   }
@@ -120,6 +124,9 @@ export default function AddToCartSection({
             size="lg"
             className="w-full"
             disabled={isSoldOut}
+            variantTitle={variantTitle}
+            image={image}
+            stockLimit={stockCount}
           />
         </div>
       </div>
