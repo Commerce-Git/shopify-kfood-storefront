@@ -167,6 +167,7 @@ interface AdminLineItem {
   quantity: number;
   price: string;
   variant_id: number | null;
+  variant_title?: string | null;
 }
 
 interface AdminFulfillment {
@@ -212,6 +213,7 @@ export interface MappedOrder {
         quantity: number;
         variantId: string | null;
         variant: {
+          title: string | null;
           price: { amount: string; currencyCode: string };
           image: { url: string; altText: string | null } | null;
         } | null;
@@ -298,9 +300,10 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
             ? `gid://shopify/ProductVariant/${item.variant_id}`
             : null,
           variant: {
+            title: item.variant_title || "",
             price: {
               amount: item.price,
-              currencyCode: order.currency,
+               currencyCode: order.currency,
             },
             image: null,
           },
