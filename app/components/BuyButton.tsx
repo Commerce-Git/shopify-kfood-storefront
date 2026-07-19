@@ -64,7 +64,7 @@ export default function BuyButton({
       variantTitle,
       price,
       quantity,
-      image,
+      image: (image as any),
       stockLimit,
     });
 
