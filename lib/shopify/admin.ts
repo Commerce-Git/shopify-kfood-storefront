@@ -184,6 +184,7 @@ interface AdminOrder {
   name: string;
   created_at: string;
   processed_at: string;
+  cancelled_at: string | null;
   fulfillment_status: string | null;
   financial_status: string;
   order_status_url: string;
@@ -199,6 +200,7 @@ export interface MappedOrder {
   id: string;
   name: string;
   processedAt: string;
+  cancelledAt: string | null;
   fulfillmentStatus: string;
   financialStatus: string;
   statusUrl: string;
@@ -284,6 +286,7 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
     id: order.admin_graphql_api_id,
     name: order.name,
     processedAt: order.processed_at,
+    cancelledAt: order.cancelled_at || null,
     fulfillmentStatus: mapFulfillmentStatus(order.fulfillment_status),
     financialStatus: order.financial_status?.toUpperCase() || "PENDING",
     statusUrl: order.order_status_url,
@@ -442,7 +445,7 @@ export async function cancelOrder(
       {
         method: "POST",
         headers,
-        body: JSON.stringify({ reason, email: false }), // email already sent by refund
+        body: JSON.stringify({ reason, email: true }), // Send cancellation email immediately
       }
     );
 

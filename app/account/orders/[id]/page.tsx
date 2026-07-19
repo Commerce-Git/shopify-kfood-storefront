@@ -133,12 +133,21 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {/* Status Progress */}
+      {/* Status Progress or Cancelled Banner */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-4">
           Order Status
         </h2>
-        <OrderStatusBar step={step} />
+        {order.cancelledAt || ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus) ? (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="bg-red-50 text-red-700 border border-red-200 px-3 py-1 rounded-full text-xs font-semibold">
+              ❌ Cancelled
+            </span>
+            <span className="text-xs text-gray-400">This order is cancelled and a refund has been issued.</span>
+          </div>
+        ) : (
+          <OrderStatusBar step={step} />
+        )}
       </div>
 
       {/* Tracking Info */}
@@ -216,7 +225,8 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Reorder Button — only for shipped or cancelled orders */}
-      {(order.fulfillmentStatus === "FULFILLED" || 
+      {(order.fulfillmentStatus === "FULFILLED" ||
+        order.cancelledAt ||
         ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus)) && (
         <div className="mb-4">
           <ReorderButton order={order} />
@@ -231,6 +241,7 @@ export default function OrderDetailPage() {
           processedAt={order.processedAt}
           fulfillmentStatus={order.fulfillmentStatus}
           financialStatus={order.financialStatus}
+          isCancelled={!!order.cancelledAt}
         />
       </div>
 

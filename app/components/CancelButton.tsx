@@ -9,6 +9,7 @@ interface CancelButtonProps {
   processedAt: string;
   fulfillmentStatus: string;
   financialStatus: string;
+  isCancelled?: boolean;
   onCancelled?: () => void;
 }
 
@@ -18,6 +19,7 @@ export default function CancelButton({
   processedAt,
   fulfillmentStatus,
   financialStatus,
+  isCancelled: propIsCancelled,
   onCancelled,
 }: CancelButtonProps) {
   const [showModal, setShowModal] = useState(false);
@@ -27,7 +29,7 @@ export default function CancelButton({
   const [success, setSuccess] = useState(false);
   const [refundAmount, setRefundAmount] = useState<string | null>(null);
 
-  const isCancelled = ["CANCELLED", "REFUNDED", "VOIDED"].includes(financialStatus);
+  const isCancelled = propIsCancelled || ["CANCELLED", "REFUNDED", "VOIDED"].includes(financialStatus);
   const canCancel =
     !isCancelled && fulfillmentStatus === "UNFULFILLED" && isCancelable(processedAt);
   const minutesLeft = getCancelMinutesRemaining(processedAt);
@@ -127,9 +129,9 @@ export default function CancelButton({
             Changed your mind? Cancel this order
           </button>
           <p className="text-xs text-gray-400">
-            Free cancellation within {minutesLeft < 60 ? `${minutesLeft} min` : `${Math.floor(minutesLeft / 60)} hour${Math.floor(minutesLeft / 60) !== 1 ? "s" : ""}`} of purchase
+            Free cancellation within {minutesLeft < 60 ? `${minutesLeft} min` : `${Math.floor(minutesLeft / 60)}h${minutesLeft % 60 > 0 ? ` ${minutesLeft % 60}m` : ""}`} of purchase
           </p>
-      </div>
+        </div>
       )}
 
       {/* Cancel Confirmation Modal */}

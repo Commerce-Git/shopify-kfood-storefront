@@ -324,7 +324,7 @@ export default function AccountPage() {
           {orders.map((order) => {
             const { step } = getOrderStep(order.fulfillmentStatus);
             const firstItem = order.lineItems.edges[0]?.node;
-            const isCancelled = ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus);
+            const isCancelled = !!order.cancelledAt || ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus);
             const showReorder = isCancelled || order.fulfillmentStatus === "FULFILLED";
             return (
               <Link
