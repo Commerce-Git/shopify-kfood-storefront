@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
           year: "numeric",
         }),
         status: order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
+        fulfillmentStatus: order.fulfillmentStatus,
         wmsStatus,
         itemCount: order.lineItems.edges.length,
         tracking: order.tracking?.number

@@ -15,6 +15,7 @@ interface TrackedOrder {
   name: string;
   date: string;
   status: "preparing" | "shipped";
+  fulfillmentStatus: string;
   wmsStatus: "placed" | "crafting" | "packaging" | "shipped";
   itemCount: number;
   tracking: TrackingInfo | null;
