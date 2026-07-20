@@ -2,6 +2,20 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getOrdersByEmail, getAdminToken } from "@/lib/shopify/admin";
 import { storefrontFetch } from "@/lib/shopify/storefront";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+// Helper to aggregate multiple item statuses into a single order status
+function aggregateWmsStatus(shopifyStatus: string, artistStatuses: string[] | undefined): "placed" | "crafting" | "packaging" | "shipped" {
+  if (shopifyStatus === "FULFILLED") return "shipped";
+  if (!artistStatuses || artistStatuses.length === 0) return "placed";
+
+  if (artistStatuses.includes("pending")) return "placed";
+  if (artistStatuses.includes("confirmed")) return "crafting";
+  if (artistStatuses.includes("shipped") || artistStatuses.includes("received")) return "packaging";
+
+  return "placed";
+}
+
 
 const GET_VARIANT_IMAGES = `
   query getVariantImages($ids: [ID!]!) {
@@ -67,9 +81,29 @@ export async function GET() {
       }
     }
 
-    // Map variant images back to order line items
+    const shopifyIds = orders.map((o) => o.id);
+    let artistOrdersMap: Record<string, string[]> = {};
+
+    if (shopifyIds.length > 0) {
+      const { data: artistOrders, error: dbError } = await supabaseAdmin
+        .from("artist_orders")
+        .select("shopify_order_id, status")
+        .in("shopify_order_id", shopifyIds);
+
+      if (!dbError && artistOrders) {
+        for (const row of artistOrders) {
+          if (!artistOrdersMap[row.shopify_order_id]) {
+            artistOrdersMap[row.shopify_order_id] = [];
+          }
+          artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+        }
+      }
+    }
+
+    // Map variant images and WMS status back to order line items
     const ordersWithImages = orders.map((order) => ({
       ...order,
+      wmsStatus: aggregateWmsStatus(order.fulfillmentStatus, artistOrdersMap[order.id]),
       lineItems: {
         ...order.lineItems,
         edges: order.lineItems.edges.map((edge) => {

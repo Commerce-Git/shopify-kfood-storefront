@@ -1,30 +1,30 @@
 "use client";
 
 interface OrderStatusBarProps {
-  step: number; // 0 = Order Placed, 1 = Shipped
+  step: number; // 0 = Ordered, 1 = Crafting, 2 = Packaging, 3 = Shipped
 }
 
-const STEPS = ["Order Placed", "Shipped ✈️"];
+const STEPS = ["Ordered", "Crafting 👩‍🎨", "Packaging 📦", "Shipped ✈️"];
 
 export default function OrderStatusBar({ step }: OrderStatusBarProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between relative">
         {/* Background line */}
-        <div className="absolute top-3 left-0 right-0 h-0.5 bg-gray-200" />
+        <div className="absolute top-3 left-3 right-3 h-0.5 bg-gray-200" />
         {/* Active line */}
         <div
-          className="absolute top-3 left-0 h-0.5 bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-500"
-          style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
+          className="absolute top-3 left-3 h-0.5 bg-gradient-to-r from-orange-500 to-indigo-500 transition-all duration-500"
+          style={{ width: `calc(${(step / (STEPS.length - 1)) * 100}% - 24px)` }}
         />
 
         {STEPS.map((label, i) => (
-          <div key={label} className="relative flex flex-col items-center z-10">
+          <div key={label} className="relative flex flex-col items-center z-10 flex-1">
             <div
-              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
                 ${
                   i <= step
-                    ? "bg-gradient-to-r from-orange-500 to-red-500 border-orange-500"
+                    ? "bg-gradient-to-r from-orange-500 to-indigo-500 border-orange-500"
                     : "bg-white border-gray-300"
                 }`}
             >
@@ -45,8 +45,8 @@ export default function OrderStatusBar({ step }: OrderStatusBarProps) {
               )}
             </div>
             <span
-              className={`text-xs mt-2 whitespace-nowrap ${
-                i <= step ? "text-orange-600 font-semibold" : "text-gray-400"
+              className={`text-[10px] mt-2 font-bold whitespace-nowrap leading-none ${
+                i <= step ? "text-orange-600" : "text-gray-400"
               }`}
             >
               {label}

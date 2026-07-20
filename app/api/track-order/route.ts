@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getOrdersByEmail } from "@/lib/shopify/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // Simple in-memory rate limiter (per serverless instance)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -46,6 +47,23 @@ function maskEmail(email: string): string {
   return `${local[0]}***@${domain}`;
 }
 
+// Helper to aggregate multiple item statuses into a single order status
+function aggregateWmsStatus(shopifyStatus: string, artistStatuses: string[] | undefined): "placed" | "crafting" | "packaging" | "shipped" {
+  if (shopifyStatus === "FULFILLED") return "shipped";
+  if (!artistStatuses || artistStatuses.length === 0) return "placed";
+
+  // If any item is pending (WMS initial state), the overall order is at "placed"
+  if (artistStatuses.includes("pending")) return "placed";
+
+  // If any item is confirmed (WMS crafting state), the overall order is at "crafting"
+  if (artistStatuses.includes("confirmed")) return "crafting";
+
+  // If all items are shipped or received by warehouse, the overall order is at "packaging"
+  if (artistStatuses.includes("shipped") || artistStatuses.includes("received")) return "packaging";
+
+  return "placed";
+}
+
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
@@ -70,22 +88,45 @@ export async function POST(request: NextRequest) {
 
     const orders = await getOrdersByEmail(email);
 
-    // Filter out cancelled/refunded orders and map to public-safe format
-    const publicOrders = orders
-      .filter(
-        (o) =>
-          o.financialStatus !== "REFUNDED" &&
-          o.financialStatus !== "VOIDED"
-      )
-      .map((order) => ({
+    // Filter out cancelled/refunded orders
+    const activeOrders = orders.filter(
+      (o) =>
+        o.financialStatus !== "REFUNDED" &&
+        o.financialStatus !== "VOIDED"
+    );
+
+    const shopifyIds = activeOrders.map((o) => o.id);
+    let artistOrdersMap: Record<string, string[]> = {};
+
+    if (shopifyIds.length > 0) {
+      const { data: artistOrders, error: dbError } = await supabaseAdmin
+        .from("artist_orders")
+        .select("shopify_order_id, status")
+        .in("shopify_order_id", shopifyIds);
+
+      if (!dbError && artistOrders) {
+        for (const row of artistOrders) {
+          if (!artistOrdersMap[row.shopify_order_id]) {
+            artistOrdersMap[row.shopify_order_id] = [];
+          }
+          artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+        }
+      }
+    }
+
+    const publicOrders = activeOrders.map((order) => {
+      const wmsStatuses = artistOrdersMap[order.id];
+      const wmsStatus = aggregateWmsStatus(order.fulfillmentStatus, wmsStatuses);
+
+      return {
         name: order.name,
         date: new Date(order.processedAt).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
         }),
-        status:
-          order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
+        status: order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
+        wmsStatus,
         itemCount: order.lineItems.edges.length,
         tracking: order.tracking?.number
           ? {
@@ -93,7 +134,8 @@ export async function POST(request: NextRequest) {
               carrier: order.tracking.company || "Korea Post EMS",
             }
           : null,
-      }));
+      };
+    });
 
     return NextResponse.json({
       maskedEmail: maskEmail(email),

@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import OrderStatusBar from "@/app/components/OrderStatusBar";
+import { getOrderStep } from "@/lib/shopify/order-utils";
 
 interface TrackingInfo {
   number: string;
@@ -12,6 +15,7 @@ interface TrackedOrder {
   name: string;
   date: string;
   status: "preparing" | "shipped";
+  wmsStatus: "placed" | "crafting" | "packaging" | "shipped";
   itemCount: number;
   tracking: TrackingInfo | null;
 }
@@ -21,30 +25,26 @@ interface TrackResult {
   orders: TrackedOrder[];
 }
 
-export default function OrderLookupPage() {
+function OrderLookupContent() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrackResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedTracking, setExpandedTracking] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Common tracking fetch executor
+  const executeTrack = async (emailVal: string) => {
+    if (!emailVal.trim()) return;
+    setLoading(true);
     setError(null);
     setResult(null);
-
-    if (!email.trim()) {
-      setError("Please enter your email address.");
-      return;
-    }
-
-    setLoading(true);
 
     try {
       const res = await fetch("/api/track-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: emailVal.trim() }),
       });
 
       const data = await res.json();
@@ -60,6 +60,24 @@ export default function OrderLookupPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Trigger search on email query param change automatically
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+      executeTrack(emailParam);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+    executeTrack(email);
   };
 
   const handleReset = () => {
@@ -205,75 +223,114 @@ export default function OrderLookupPage() {
                 </div>
 
                 {/* Order cards */}
-                {result.orders.map((order) => (
-                  <div
-                    key={order.name}
-                    className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-                  >
-                    {/* Order header */}
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3
-                          className="font-bold text-gray-900"
-                          style={{ fontFamily: "var(--font-heading)" }}
-                        >
-                          {order.name}
-                        </h3>
-                        <span className="text-xs text-gray-400">
-                          {order.date}
-                        </span>
-                      </div>
+                {result.orders.map((order) => {
+                  const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
 
-                      {/* Status badge */}
-                      {order.status === "shipped" ? (
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-sm font-medium px-3 py-1 rounded-full border border-green-100">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            Shipped
-                          </span>
+                  return (
+                    <div
+                      key={order.name}
+                      className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+                    >
+                      {/* Order header */}
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3
+                            className="font-bold text-gray-900"
+                            style={{ fontFamily: "var(--font-heading)" }}
+                          >
+                            {order.name}
+                          </h3>
                           <span className="text-xs text-gray-400">
-                            {order.itemCount} item
-                            {order.itemCount !== 1 ? "s" : ""}
+                            {order.date}
                           </span>
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 text-sm font-medium px-3 py-1 rounded-full border border-orange-100">
-                            📋 Preparing
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {order.itemCount} item
-                            {order.itemCount !== 1 ? "s" : ""}
-                          </span>
-                        </div>
-                      )}
 
-                      {/* Tracking info */}
-                      {order.tracking ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-                            <div>
-                              <p className="text-xs text-gray-400 mb-0.5">
-                                {order.tracking.carrier}
-                              </p>
-                              <p className="text-sm font-mono font-semibold text-gray-800">
-                                {order.tracking.number}
-                              </p>
+                        {/* Status badge */}
+                        {order.status === "shipped" ? (
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-sm font-medium px-3 py-1 rounded-full border border-green-100">
+                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                              Shipped
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {order.itemCount} item
+                              {order.itemCount !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 text-sm font-medium px-3 py-1 rounded-full border border-orange-100">
+                              📋 Preparing
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {order.itemCount} item
+                              {order.itemCount !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Live Handcrafting Progress Stepper */}
+                        <div className="mt-6 mb-8 pt-4 pb-2 border-t border-gray-50">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-1">
+                            <span>✨</span> Live Crafting & Delivery Status
+                          </p>
+                          <OrderStatusBar step={step} />
+                        </div>
+
+                        {/* Tracking info */}
+                        {order.tracking ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                              <div>
+                                <p className="text-xs text-gray-400 mb-0.5">
+                                  {order.tracking.carrier}
+                                </p>
+                                <p className="text-sm font-mono font-semibold text-gray-800">
+                                  {order.tracking.number}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  setExpandedTracking(
+                                    expandedTracking === order.name
+                                      ? null
+                                      : order.name
+                                  )
+                                }
+                                className="text-sm font-medium text-orange-600 hover:text-orange-700 
+                                  transition-colors flex items-center gap-1"
+                              >
+                                {expandedTracking === order.name
+                                  ? "Hide details"
+                                  : "Track"}
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  className={`transition-transform duration-200 ${
+                                    expandedTracking === order.name
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}
+                                >
+                                  <path d="M6 9l6 6 6-6" />
+                                </svg>
+                              </button>
                             </div>
-                            <button
-                              onClick={() =>
-                                setExpandedTracking(
-                                  expandedTracking === order.name
-                                    ? null
-                                    : order.name
-                                )
-                              }
-                              className="text-sm font-medium text-orange-600 hover:text-orange-700 
-                                transition-colors flex items-center gap-1"
+
+                            {/* 17Track link (always available as fallback) */}
+                            <a
+                              href={get17TrackUrl(order.tracking.number)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 w-full py-2.5 
+                                bg-blue-50 text-blue-700 text-sm font-medium rounded-xl 
+                                hover:bg-blue-100 transition-colors border border-blue-100"
                             >
-                              {expandedTracking === order.name
-                                ? "Hide details"
-                                : "Track"}
                               <svg
                                 width="16"
                                 height="16"
@@ -281,67 +338,40 @@ export default function OrderLookupPage() {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
-                                strokeLinecap="round"
-                                className={`transition-transform duration-200 ${
-                                  expandedTracking === order.name
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
                               >
-                                <path d="M6 9l6 6 6-6" />
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
                               </svg>
-                            </button>
+                              View Live Tracking on 17Track →
+                            </a>
                           </div>
+                        ) : (
+                          <div className="bg-orange-50 rounded-xl px-4 py-4 text-center">
+                            <p className="text-sm text-orange-800 font-medium">
+                              ✈️ Your box is being prepared in Seoul!
+                            </p>
+                            <p className="text-xs text-orange-600 mt-1">
+                              You&apos;ll receive a tracking number once it ships.
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
-                          {/* 17Track link (always available as fallback) */}
-                          <a
-                            href={get17TrackUrl(order.tracking.number)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full py-2.5 
-                              bg-blue-50 text-blue-700 text-sm font-medium rounded-xl 
-                              hover:bg-blue-100 transition-colors border border-blue-100"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-                            </svg>
-                            View Live Tracking on 17Track →
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="bg-orange-50 rounded-xl px-4 py-4 text-center">
-                          <p className="text-sm text-orange-800 font-medium">
-                            ✈️ Your box is being prepared in Seoul!
-                          </p>
-                          <p className="text-xs text-orange-600 mt-1">
-                            You&apos;ll receive a tracking number once it ships.
-                          </p>
+                      {/* Expanded 17Track iframe */}
+                      {expandedTracking === order.name && order.tracking && (
+                        <div className="border-t border-gray-100">
+                          <iframe
+                            src={`https://t.17track.net/en#nums=${order.tracking.number}`}
+                            title={`Tracking details for ${order.tracking.number}`}
+                            className="w-full border-0"
+                            style={{ height: "500px" }}
+                            sandbox="allow-scripts allow-same-origin allow-popups"
+                          />
                         </div>
                       )}
                     </div>
-
-                    {/* Expanded 17Track iframe */}
-                    {expandedTracking === order.name && order.tracking && (
-                      <div className="border-t border-gray-100">
-                        <iframe
-                          src={`https://t.17track.net/en#nums=${order.tracking.number}`}
-                          title={`Tracking details for ${order.tracking.number}`}
-                          className="w-full border-0"
-                          style={{ height: "500px" }}
-                          sandbox="allow-scripts allow-same-origin allow-popups"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
 
                 {/* Marketing CTA */}
                 <div className="bg-surface-dim rounded-2xl p-6 text-center border border-border-light">
@@ -379,5 +409,17 @@ export default function OrderLookupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function OrderLookupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <span className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <OrderLookupContent />
+    </Suspense>
   );
 }

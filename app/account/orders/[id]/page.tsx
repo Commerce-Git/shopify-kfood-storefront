@@ -95,7 +95,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  const { step } = getOrderStep(order.fulfillmentStatus);
+  const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-28 pb-12">

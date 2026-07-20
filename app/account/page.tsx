@@ -322,7 +322,7 @@ export default function AccountPage() {
         <>
         <div className="space-y-4">
           {orders.map((order) => {
-            const { step } = getOrderStep(order.fulfillmentStatus);
+            const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
             const firstItem = order.lineItems.edges[0]?.node;
             const isCancelled = !!order.cancelledAt || ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus);
             const showReorder = isCancelled || order.fulfillmentStatus === "FULFILLED";

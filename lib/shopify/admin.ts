@@ -227,6 +227,7 @@ export interface MappedOrder {
     url: string | null;
     company: string | null;
   } | null;
+  wmsStatus?: "placed" | "crafting" | "packaging" | "shipped";
 }
 
 // ---- API Functions ----
