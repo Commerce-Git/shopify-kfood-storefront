@@ -166,8 +166,7 @@ export default function AccountPage() {
         </div>
         <button
           onClick={signOut}
-          className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 
-            px-4 py-2 rounded-xl hover:bg-gray-50 transition-all"
+          className="text-xs text-gray-400 hover:text-gray-700 font-medium underline underline-offset-4 decoration-gray-200 hover:decoration-gray-400 transition-all"
         >
           Sign Out
         </button>
@@ -400,17 +399,17 @@ export default function AccountPage() {
         <div className="mt-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 text-center border border-orange-100">
           <p className="text-2xl mb-2">🇰🇷</p>
           <p className="font-semibold text-gray-800 mb-1">
-            Ready for Your Next Box? 🇰🇷
+            Ready for Your Next Box of Crafts? 🇰🇷
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            Your next Seoul Box is just a click away.
+            Your next curation of Korean masterpieces is just a click away.
           </p>
           <Link
             href="/"
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold 
               px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md"
           >
-            Yes, Send Me Another Box! 🚀
+            Send Me Another Box! 🚀
           </Link>
         </div>
         </>

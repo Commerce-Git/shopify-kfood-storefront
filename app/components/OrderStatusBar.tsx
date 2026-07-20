@@ -4,22 +4,32 @@ interface OrderStatusBarProps {
   step: number; // 0 = Ordered, 1 = Crafting, 2 = Packaging, 3 = Shipped
 }
 
-const STEPS = ["Ordered", "Crafting 👩‍🎨", "Packaging 📦", "Shipped ✈️"];
+const STEPS = [
+  { label: "Ordered", emoji: "📝" },
+  { label: "Crafting", emoji: "🎨" },
+  { label: "Packaging", emoji: "📦" },
+  { label: "Shipped", emoji: "✈️" }
+];
 
 export default function OrderStatusBar({ step }: OrderStatusBarProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between relative">
         {/* Background line */}
-        <div className="absolute top-3 left-3 right-3 h-0.5 bg-gray-200" />
+        <div className="absolute top-9 left-3 right-3 h-0.5 bg-gray-200" />
         {/* Active line */}
         <div
-          className="absolute top-3 left-3 h-0.5 bg-gradient-to-r from-orange-500 to-indigo-500 transition-all duration-500"
+          className="absolute top-9 left-3 h-0.5 bg-gradient-to-r from-orange-500 to-indigo-500 transition-all duration-500"
           style={{ width: `calc(${(step / (STEPS.length - 1)) * 100}% - 24px)` }}
         />
 
-        {STEPS.map((label, i) => (
-          <div key={label} className="relative flex flex-col items-center z-10 flex-1">
+        {STEPS.map((item, i) => (
+          <div key={item.label} className="relative flex flex-col items-center z-10 flex-1">
+            {/* Floating emoji above circle */}
+            <div className="h-5 flex items-center justify-center mb-1">
+              <span className="text-sm select-none">{item.emoji}</span>
+            </div>
+
             <div
               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
                 ${
@@ -49,7 +59,7 @@ export default function OrderStatusBar({ step }: OrderStatusBarProps) {
                 i <= step ? "text-orange-600" : "text-gray-400"
               }`}
             >
-              {label}
+              {item.label}
             </span>
           </div>
         ))}
