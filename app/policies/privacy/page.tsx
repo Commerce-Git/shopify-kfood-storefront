@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-6">Privacy Policy</h1>
-      <p className="text-sm text-text-muted mb-8">Last updated: May 6, 2026</p>
+      <p className="text-sm text-text-muted mb-8">Last updated: July 21, 2026</p>
 
       <p>
         Blank Palette LLC operates this store and website, including all related
@@ -209,6 +209,33 @@ export default function PrivacyPolicyPage() {
           rel="noopener noreferrer"
         >
           Shopify Privacy Portal
+        </a>
+        .
+      </p>
+
+      <h2>Live Chat Support (Crisp)</h2>
+      <p>
+        To provide real-time customer support and improve communication, we use{" "}
+        <a
+          href="https://crisp.chat/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-gray-600 transition-colors"
+        >
+          Crisp
+        </a>
+        , a live chat platform provided by Crisp IM SAS (France). If you interact
+        with the chat widget, we may collect your name, email address, IP address,
+        device information, and the contents of your messages. This data is
+        processed on servers located within the European Union (Germany and The
+        Netherlands) and is handled in accordance with the{" "}
+        <a
+          href="https://crisp.chat/en/privacy/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-gray-600 transition-colors"
+        >
+          Crisp Privacy Policy
         </a>
         .
       </p>

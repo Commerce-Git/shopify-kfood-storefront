@@ -34,6 +34,45 @@ function OrderLookupContent() {
   const [error, setError] = useState<string | null>(null);
   const [expandedTracking, setExpandedTracking] = useState<string | null>(null);
 
+  // Newsletter subscription state
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+
+  // Sync newsletter email with search email when results are fetched
+  useEffect(() => {
+    if (result && email) {
+      setNewsletterEmail(email);
+    }
+  }, [result, email]);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim()) return;
+
+    setNewsletterStatus("loading");
+    setNewsletterMessage("");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewsletterStatus("success");
+        setNewsletterMessage(data.message || "Thank you for subscribing! 🎉");
+      } else {
+        setNewsletterStatus("error");
+        setNewsletterMessage(data.error || "Failed to subscribe. Please try again.");
+      }
+    } catch {
+      setNewsletterStatus("error");
+      setNewsletterMessage("Network error. Please check your connection.");
+    }
+  };
+
   // Common tracking fetch executor
   const executeTrack = async (emailVal: string) => {
     if (!emailVal.trim()) return;
@@ -374,20 +413,69 @@ function OrderLookupContent() {
                   );
                 })}
 
-                {/* Marketing CTA */}
-                <div className="bg-surface-dim rounded-2xl p-6 text-center border border-border-light">
-                  <p className="text-lg font-bold text-dark mb-1" style={{ fontFamily: "var(--font-heading)" }}>
-                    🎉 Love Korean Crafts?
+                {/* Newsletter CTA */}
+                <div className="bg-gradient-to-br from-orange-50/60 to-amber-50/60 rounded-2xl p-6 text-center border border-orange-100/80 shadow-sm">
+                  <p className="font-semibold text-gray-800 mb-1" style={{ fontFamily: "var(--font-heading)" }}>
+                    Stay Connected with Blank Seoul
                   </p>
-                  <p className="text-sm text-text-muted mb-4">
-                    Explore our latest artisan collections while you wait!
+                  
+                  <div className="text-sm text-gray-600 my-4 space-y-2.5 max-w-sm mx-auto text-left">
+                    <div className="flex items-start gap-2">
+                      <span className="text-orange-500">✨</span>
+                      <p>
+                        <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-orange-500">📜</span>
+                      <p>
+                        <strong>Exclusive stories</strong>{" "}straight from their private workshops.
+                      </p>
+                    </div>
+                  </div>
+
+                  {newsletterStatus === "success" ? (
+                    <div className="bg-orange-100/50 border border-orange-200/50 rounded-xl p-4 max-w-sm mx-auto animate-fade-in">
+                      <span className="text-2xl mb-1 block">🎉</span>
+                      <p className="text-orange-800 font-semibold text-sm">{newsletterMessage}</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto">
+                      <input
+                        type="email"
+                        value={newsletterEmail}
+                        onChange={(e) => setNewsletterEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                        disabled={newsletterStatus === "loading"}
+                        className="flex-1 px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-base disabled:opacity-50"
+                      />
+                      <button
+                        type="submit"
+                        disabled={newsletterStatus === "loading"}
+                        className="px-5 py-2 rounded-xl font-semibold text-sm transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center min-w-[120px]"
+                        style={{ fontFamily: "var(--font-heading)" }}
+                      >
+                        {newsletterStatus === "loading" ? (
+                          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          "Get Early Access 🚀"
+                        )}
+                      </button>
+                    </form>
+                  )}
+
+                  {newsletterStatus === "error" && (
+                    <p className="text-red-600 text-[11px] mt-2 font-medium">{newsletterMessage}</p>
+                  )}
+
+                  <p className="text-xs text-gray-400 mt-4 leading-none">
+                    * No spam. Unsubscribe at any time. View our{" "}
+                    <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
+                      Privacy Policy
+                    </Link>
+                    .
                   </p>
-                  <Link
-                    href="/collections"
-                    className="btn-primary inline-block px-6 py-2.5 text-sm"
-                  >
-                    Shop Blank Seoul →
-                  </Link>
                 </div>
               </>
             )}

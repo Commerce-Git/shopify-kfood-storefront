@@ -29,6 +29,44 @@ export default function AccountPage() {
   const [couponsLoading, setCouponsLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  // Newsletter subscription state
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+
+  useEffect(() => {
+    if (user?.email) {
+      setNewsletterEmail(user.email);
+    }
+  }, [user]);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim()) return;
+
+    setNewsletterStatus("loading");
+    setNewsletterMessage("");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewsletterStatus("success");
+        setNewsletterMessage(data.message || "Thank you for subscribing! 🎉");
+      } else {
+        setNewsletterStatus("error");
+        setNewsletterMessage(data.error || "Failed to subscribe. Please try again.");
+      }
+    } catch {
+      setNewsletterStatus("error");
+      setNewsletterMessage("Network error. Please check your connection.");
+    }
+  };
+
   useEffect(() => {
     async function fetchOrders() {
       const cacheKey = `orders_${user?.email || "anon"}`;
@@ -322,7 +360,7 @@ export default function AccountPage() {
         <div className="space-y-4">
           {orders.map((order) => {
             const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
-            const firstItem = order.lineItems.edges[0]?.node;
+            const itemCount = order.lineItems.edges.reduce((acc, { node }) => acc + node.quantity, 0);
             const isCancelled = !!order.cancelledAt || ["CANCELLED", "REFUNDED", "VOIDED"].includes(order.financialStatus);
             const showReorder = isCancelled || order.fulfillmentStatus === "FULFILLED";
             return (
@@ -334,14 +372,11 @@ export default function AccountPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <span className="text-sm font-semibold text-orange-600">
-                      {order.name}
-                    </span>
-                    <h3 className="font-semibold text-lg mt-1">
-                      {firstItem?.title || "Blank Seoul"}
+                    <h3 className="font-bold text-lg text-gray-900" style={{ fontFamily: "var(--font-heading)" }}>
+                      Order {order.name}
                     </h3>
-                    <p className="text-gray-500 text-sm">
-                      ${parseFloat(order.totalPrice.amount).toFixed(2)}
+                    <p className="text-gray-500 text-sm mt-0.5">
+                      {itemCount} item{itemCount > 1 ? "s" : ""} • ${parseFloat(order.totalPrice.amount).toFixed(2)}
                     </p>
                   </div>
                   <span className="text-sm text-gray-400">
@@ -352,7 +387,36 @@ export default function AccountPage() {
                     })}
                   </span>
                 </div>
-                <div className="flex items-center justify-between mt-4">
+
+                {/* Product Thumbnails Row */}
+                <div className="flex items-center gap-2.5 my-4 overflow-x-auto pb-1 scrollbar-none">
+                  {order.lineItems.edges.map(({ node: item }, index) => {
+                    const imageUrl = item.variant?.image?.url;
+                    const altText = item.variant?.image?.altText || item.title;
+                    return (
+                      <div key={index} className="relative flex-shrink-0 group">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={altText}
+                            className="w-12 h-12 rounded-xl object-cover border border-gray-100 bg-gray-50 group-hover:border-orange-200 transition-all"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl">
+                            📦
+                          </div>
+                        )}
+                        {item.quantity > 1 && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-gray-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white leading-none">
+                            x{item.quantity}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4">
                   {isCancelled ? (
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-medium">
@@ -363,7 +427,9 @@ export default function AccountPage() {
                   ) : (
                     <OrderStatusBar step={step} />
                   )}
-                  {showReorder && (
+                </div>
+                {showReorder && (
+                  <div className="flex justify-end mt-4 pt-4 border-t border-gray-50">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -383,34 +449,80 @@ export default function AccountPage() {
                         router.push("/cart");
                       }}
                       className="text-xs text-orange-600 hover:text-orange-700 font-semibold 
-                        bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all 
-                        flex-shrink-0 ml-3"
+                        bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all"
                     >
                       🔄 Reorder
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </Link>
             );
           })}
         </div>
 
-        {/* Reorder CTA */}
-        <div className="mt-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 text-center border border-orange-100">
-          <p className="text-2xl mb-2">🇰🇷</p>
-          <p className="font-semibold text-gray-800 mb-1">
-            Ready for Your Next Box of Crafts? 🇰🇷
+        {/* Newsletter CTA */}
+        <div className="mt-8 bg-gradient-to-br from-orange-50/60 to-amber-50/60 rounded-2xl p-6 text-center border border-orange-100/80 shadow-sm">
+          <p className="font-semibold text-gray-800 mb-1" style={{ fontFamily: "var(--font-heading)" }}>
+            Stay Connected with Blank Seoul
           </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Your next curation of Korean masterpieces is just a click away.
+          
+          <div className="text-sm text-gray-600 my-4 space-y-2.5 max-w-sm mx-auto text-left">
+            <div className="flex items-start gap-2">
+              <span className="text-orange-500">✨</span>
+              <p>
+                <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-orange-500">📜</span>
+              <p>
+                <strong>Exclusive stories</strong>{" "}straight from their private workshops.
+              </p>
+            </div>
+          </div>
+
+          {newsletterStatus === "success" ? (
+            <div className="bg-orange-100/50 border border-orange-200/50 rounded-xl p-4 max-w-sm mx-auto animate-fade-in">
+              <span className="text-2xl mb-1 block">🎉</span>
+              <p className="text-orange-800 font-semibold text-sm">{newsletterMessage}</p>
+            </div>
+          ) : (
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <input
+                type="email"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                disabled={newsletterStatus === "loading"}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-base disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={newsletterStatus === "loading"}
+                className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center min-w-[140px]"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                {newsletterStatus === "loading" ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Get Early Access 🚀"
+                )}
+              </button>
+            </form>
+          )}
+
+          {newsletterStatus === "error" && (
+            <p className="text-red-600 text-xs mt-2 font-medium">{newsletterMessage}</p>
+          )}
+
+          <p className="text-xs text-gray-400 mt-4 leading-none">
+            * No spam. Unsubscribe at any time. View our{" "}
+            <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
+              Privacy Policy
+            </Link>
+            .
           </p>
-          <Link
-            href="/"
-            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold 
-              px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md"
-          >
-            Send Me Another Box! 🚀
-          </Link>
         </div>
         </>
       )}

@@ -55,7 +55,7 @@ export default function OrderStatusBar({ step }: OrderStatusBarProps) {
               )}
             </div>
             <span
-              className={`text-[10px] mt-2 font-bold whitespace-nowrap leading-none ${
+              className={`text-xs mt-2 font-bold whitespace-nowrap leading-none ${
                 i <= step ? "text-orange-600" : "text-gray-400"
               }`}
             >
