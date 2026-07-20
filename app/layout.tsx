@@ -5,7 +5,6 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { CartProvider } from "./components/CartProvider";
 import { AuthProvider } from "./components/AuthProvider";
-
 const outfit = Outfit({
   variable: "--font-heading",
   subsets: ["latin"],

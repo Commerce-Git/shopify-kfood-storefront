@@ -10,6 +10,9 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { StorefrontCustomer } from "@/lib/supabase/types";
+import dynamic from "next/dynamic";
+
+const CrispChat = dynamic(() => import("./CrispChat"), { ssr: false });
 
 interface AuthContextType {
   user: User | null;
@@ -141,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      <CrispChat />
     </AuthContext.Provider>
   );
 }
