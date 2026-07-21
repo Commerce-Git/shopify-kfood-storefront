@@ -32,6 +32,10 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
     );
 
     const discountCodes: string[] = data?.order?.discountCodes || [];
+
+    // 2. REVIEW- 접두어 쿠폰이 있는지 확인
+    const usedReviewCoupon = discountCodes.find((code: string) =>
+      code.startsWith(COUPON_CONFIG.codePrefix + "-")
     );
 
     if (!usedReviewCoupon) return; // 리뷰 쿠폰이 아닌 경우 무시
