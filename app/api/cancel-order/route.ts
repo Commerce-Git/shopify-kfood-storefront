@@ -32,6 +32,7 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
     );
 
     const discountCodes: string[] = data?.order?.discountCodes || [];
+    const customerEmail: string | undefined = data?.order?.customer?.email;
 
     // 2. REVIEW- 접두어 쿠폰이 있는지 확인
     const usedReviewCoupon = discountCodes.find((code: string) =>
@@ -111,31 +112,21 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
       })
       .eq("id", review.id);
 
-    // 6. 새 쿠폰 이메일 발송
+    // 6. 새 쿠폰 이메일 발송 (@/emails 통합 모듈 사용)
     const discountLabel =
       COUPON_CONFIG.discountType === "percentage"
         ? `${COUPON_CONFIG.discountValue}% OFF`
         : `$${COUPON_CONFIG.discountValue} OFF`;
 
     const emailTo = customerEmail || review.customer_email;
-    const unsubscribeUrl = generateUnsubscribeUrl(emailTo);
 
-    await resend.emails.send({
-      from: "Blank Seoul <support@blankseoul.com>",
-      to: [emailTo],
-      subject: `Your ${discountLabel} coupon has been restored! — Blank Seoul`,
-      headers: {
-        "List-Unsubscribe": `<${unsubscribeUrl}>`,
-        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      },
-      react: CouponConfirmationEmail({
-        customerName: review.customer_name.split(" ")[0],
-        couponCode: newCouponCode,
-        discountLabel,
-        expiresAt: couponExpiresAt.toISOString(),
-        reviewToken: review.token,
-        unsubscribeUrl,
-      }) as React.ReactElement,
+    await sendCouponConfirmationEmail({
+      to: emailTo,
+      customerName: review.customer_name.split(" ")[0],
+      couponCode: newCouponCode,
+      discountLabel,
+      expiresAt: couponExpiresAt.toISOString(),
+      reviewToken: review.token,
     });
 
     console.log(`[Coupon Replace] ${usedReviewCoupon} → ${newCouponCode} for ${emailTo}`);
