@@ -6,7 +6,7 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 import { Resend } from "resend";
-import { ReviewRequestEmail } from "../emails/ReviewRequestEmail";
+import { ReviewRequestEmail } from "../emails/templates/ReviewRequestEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
