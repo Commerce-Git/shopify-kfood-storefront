@@ -13,8 +13,6 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
  * - 이미 사용된 쿠폰은 리마인더를 보내지 않음
  */
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 async function isDiscountUsed(code: string): Promise<boolean> {
   const query = `
     query CheckDiscountUsage($code: String!) {

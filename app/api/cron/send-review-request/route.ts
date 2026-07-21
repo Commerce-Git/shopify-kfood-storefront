@@ -15,8 +15,6 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
  * 5. 발송 완료된 주문에 'review_requested' 태그 추가 (중복 방지)
  */
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // ---- Cron Job 핸들러 ----
 
 export async function GET(request: Request) {
