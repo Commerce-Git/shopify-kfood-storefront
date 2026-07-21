@@ -19,7 +19,8 @@ interface CouponReminderEmailProps {
   couponCode: string;
   discountLabel: string;
   expiresAt: string;
-  daysLeft: number;
+  daysRemaining?: number;
+  daysLeft?: number;
   unsubscribeUrl: string;
 }
 
@@ -28,7 +29,8 @@ export const CouponReminderEmail = ({
   couponCode,
   discountLabel,
   expiresAt,
-  daysLeft,
+  daysRemaining,
+  daysLeft = daysRemaining || 7,
   unsubscribeUrl,
 }: CouponReminderEmailProps) => {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 

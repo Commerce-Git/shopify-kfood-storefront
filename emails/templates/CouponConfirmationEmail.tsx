@@ -20,7 +20,7 @@ interface CouponConfirmationEmailProps {
   discountLabel: string;
   expiresAt: string;
   reviewToken: string;
-  unsubscribeUrl: string;
+  unsubscribeUrl?: string;
 }
 
 export const CouponConfirmationEmail = ({
@@ -29,7 +29,7 @@ export const CouponConfirmationEmail = ({
   discountLabel,
   expiresAt,
   reviewToken,
-  unsubscribeUrl,
+  unsubscribeUrl = "https://blank-seoul-storefront.vercel.app",
 }: CouponConfirmationEmailProps) => {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||

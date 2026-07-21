@@ -3,12 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 import { cancelOrder, adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
-import { Resend } from "resend";
-import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
+import {
+  sendCouponConfirmationEmail,
+  sendOrderCancellationEmail,
+} from "@/emails";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ---- 쿠폰 재발급 헬퍼 ----
 
@@ -23,18 +23,15 @@ async function handleCouponReplacement(shopifyOrderGid: string) {
       `query GetOrderDiscounts($id: ID!) {
         order(id: $id) {
           discountCodes
-          email
+          customer {
+            email
+          }
         }
       }`,
       { id: shopifyOrderGid }
     );
 
     const discountCodes: string[] = data?.order?.discountCodes || [];
-    const customerEmail: string | null = data?.order?.email || null;
-
-    // 2. REVIEW- 접두어 쿠폰이 있는지 확인
-    const usedReviewCoupon = discountCodes.find((code: string) =>
-      code.startsWith(COUPON_CONFIG.codePrefix + "-")
     );
 
     if (!usedReviewCoupon) return; // 리뷰 쿠폰이 아닌 경우 무시
@@ -242,6 +239,20 @@ export async function POST(request: Request) {
 
       // 3. 쿠폰 재발급 (fire-and-forget — 취소 응답을 지연시키지 않음)
       handleCouponReplacement(shopify_order_id);
+
+      // 4. 취소 확인 이메일 발송 (fire-and-forget)
+      const emailTo = user.email;
+      if (emailTo) {
+        sendOrderCancellationEmail({
+          to: emailTo,
+          customerName: emailTo.split("@")[0],
+          orderNumber: order_number,
+          refundAmount: result.refundAmount,
+          unsubscribeUrl: generateUnsubscribeUrl(emailTo),
+        }).catch((err) =>
+          console.error("[cancel-order] Error sending cancellation email:", err)
+        );
+      }
 
       return NextResponse.json({
         success: true,

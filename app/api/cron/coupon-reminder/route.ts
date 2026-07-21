@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { adminGraphQL, isMarketingSubscribed } from "@/lib/shopify/admin";
-import { CouponReminderEmail } from "@/emails/CouponReminderEmail";
+import { sendCouponReminderEmail } from "@/emails";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -112,23 +111,15 @@ export async function GET(request: Request) {
         // Unsubscribe URL 생성
         const unsubscribeUrl = generateUnsubscribeUrl(review.customer_email);
 
-        // 리마인더 이메일 발송
-        await resend.emails.send({
-          from: "Blank Seoul <support@blankseoul.com>",
-          to: [review.customer_email],
-          subject: `⏰ Your ${discountLabel} coupon expires in ${daysLeft} days!`,
-          headers: {
-            "List-Unsubscribe": `<${unsubscribeUrl}>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          },
-          react: CouponReminderEmail({
-            customerName: review.customer_name.split(" ")[0],
-            couponCode: review.coupon_code,
-            discountLabel,
-            expiresAt: review.coupon_expires_at,
-            daysLeft,
-            unsubscribeUrl,
-          }) as React.ReactElement,
+        // 리마인더 이메일 발송 (@/emails 단일 모듈 활용)
+        await sendCouponReminderEmail({
+          to: review.customer_email,
+          customerName: review.customer_name.split(" ")[0],
+          couponCode: review.coupon_code,
+          discountLabel,
+          daysRemaining: daysLeft,
+          expiresAt: review.coupon_expires_at,
+          unsubscribeUrl,
         });
 
         await supabaseAdmin

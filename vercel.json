@@ -1,12 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/send-review-request",
-      "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/cron/coupon-reminder",
-      "schedule": "0 2 * * *"
-    }
-  ]
+  "crons": []
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { adminGraphQL } from "@/lib/shopify/admin";
-import { ReviewRequestEmail } from "@/emails/ReviewRequestEmail";
+import { sendReviewRequestEmail } from "@/emails";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -138,20 +137,12 @@ export async function GET(request: Request) {
         // Unsubscribe URL 생성
         const unsubscribeUrl = generateUnsubscribeUrl(order.email);
 
-        // Resend로 이메일 발송
-        await resend.emails.send({
-          from: "Blank Seoul <support@blankseoul.com>",
-          to: [order.email],
-          subject: "How was your Blank Seoul Box? Share & get 15% off 🎁",
-          headers: {
-            "List-Unsubscribe": `<${unsubscribeUrl}>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          },
-          react: ReviewRequestEmail({
-            customerName: firstName,
-            reviewToken,
-            unsubscribeUrl,
-          }) as React.ReactElement,
+        // Resend로 이메일 발송 (@/emails 단일 모듈 활용)
+        await sendReviewRequestEmail({
+          to: order.email,
+          customerName: firstName,
+          reviewToken,
+          unsubscribeUrl,
         });
 
         // Shopify 주문에 'review_requested' 태그 추가 (중복 발송 방지)

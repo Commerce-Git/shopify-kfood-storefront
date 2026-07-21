@@ -7,15 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
-import { CouponConfirmationEmail } from "@/emails/CouponConfirmationEmail";
+import { sendCouponConfirmationEmail } from "@/emails";
 import { getReviewStatus } from "@/lib/review-filter";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ---- Shopify 쿠폰 생성 ----
 
@@ -194,25 +191,14 @@ export async function POST(request: NextRequest) {
     // 6. 쿠폰 확인 이메일 발송 (fire-and-forget, opt-out 체크 안 함 — 거래 이메일)
     const unsubscribeUrl = generateUnsubscribeUrl(review.customer_email);
 
-    resend.emails
-      .send({
-        from: "Blank Seoul <support@blankseoul.com>",
-        to: [review.customer_email],
-        subject: `🎉 Your ${discountLabel} coupon is ready! — Blank Seoul`,
-        headers: {
-          "List-Unsubscribe": `<${unsubscribeUrl}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
-        react: CouponConfirmationEmail({
-          customerName: review.customer_name.split(" ")[0],
-          couponCode,
-          discountLabel,
-          expiresAt: couponExpiresAt.toISOString(),
-          reviewToken: token,
-          unsubscribeUrl,
-        }) as React.ReactElement,
-      })
-      .catch((err) => console.error("[Review API] Confirmation email error:", err));
+    sendCouponConfirmationEmail({
+      to: review.customer_email,
+      customerName: review.customer_name.split(" ")[0],
+      couponCode,
+      discountLabel,
+      expiresAt: couponExpiresAt.toISOString(),
+      reviewToken: token,
+    }).catch((err) => console.error("[Review API] Confirmation email error:", err));
 
     return NextResponse.json({
       success: true,
