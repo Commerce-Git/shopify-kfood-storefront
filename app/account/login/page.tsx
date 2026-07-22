@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,16 +13,27 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Already logged in → show button instead of auto-redirect to prevent loops
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      router.replace("/account");
+    }
+  }, [isLoggedIn, router]);
+
   if (isLoggedIn) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
         <div className="text-center">
           <div className="text-4xl mb-4">👋</div>
           <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "var(--font-heading)" }}>You are already logged in</h1>
-          <Link href="/account" className="inline-block py-3 px-8 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25">
+          <button
+            onClick={() => {
+              window.location.href = "/account";
+            }}
+            className="inline-block py-3 px-8 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25 cursor-pointer"
+          >
             Go to My Orders →
-          </Link>
+          </button>
         </div>
       </div>
     );
