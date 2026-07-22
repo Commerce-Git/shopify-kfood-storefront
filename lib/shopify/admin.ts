@@ -579,3 +579,35 @@ export async function updateMarketingConsent(
     };
   }
 }
+
+/**
+ * Check if a customer with the given email is subscribed to newsletter / marketing.
+ */
+export async function checkIsSubscribed(email: string): Promise<boolean> {
+  if (!email || !email.trim()) return false;
+  try {
+    const result = await adminGraphQL(
+      `query CheckSubscription($query: String!) {
+        customers(first: 1, query: $query) {
+          edges {
+            node {
+              emailMarketingConsent {
+                marketingState
+              }
+              tags
+            }
+          }
+        }
+      }`,
+      { query: `email:${email.trim().toLowerCase()}` }
+    );
+    const node = result?.data?.customers?.edges?.[0]?.node;
+    if (!node) return false;
+    const isSubscribedState = node.emailMarketingConsent?.marketingState === "SUBSCRIBED";
+    const hasTag = Array.isArray(node.tags) && node.tags.includes("newsletter");
+    return isSubscribedState || hasTag;
+  } catch (err) {
+    console.error("[Admin API] checkIsSubscribed error:", err);
+    return false;
+  }
+}

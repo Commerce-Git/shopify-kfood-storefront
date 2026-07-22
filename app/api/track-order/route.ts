@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getOrdersByEmail } from "@/lib/shopify/admin";
+import { getOrdersByEmail, checkIsSubscribed } from "@/lib/shopify/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // Simple in-memory rate limiter (per serverless instance)
@@ -117,6 +117,10 @@ export async function POST(request: NextRequest) {
     const publicOrders = activeOrders.map((order) => {
       const wmsStatuses = artistOrdersMap[order.id];
       const wmsStatus = aggregateWmsStatus(order.fulfillmentStatus, wmsStatuses);
+      const itemCount = order.lineItems.edges.reduce((sum, { node }) => sum + node.quantity, 0);
+      const formattedPrice = order.totalPrice?.amount
+        ? parseFloat(order.totalPrice.amount).toFixed(2)
+        : "0.00";
 
       return {
         name: order.name,
@@ -128,7 +132,14 @@ export async function POST(request: NextRequest) {
         status: order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
         fulfillmentStatus: order.fulfillmentStatus,
         wmsStatus,
-        itemCount: order.lineItems.edges.length,
+        itemCount,
+        totalPrice: formattedPrice,
+        lineItems: order.lineItems.edges.map(({ node }) => ({
+          title: node.title,
+          quantity: node.quantity,
+          imageUrl: node.variant?.image?.url || null,
+          altText: node.variant?.image?.altText || node.title,
+        })),
         tracking: order.tracking?.number
           ? {
               number: order.tracking.number,
@@ -138,8 +149,11 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    const isSubscribed = await checkIsSubscribed(email);
+
     return NextResponse.json({
       maskedEmail: maskEmail(email),
+      isSubscribed,
       orders: publicOrders,
     });
   } catch (err) {

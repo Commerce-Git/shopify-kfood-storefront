@@ -40,6 +40,17 @@ export default function AccountPage() {
     }
   }, [user]);
 
+  const [isLocallySubscribed, setIsLocallySubscribed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && user?.email) {
+      const saved = localStorage.getItem(`blank_seoul_subscribed_${user.email.trim().toLowerCase()}`);
+      if (saved === "true") {
+        setIsLocallySubscribed(true);
+      }
+    }
+  }, [user?.email]);
+
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail.trim()) return;
@@ -57,6 +68,10 @@ export default function AccountPage() {
       if (res.ok) {
         setNewsletterStatus("success");
         setNewsletterMessage(data.message || "Thank you for subscribing! 🎉");
+        if (typeof window !== "undefined" && newsletterEmail) {
+          localStorage.setItem(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
+          setIsLocallySubscribed(true);
+        }
       } else {
         setNewsletterStatus("error");
         setNewsletterMessage(data.error || "Failed to subscribe. Please try again.");
@@ -93,6 +108,17 @@ export default function AccountPage() {
         if (!res.ok) throw new Error("Failed to fetch orders");
         const data = await res.json();
         setOrders(data.orders);
+
+        if (user?.email && typeof window !== "undefined") {
+          const key = `blank_seoul_subscribed_${user.email.trim().toLowerCase()}`;
+          if (data.isSubscribed) {
+            setIsLocallySubscribed(true);
+            localStorage.setItem(key, "true");
+          } else {
+            setIsLocallySubscribed(false);
+            localStorage.removeItem(key);
+          }
+        }
 
         // Save to localStorage for next visit
         try {
@@ -357,6 +383,73 @@ export default function AccountPage() {
         </div>
       ) : (
         <>
+        {/* Newsletter CTA — Top Position (Hidden if already subscribed) */}
+        {!isLocallySubscribed && (
+          <div className="mb-6 bg-gradient-to-br from-orange-50/60 to-amber-50/60 rounded-2xl p-6 text-center border border-orange-100/80 shadow-sm">
+            <p className="font-semibold text-gray-800 mb-1" style={{ fontFamily: "var(--font-heading)" }}>
+              Stay Connected with Blank Seoul
+            </p>
+            
+            <div className="text-sm text-gray-600 my-4 space-y-2.5 max-w-sm mx-auto text-left">
+              <div className="flex items-start gap-2">
+                <span className="text-orange-500">✨</span>
+                <p>
+                  <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-orange-500">📜</span>
+                <p>
+                  <strong>Exclusive stories</strong>{" "}straight from their private workshops.
+                </p>
+              </div>
+            </div>
+
+            {newsletterStatus === "success" ? (
+              <div className="bg-orange-100/50 border border-orange-200/50 rounded-xl p-4 max-w-sm mx-auto animate-fade-in">
+                <span className="text-2xl mb-1 block">🎉</span>
+                <p className="text-orange-800 font-semibold text-sm">{newsletterMessage}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                <input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  disabled={newsletterStatus === "loading"}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-base disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterStatus === "loading"}
+                  className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center min-w-[140px]"
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  {newsletterStatus === "loading" ? (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    "Get Early Access 🚀"
+                  )}
+                </button>
+              </form>
+            )}
+
+            {newsletterStatus === "error" && (
+              <p className="text-red-600 text-xs mt-2 font-medium">{newsletterMessage}</p>
+            )}
+
+            <p className="text-xs text-gray-400 mt-4 leading-none">
+              * No spam. Unsubscribe at any time. View our{" "}
+              <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+
         <div className="space-y-4">
           {orders.map((order) => {
             const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
@@ -458,71 +551,6 @@ export default function AccountPage() {
               </Link>
             );
           })}
-        </div>
-
-        {/* Newsletter CTA */}
-        <div className="mt-8 bg-gradient-to-br from-orange-50/60 to-amber-50/60 rounded-2xl p-6 text-center border border-orange-100/80 shadow-sm">
-          <p className="font-semibold text-gray-800 mb-1" style={{ fontFamily: "var(--font-heading)" }}>
-            Stay Connected with Blank Seoul
-          </p>
-          
-          <div className="text-sm text-gray-600 my-4 space-y-2.5 max-w-sm mx-auto text-left">
-            <div className="flex items-start gap-2">
-              <span className="text-orange-500">✨</span>
-              <p>
-                <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-orange-500">📜</span>
-              <p>
-                <strong>Exclusive stories</strong>{" "}straight from their private workshops.
-              </p>
-            </div>
-          </div>
-
-          {newsletterStatus === "success" ? (
-            <div className="bg-orange-100/50 border border-orange-200/50 rounded-xl p-4 max-w-sm mx-auto animate-fade-in">
-              <span className="text-2xl mb-1 block">🎉</span>
-              <p className="text-orange-800 font-semibold text-sm">{newsletterMessage}</p>
-            </div>
-          ) : (
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                disabled={newsletterStatus === "loading"}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-base disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={newsletterStatus === "loading"}
-                className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center min-w-[140px]"
-                style={{ fontFamily: "var(--font-heading)" }}
-              >
-                {newsletterStatus === "loading" ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Get Early Access 🚀"
-                )}
-              </button>
-            </form>
-          )}
-
-          {newsletterStatus === "error" && (
-            <p className="text-red-600 text-xs mt-2 font-medium">{newsletterMessage}</p>
-          )}
-
-          <p className="text-xs text-gray-400 mt-4 leading-none">
-            * No spam. Unsubscribe at any time. View our{" "}
-            <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
-              Privacy Policy
-            </Link>
-            .
-          </p>
         </div>
         </>
       )}

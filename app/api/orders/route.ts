@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrdersByEmail, getAdminToken } from "@/lib/shopify/admin";
+import { getOrdersByEmail, getAdminToken, checkIsSubscribed } from "@/lib/shopify/admin";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -125,7 +125,9 @@ export async function GET() {
       },
     }));
 
-    return NextResponse.json({ orders: ordersWithImages });
+    const isSubscribed = await checkIsSubscribed(user.email);
+
+    return NextResponse.json({ isSubscribed, orders: ordersWithImages });
   } catch (error) {
     console.error("[/api/orders] Error:", error);
     return NextResponse.json(
