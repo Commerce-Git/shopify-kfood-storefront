@@ -603,9 +603,15 @@ export async function checkIsSubscribed(email: string): Promise<boolean> {
     );
     const node = result?.data?.customers?.edges?.[0]?.node;
     if (!node) return false;
-    const isSubscribedState = node.emailMarketingConsent?.marketingState === "SUBSCRIBED";
+
+    const marketingState = node.emailMarketingConsent?.marketingState;
+    if (marketingState === "UNSUBSCRIBED" || marketingState === "NOT_SUBSCRIBED") {
+      return false;
+    }
+
+    const isSubscribedState = marketingState === "SUBSCRIBED";
     const hasTag = Array.isArray(node.tags) && node.tags.includes("newsletter");
-    return isSubscribedState || hasTag;
+    return isSubscribedState || (hasTag && marketingState !== "UNSUBSCRIBED");
   } catch (err) {
     console.error("[Admin API] checkIsSubscribed error:", err);
     return false;
