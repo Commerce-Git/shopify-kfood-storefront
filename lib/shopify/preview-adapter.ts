@@ -102,10 +102,30 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
     } as ShopifyImage,
   }));
 
-  // Handle variants
+  // Handle variants (supports payload.options, payload.color_variants, or fallback single variant)
   let variantEdges: { node: ShopifyProductVariant }[] = [];
 
-  if (Array.isArray(payload.color_variants) && payload.color_variants.length > 0) {
+  const rawOptions = Array.isArray(payload.options) && payload.options.length > 0 ? payload.options : null;
+  const firstOptionGroup = rawOptions ? rawOptions[0] : null;
+
+  if (firstOptionGroup && Array.isArray(firstOptionGroup.variants) && firstOptionGroup.variants.length > 0) {
+    const optionName = firstOptionGroup.option_name || firstOptionGroup.name || firstOptionGroup.title || "Color";
+    variantEdges = firstOptionGroup.variants.map((v: any, idx: number) => {
+      const vName = v.option_value || v.color_name || v.name || v.value || v.title || `Option ${idx + 1}`;
+      const vPhoto = v.photo || v.image_url || v.imageUrl || v.url || v.src || null;
+      return {
+        node: {
+          id: `preview-var-${idx}`,
+          title: String(vName),
+          availableForSale: true,
+          price: { amount: priceAmount, currencyCode: "USD" },
+          compareAtPrice: null,
+          image: vPhoto ? { url: String(vPhoto).trim(), altText: `${title} - ${vName}`, width: 1000, height: 1000 } : (imagesEdges[0]?.node || null),
+          selectedOptions: [{ name: String(optionName), value: String(vName) }],
+        },
+      };
+    });
+  } else if (Array.isArray(payload.color_variants) && payload.color_variants.length > 0) {
     variantEdges = payload.color_variants.map((c: any, idx: number) => ({
       node: {
         id: `preview-color-${idx}`,
