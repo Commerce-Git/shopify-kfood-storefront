@@ -8,6 +8,7 @@ import AddToCartSection from "./AddToCartSection";
 
 interface ProductInteractiveProps {
   product: ShopifyProduct;
+  isPreview?: boolean;
 }
 
 const HIGHLIGHTS = [
@@ -16,7 +17,7 @@ const HIGHLIGHTS = [
   "Tracking number provided for every order",
 ];
 
-export default function ProductInteractive({ product }: ProductInteractiveProps) {
+export default function ProductInteractive({ product, isPreview = false }: ProductInteractiveProps) {
   const images = getProductImages(product);
 
   // Helper to ignore query parameters when matching URLs
