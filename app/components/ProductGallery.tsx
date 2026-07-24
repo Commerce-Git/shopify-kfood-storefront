@@ -16,7 +16,8 @@ export default function ProductGallery({ images, title, activeImageUrl, onImageS
 
   useEffect(() => {
     if (activeImageUrl) {
-      const idx = images.findIndex((img) => img.url === activeImageUrl);
+      const stripQuery = (url: string) => url.split('?')[0];
+      const idx = images.findIndex((img) => stripQuery(img.url) === stripQuery(activeImageUrl));
       if (idx !== -1) {
         setSelectedIndex(idx);
       }

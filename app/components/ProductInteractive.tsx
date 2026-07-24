@@ -30,14 +30,28 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
       .filter((url): url is string => !!url)
   );
 
-  // Gallery images: first image (representative) + variant images
-  const galleryImages = images.filter((img, idx) => {
-    if (idx === 0) return true;
-    return variantImageUrls.has(stripQuery(img.url));
+  const hasMultipleVariantsWithImages = product.variants.edges.length > 1 && variantImageUrls.size > 0;
+
+  // Gallery images for top gallery:
+  // If product HAS multiple variant images: show ONLY variant images in top gallery (exclude main composite Media 1 from top).
+  // If product DOES NOT have variant images: show Media 1 (representative image).
+  let galleryImages = images.filter((img, idx) => {
+    if (hasMultipleVariantsWithImages) {
+      return variantImageUrls.has(stripQuery(img.url));
+    }
+    return idx === 0;
   });
 
-  // Detailed images: remaining images shown below in a large lookbook stack
-  const detailedImages = images.filter((img) => !galleryImages.includes(img));
+  if (galleryImages.length === 0) {
+    galleryImages = [images[0]].filter(Boolean);
+  }
+
+  // Detailed images for bottom lookbook stack:
+  // Shows all remaining images that are NOT in top galleryImages!
+  // Includes Media 1 (composite main thumbnail) + all lifestyle/interior lookbook images.
+  const detailedImages = images.filter(
+    (img) => !galleryImages.some((gImg) => stripQuery(gImg.url) === stripQuery(img.url))
+  );
 
   // Parse available options from variants
   const optionMap: Record<string, Set<string>> = {};
