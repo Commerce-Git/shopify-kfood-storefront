@@ -98,8 +98,12 @@ export async function sendCouponReminderEmail(
 }
 
 export async function sendOrderCancellationEmail(
-  payload: SendOrderCancellationPayload
+  _payload: SendOrderCancellationPayload
 ) {
+  // 💡 [DISABLED] Resend 주문 취소 이메일 발송 비활성화 (쇼피파이 자체 메일로 단독 발송)
+  return null;
+
+  /*
   const client = getResendClient();
   if (!client) return null;
 
@@ -118,4 +122,5 @@ export async function sendOrderCancellationEmail(
       unsubscribeUrl: payload.unsubscribeUrl,
     }),
   });
+  */
 }
