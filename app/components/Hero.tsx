@@ -146,6 +146,7 @@ export default function Hero({ products = [] }: HeroProps) {
                       className="object-cover group-hover:scale-105 transition-transform duration-700 select-none transform-gpu"
                       sizes="(max-width: 768px) 340px, 520px"
                       priority={idx < 3}
+                      loading={idx < 3 ? "eager" : "lazy"}
                       draggable={false}
                     />
                   </div>
