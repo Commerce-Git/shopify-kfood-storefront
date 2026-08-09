@@ -29,7 +29,7 @@ export default function Hero({ products = [] }: HeroProps) {
     let animationFrameId: number;
 
     const animate = () => {
-      if (!isHovered && !isDragging) {
+      if (!isDragging) {
         const oneThird = slider.scrollWidth / 3;
         if (slider.scrollLeft >= oneThird * 2) {
           slider.scrollLeft -= oneThird;
@@ -57,7 +57,6 @@ export default function Hero({ products = [] }: HeroProps) {
 
   const handleMouseLeave = () => {
     setIsDragging(false);
-    setIsHovered(false);
   };
 
   const handleMouseUp = () => {
