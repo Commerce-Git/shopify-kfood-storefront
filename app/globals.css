@@ -236,6 +236,28 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes continuousMarquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-continuous-marquee {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  touch-action: pan-y;
+  animation: continuousMarquee 45s linear infinite;
+}
+
+.animate-continuous-marquee:hover {
+  animation-play-state: paused;
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

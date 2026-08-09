@@ -91,15 +91,15 @@ export default function Reviews() {
   }
 
   return (
-    <section className="section bg-surface-dim overflow-hidden" id="reviews">
+    <section className="section bg-transparent text-white overflow-hidden" id="reviews">
       <div className="section-inner">
         {/* Section Header */}
         <div className="flex items-end justify-between mb-12">
           <div>
-            <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
+            <span className="text-primary-light text-sm font-semibold uppercase tracking-widest mb-3 block">
               Reviews
             </span>
-            <h2 className="heading-lg text-dark">
+            <h2 className="heading-lg text-white">
               Loved by{" "}
               <span className="gradient-text">K-Culture Fans</span>
             </h2>
@@ -110,7 +110,7 @@ export default function Reviews() {
             <div className="hidden sm:flex gap-2">
               <button
                 onClick={() => scroll("left")}
-                className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
+                className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
                 aria-label="Previous reviews"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -119,7 +119,7 @@ export default function Reviews() {
               </button>
               <button
                 onClick={() => scroll("right")}
-                className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
+                className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
                 aria-label="Next reviews"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -139,12 +139,12 @@ export default function Reviews() {
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="flex-shrink-0 w-[320px] sm:w-[360px] bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 snap-start"
+              className="flex-shrink-0 w-[320px] sm:w-[360px] bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/15 shadow-xl hover:border-primary/50 transition-all duration-300 snap-start"
             >
               {/* Header */}
               <div className="flex items-center gap-3 mb-4">
                 <div
-                  className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-white/10 text-white font-bold text-sm flex items-center justify-center border border-white/20"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
                   {review.customer_name
@@ -155,10 +155,10 @@ export default function Reviews() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-dark">
+                    <p className="text-sm font-semibold text-white">
                       {review.customer_name}
                     </p>
-                    <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-semibold text-primary-light bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
                       ✓ Verified
                     </span>
                   </div>
@@ -181,7 +181,7 @@ export default function Reviews() {
               )}
 
               {/* Text */}
-              <p className="text-sm text-text leading-relaxed">
+              <p className="text-sm text-white/80 leading-relaxed">
                 {review.body}
               </p>
 
@@ -191,7 +191,7 @@ export default function Reviews() {
                   {review.photo_urls.map((url, i) => (
                     <div
                       key={i}
-                      className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden"
+                      className="w-16 h-16 rounded-lg bg-black/30 overflow-hidden border border-white/10"
                     >
                       <img
                         src={url}
@@ -208,12 +208,12 @@ export default function Reviews() {
 
         {/* Average Rating */}
         <div className="mt-10 text-center">
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white shadow-sm">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/15 shadow-xl">
             <StarRating rating={Math.round(averageRating)} />
-            <span className="text-sm font-medium text-dark">
+            <span className="text-sm font-medium text-white">
               {averageRating} out of 5
             </span>
-            <span className="text-xs text-text-muted">
+            <span className="text-xs text-white/50">
               • Based on {totalCount} {totalCount === 1 ? "review" : "reviews"}
             </span>
           </div>

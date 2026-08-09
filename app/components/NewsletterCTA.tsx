@@ -22,7 +22,7 @@ export default function NewsletterCTA() {
   };
 
   return (
-    <section className="py-24 px-4 bg-dark text-white" id="newsletter">
+    <section className="py-24 px-4 bg-transparent text-white" id="newsletter">
       <div className="max-w-2xl mx-auto text-center">
         {/* Heading */}
         <span className="text-accent text-sm font-semibold uppercase tracking-widest mb-3 block">

@@ -1,146 +1,186 @@
 "use client";
 
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ShopifyProduct } from "@/lib/shopify/types";
 
-export default function Hero() {
+interface HeroProps {
+  products?: ShopifyProduct[];
+}
+
+export default function Hero({ products = [] }: HeroProps) {
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftState, setScrollLeftState] = useState(0);
+
+  const displayProducts = products.length > 0 ? products : [];
+  // 3-set array for 100% seamless infinite scroll both left and right
+  const marqueeProducts = [...displayProducts, ...displayProducts, ...displayProducts];
+
+  // 60fps requestAnimationFrame continuous glide loop + drag support
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider || displayProducts.length === 0) return;
+
+    let animationFrameId: number;
+
+    const animate = () => {
+      if (!isHovered && !isDragging) {
+        const oneThird = slider.scrollWidth / 3;
+        if (slider.scrollLeft >= oneThird * 2) {
+          slider.scrollLeft -= oneThird;
+        } else if (slider.scrollLeft <= 0) {
+          slider.scrollLeft += oneThird;
+        } else {
+          slider.scrollLeft += 1.5; // Auto glide speed
+        }
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isHovered, isDragging, displayProducts.length]);
+
+  // Desktop Mouse Drag Handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!sliderRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - sliderRef.current.offsetLeft);
+    setScrollLeftState(sliderRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    setIsHovered(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !sliderRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - sliderRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    sliderRef.current.scrollLeft = scrollLeftState - walk;
+  };
+
+  // Mobile Touch Drag Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!sliderRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - sliderRef.current.offsetLeft);
+    setScrollLeftState(sliderRef.current.scrollLeft);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !sliderRef.current) return;
+    const x = e.touches[0].pageX - sliderRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    sliderRef.current.scrollLeft = scrollLeftState - walk;
+  };
+
+  const getProductImg = (product: ShopifyProduct) => {
+    return product.featuredImage?.url || product.images?.edges?.[0]?.node?.url || "/assets/blank_seoul_symbol.png";
+  };
+
   return (
     <section
-      className="relative w-full min-h-[100svh] flex items-center overflow-hidden"
+      className="relative w-full min-h-[100svh] flex flex-col justify-center py-16 pt-28 sm:pt-32 md:pt-36 bg-transparent"
       id="hero-section"
     >
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0F1A15] via-[#1A2E25] to-[#0D1A14]" />
+      {/* Hero Top Hook Title */}
+      <div className="relative z-10 text-center max-w-[1200px] mx-auto px-4 mt-0 sm:mt-1 md:mt-2 mb-4 sm:mb-6">
+        <h1
+          className="text-sm sm:text-lg md:text-xl font-bold tracking-widest text-white/90 uppercase leading-relaxed"
+          style={{ fontFamily: "var(--font-heading)" }}
+        >
+          <span className="block">AUTHENTIC HANDCRAFTED MASTERPIECES</span>
+          <span className="block mt-1 bg-gradient-to-r from-[#F5D0A9] via-[#E8AA70] to-[#C77B4A] bg-clip-text text-transparent">
+            DIRECT FROM KOREA.
+          </span>
+        </h1>
+      </div>
 
-      {/* Subtle texture */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-      }} />
-
-      {/* Glow accents — warm green tones */}
-      <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/20 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Content — Split Layout */}
-      <div className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-20 pt-28">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-
-          {/* Left — Text & CTA */}
-          <div className="flex flex-col gap-6 text-center lg:text-left">
-            {/* Badge */}
-            <div
-              className="inline-flex self-center lg:self-start items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium animate-fade-in"
-              style={{ animationDelay: "0.2s", animationFillMode: "both" }}
-            >
-              <span>🇰🇷</span>
-              <span>Handcrafted in Korea</span>
-              <span>✈️</span>
-            </div>
-
-            {/* Main Heading */}
-            <h1
-              className="heading-xl text-white animate-fade-in-up"
-              style={{ animationDelay: "0.4s", animationFillMode: "both" }}
-            >
-              Artisan Crafts,{" "}
-              <span className="gradient-text">Direct from Seoul.</span>
-            </h1>
-
-            {/* Subtitle */}
-            <p
-              className="text-lg sm:text-xl text-white/70 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up"
-              style={{
-                fontFamily: "var(--font-body)",
-                animationDelay: "0.6s",
-                animationFillMode: "both",
-              }}
-            >
-              Discover authentic pieces from independent Korean artisans. <strong className="text-white font-semibold">Every item is 100% made to order</strong> and <strong className="text-white font-semibold">shipped directly from Seoul</strong> to your door.
-            </p>
-
-            {/* CTA Buttons */}
-            <div
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start animate-fade-in-up"
-              style={{ animationDelay: "0.8s", animationFillMode: "both" }}
-            >
-              <Link href="/collections" className="btn-primary text-center">
-                Shop Now →
-              </Link>
-              <Link
-                href="#collections"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-semibold text-white/90 border border-white/20 hover:bg-white/10 transition-all duration-300 text-sm"
-                style={{ fontFamily: "var(--font-heading)" }}
+      {/* 100% Interactive Full-Bleed Continuous Track Slider */}
+      <div
+        className="relative z-10 w-full overflow-hidden py-4 sm:py-6"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div
+          ref={sliderRef}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
+          className="flex gap-6 overflow-x-auto scrollbar-none py-2 px-4 select-none cursor-grab active:cursor-grabbing"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {marqueeProducts.length > 0 ? (
+            marqueeProducts.map((product, idx) => (
+              <div
+                key={`${product.id || idx}-${idx}`}
+                className="flex-none w-[320px] sm:w-[420px] md:w-[480px] lg:w-[520px] group bg-white/10 backdrop-blur-md rounded-3xl p-3 sm:p-4 border border-white/10 shadow-2xl select-none transition-transform duration-500 hover:-translate-y-3 transform-gpu"
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
               >
-                Explore Collections
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div
-              className="flex items-center gap-8 sm:gap-10 justify-center lg:justify-start mt-4 animate-fade-in-up"
-              style={{ animationDelay: "1s", animationFillMode: "both" }}
-            >
-              {[
-                { value: "100%", label: "Made to Order" },
-                { value: "Direct", label: "from Seoul" },
-                { value: "8+", label: "Korean Artisans" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center lg:text-left">
-                  <div
-                    className="text-xl sm:text-2xl font-bold text-white"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    {stat.value}
+                <Link href={`/product/${product.handle}`} className="block select-none" draggable={false}>
+                  {/* Pure Image Artwork Container — 100% Pure Visual, No Text, No Overlays */}
+                  <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/20 pointer-events-none">
+                    <Image
+                      src={getProductImg(product)}
+                      alt={product.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 select-none transform-gpu"
+                      sizes="(max-width: 768px) 340px, 520px"
+                      priority={idx < 3}
+                      draggable={false}
+                    />
                   </div>
-                  <div className="text-xs text-white/40 mt-0.5">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — Lifestyle Image */}
-          <div
-            className="relative flex justify-center lg:justify-end animate-fade-in-up"
-            style={{ animationDelay: "0.5s", animationFillMode: "both" }}
-          >
-            <div className="relative w-full max-w-[520px] aspect-square lg:aspect-[4/5]">
-              {/* Glow behind */}
-              <div className="absolute inset-8 bg-primary/20 rounded-full blur-[80px] pointer-events-none" />
-
-              {/* Single high-impact lifestyle image */}
-              <div className="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-                <Image
-                  src="/assets/blank_seoul_symbol.png"
-                  alt="Korean artisan traditional lifestyle"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  priority
-                />
+                </Link>
               </div>
+            ))
+          ) : (
+            <div className="w-full h-96 flex items-center justify-center text-white/50 border border-white/10 rounded-3xl">
+              Loading 8 Heritage Masterpieces...
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-slow z-10">
+      {/* Scroll Down Indicator */}
+      <Link
+        href="#artisan-spotlight"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce-slow z-20 cursor-pointer hover:opacity-100 transition-opacity"
+        aria-label="Scroll down to Section 1"
+      >
+        <span className="text-[10px] uppercase tracking-widest text-white/60 font-semibold">Scroll Down</span>
         <svg
-          width="24"
-          height="24"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="white"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="opacity-40"
+          className="opacity-60"
         >
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>
-      </div>
+      </Link>
     </section>
   );
 }

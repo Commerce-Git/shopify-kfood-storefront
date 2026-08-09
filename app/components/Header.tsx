@@ -8,17 +8,16 @@ import { useAuth } from "./AuthProvider";
 
 const NAV_LINKS = [
   { href: "/#featured-products", label: "The Collection" },
-  { href: "/#brand-story", label: "Our Story" },
-  { href: "/#artisan-spotlight", label: "Craftsmanship" },
   { href: "/faq", label: "FAQ" },
 ];
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [isNavFolded, setIsNavFolded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { itemCount, setIsCartOpen } = useCart();
-  const { isLoggedIn, customer, user } = useAuth();
+  const { itemCount } = useCart();
+  const { isLoggedIn } = useAuth();
   const pathname = usePathname();
 
   const isSolidHeader = scrolled || pathname !== "/";
@@ -28,9 +27,28 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 20);
+
+      if (currentScrollY <= 20) {
+        // At the very top: always unfold!
+        setIsNavFolded(false);
+      } else {
+        if (currentScrollY > lastScrollY + 2) {
+          // Scrolling DOWN: fold menu!
+          setIsNavFolded(true);
+        } else if (currentScrollY < lastScrollY - 2) {
+          // Scrolling UP: unfold menu!
+          setIsNavFolded(false);
+        }
+      }
+
+      lastScrollY = Math.max(0, currentScrollY);
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -52,65 +70,51 @@ export default function Header() {
       <header
         id="site-header"
         className={`
-          fixed top-0 left-0 right-0 z-50 transition-all duration-300
+          fixed top-0 left-0 right-0 z-50 transition-colors duration-300
           ${
             isSolidHeader
-              ? "bg-white/80 backdrop-blur-xl shadow-sm border-b border-border-light"
-              : "bg-transparent"
+              ? "bg-[#0A140F]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl"
+              : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
           }
         `}
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 z-10"
-              id="header-logo"
-            >
-              <span className="text-xl sm:text-2xl font-extrabold tracking-tight"
-                style={{ fontFamily: "var(--font-heading)" }}
+          {/* Row 1 — CHANEL Style Top Tier: Centered Royal Brand Mark & Action Icons */}
+          <div className="grid grid-cols-3 items-center h-16 sm:h-20">
+            {/* Left Balance Spacer */}
+            <div className="flex items-center justify-start" />
+
+            {/* Center — CHANEL-Style Royal Centered Logo */}
+            <div className="flex items-center justify-center">
+              <Link
+                href="/"
+                className="flex items-center gap-1 group"
+                id="header-logo"
               >
-                <span className="gradient-text">Blank</span>
-                <span className={isSolidHeader ? "text-dark" : "text-white"}>
-                  {" "}Seoul
-                </span>
-              </span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-5 lg:gap-8" id="desktop-nav">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`
-                    text-sm font-medium transition-colors duration-200
-                    hover:text-primary
-                    ${isSolidHeader ? "text-text" : "text-white/90"}
-                  `}
+                <span
+                  className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-widest uppercase transition-transform group-hover:scale-105 text-center"
+                  style={{ fontFamily: "var(--font-heading)" }}
                 >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+                  <span className="bg-gradient-to-r from-[#F5D0A9] via-[#E8AA70] to-[#C77B4A] bg-clip-text text-transparent">
+                    BLANK
+                  </span>
+                  <span className="text-white ml-2">SEOUL</span>
+                </span>
+              </Link>
+            </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-3 z-10">
-              {/* User Account Icon (Desktop only) */}
+            {/* Right Action Icons */}
+            <div className="flex items-center justify-end gap-2 sm:gap-4">
+              {/* User Account Link */}
               <Link
                 href={mounted && isLoggedIn ? "/account" : "/account/login"}
-                className={`
-                  hidden md:block p-3 rounded-full transition-all duration-200
-                  hover:bg-white/10
-                  ${isSolidHeader ? "text-dark" : "text-white"}
-                `}
+                className="hidden md:flex p-2.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
                 id="header-user-profile-link"
                 aria-label="Account"
               >
                 <svg
-                  width="22"
-                  height="22"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -123,19 +127,16 @@ export default function Header() {
                 </svg>
               </Link>
 
+              {/* Cart Button */}
               <Link
                 href="/cart"
-                className={`
-                  relative p-3 rounded-full transition-all duration-200
-                  hover:bg-white/10
-                  ${isSolidHeader ? "text-dark" : "text-white"}
-                `}
+                className="relative p-2.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
                 id="cart-button"
                 aria-label="Open cart"
               >
                 <svg
-                  width="22"
-                  height="22"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -148,16 +149,16 @@ export default function Header() {
                   <path d="M16 10a4 4 0 01-8 0" />
                 </svg>
                 {itemCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-[#C77B4A] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md">
                     {itemCount > 9 ? "9+" : itemCount}
                   </span>
                 )}
               </Link>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Toggle Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`md:hidden p-3 rounded-full hover:bg-white/10 transition-colors ${isSolidHeader ? "text-dark" : "text-white"}`}
+                className="md:hidden p-2.5 rounded-full text-white hover:bg-white/10 transition-colors"
                 id="mobile-menu-button"
                 aria-label="Toggle menu"
               >
@@ -186,13 +187,38 @@ export default function Header() {
               </button>
             </div>
           </div>
+
+          {/* Row 2 — CHANEL Style Bottom Tier: Desktop Smooth Collapsible Centered Navigation Bar */}
+          <div
+            style={{
+              height: isNavFolded ? "0px" : "44px",
+              opacity: isNavFolded ? 0 : 1,
+              overflow: "hidden",
+              transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+              borderTop: isNavFolded ? "1px solid transparent" : "1px solid rgba(255, 255, 255, 0.1)",
+              pointerEvents: isNavFolded ? "none" : "auto",
+            }}
+            className="hidden md:flex items-center justify-center"
+          >
+            <nav className="flex items-center justify-center gap-10 h-full" id="desktop-nav">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-xs font-bold tracking-widest uppercase text-white/80 hover:text-[#F5D0A9] transition-colors duration-200"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </header>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -200,20 +226,20 @@ export default function Header() {
       {/* Mobile Menu Drawer */}
       <div
         className={`
-          fixed top-0 right-0 z-40 h-full w-72 bg-white shadow-xl
+          fixed top-0 right-0 z-50 h-full w-72 bg-[#0F1A15] border-l border-white/10 text-white shadow-2xl
           transform transition-transform duration-300 ease-out md:hidden
           ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
         id="mobile-menu-drawer"
       >
         <div className="pt-24 px-6">
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-2">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-3 text-lg font-medium text-dark rounded-xl hover:bg-surface-dim transition-colors"
+                className="px-4 py-3 text-base font-bold tracking-wider uppercase text-white/90 rounded-xl hover:bg-white/10 transition-colors"
               >
                 {link.label}
               </Link>
@@ -221,20 +247,20 @@ export default function Header() {
             <Link
               href="/account"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 text-lg font-medium text-dark rounded-xl hover:bg-surface-dim transition-colors border-t border-gray-100 mt-2 pt-4 flex items-center gap-2"
+              className="px-4 py-3 text-base font-bold tracking-wider uppercase text-white/90 rounded-xl hover:bg-white/10 transition-colors border-t border-white/10 mt-2 pt-4 flex items-center gap-2"
             >
               <span>👤</span> {isLoggedIn ? "My Account" : "Sign In / Register"}
             </Link>
           </nav>
-          <div className="mt-8 pt-8 border-t border-border">
-              <Link
-                href="/collections"
-                onClick={() => setMobileMenuOpen(false)}
-                className="btn-primary w-full text-center"
-              >
-                Shop Now
-              </Link>
-            </div>
+          <div className="mt-8 pt-8 border-t border-white/10">
+            <Link
+              href="/#featured-products"
+              onClick={() => setMobileMenuOpen(false)}
+              className="btn-primary w-full text-center block"
+            >
+              Shop Collection
+            </Link>
+          </div>
         </div>
       </div>
     </>

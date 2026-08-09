@@ -55,97 +55,77 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   }
 
   return (
-    <section className="py-24 px-4 bg-surface-dim" id="featured-products">
+    <section className="py-12 sm:py-16 px-4 bg-transparent text-white" id="featured-products">
       <div className="max-w-[1200px] mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-14">
-          <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
-            ✨ All 8 Heritage Editions
-          </span>
-          <h2 className="heading-lg text-dark">
-            Masterpiece <span className="gradient-text">Exhibition</span>
-          </h2>
-          <p className="text-text-muted mt-4 max-w-xl mx-auto">
-            All 8 signature handcrafted Korean art pieces, created by Seoul&apos;s finest independent artisans. Direct from Korea.
-          </p>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+        {/* Product Grid — 3-Column Large Gallery Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {hasShopifyProducts
             ? [...products]
-                .sort((a, b) => {
-                  const availA = !isProductSoldOut(a);
-                  const availB = !isProductSoldOut(b);
-                  if (availA && !availB) return -1;
-                  if (!availA && availB) return 1;
-                  return 0;
-                })
-                .slice(0, 12)
-                .map((product) => {
-                  const isSoldOut = isProductSoldOut(product);
-                  return (
-                    <Link
-                  key={product.id}
-                  href={`/product/${product.handle}`}
-                  className="group bg-white rounded-2xl overflow-hidden border border-border-light hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="relative aspect-square bg-surface-dim overflow-hidden">
-                    <Image
-                      src={getProductImage(product)}
-                      alt={getProductImageAlt(product)}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 50vw, 33vw"
-                    />
-                    {isSoldOut && (
-                      <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm border border-white/10">
-                        Sold Out
+              .sort((a, b) => {
+                const availA = !isProductSoldOut(a);
+                const availB = !isProductSoldOut(b);
+                if (availA && !availB) return -1;
+                if (!availA && availB) return 1;
+                return 0;
+              })
+              .slice(0, 12)
+              .map((product) => {
+                const isSoldOut = isProductSoldOut(product);
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/product/${product.handle}`}
+                    className="group bg-white/10 backdrop-blur-md rounded-3xl overflow-hidden border border-white/15 hover:border-primary/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
+                  >
+                    <div className="relative aspect-square bg-black/20 overflow-hidden">
+                      <Image
+                        src={getProductImage(product)}
+                        alt={getProductImageAlt(product)}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                      {isSoldOut && (
+                        <span className="absolute top-4 left-4 z-10 bg-primary/90 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md border border-white/10">
+                          Sold Out
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-5 sm:p-6 flex flex-col justify-between flex-1">
+                      <h3 className="font-semibold text-white text-base sm:text-lg leading-snug line-clamp-2 mb-3" style={{ fontFamily: "var(--font-heading)" }}>
+                        {product.title}
+                      </h3>
+                      <span className="text-lg sm:text-xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
+                        {formatPrice(product.priceRange.minVariantPrice.amount)}
                       </span>
-                    )}
-                  </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-dark text-sm line-clamp-2 mb-2" style={{ fontFamily: "var(--font-heading)" }}>
-                    {product.title}
-                  </h3>
-                  <span className="text-base sm:text-lg font-bold text-primary" style={{ fontFamily: "var(--font-heading)" }}>
-                    {formatPrice(product.priceRange.minVariantPrice.amount)}
-                  </span>
-                </div>
-              </Link>
-            );
-          })
+                    </div>
+                  </Link>
+                );
+              })
             : FALLBACK_PRODUCTS.map((product, i) => (
               <div
                 key={i}
-                className="group bg-white rounded-2xl overflow-hidden border border-border-light hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="group bg-white/10 backdrop-blur-md rounded-3xl overflow-hidden border border-white/15 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
               >
-                <div className="relative aspect-square bg-surface-dim overflow-hidden">
+                <div className="relative aspect-square bg-black/20 overflow-hidden">
                   <Image
                     src={product.image}
                     alt={product.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-dark text-sm line-clamp-2 mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+                <div className="p-5 sm:p-6 flex flex-col justify-between flex-1">
+                  <h3 className="font-semibold text-white text-base sm:text-lg leading-snug line-clamp-2 mb-3" style={{ fontFamily: "var(--font-heading)" }}>
                     {product.title}
                   </h3>
-                  <span className="text-base sm:text-lg font-bold text-primary" style={{ fontFamily: "var(--font-heading)" }}>
+                  <span className="text-lg sm:text-xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
                     ${product.price}
                   </span>
                 </div>
               </div>
             ))}
-        </div>
-
-        {/* View All CTA */}
-        <div className="text-center mt-12">
-          <Link href="/collections" className="btn-secondary">
-            View All Products →
-          </Link>
         </div>
       </div>
     </section>
