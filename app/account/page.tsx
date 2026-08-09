@@ -172,10 +172,10 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#0F1A15] via-[#1A2E25] to-[#0A140F] text-white pt-40 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
-          <p className="mt-4 text-gray-500">Loading your profile...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C77B4A] mx-auto" />
+          <p className="mt-4 text-white/60 text-sm">Loading your profile...</p>
         </div>
       </div>
     );
@@ -183,10 +183,10 @@ export default function AccountPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#0F1A15] via-[#1A2E25] to-[#0A140F] text-white pt-40 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
-          <p className="mt-4 text-gray-500">Redirecting to login...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C77B4A] mx-auto" />
+          <p className="mt-4 text-white/60 text-sm">Redirecting to login...</p>
         </div>
       </div>
     );
@@ -202,157 +202,158 @@ export default function AccountPage() {
     .join(" ");
 
   return (
-    <div className="max-w-3xl mx-auto px-4 pt-28 pb-12">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-xl font-bold text-orange-600">
-              {displayName.charAt(0)}
+    <div className="min-h-screen bg-gradient-to-b from-[#0F1A15] via-[#1A2E25] via-[#12221B] to-[#0A140F] text-white pt-36 sm:pt-40 md:pt-44 pb-20 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center gap-4">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-12 h-12 rounded-full object-cover border-2 border-[#C77B4A]"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-[#C77B4A]/20 border border-[#C77B4A]/40 flex items-center justify-center text-xl font-bold text-[#C77B4A]">
+                {displayName.charAt(0)}
+              </div>
+            )}
+            <div>
+              <h1
+                className="text-2xl sm:text-3xl font-extrabold text-white"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                Welcome, {displayName}!
+              </h1>
+              <p className="text-white/60 text-sm mt-0.5">{user?.email}</p>
             </div>
-          )}
-          <div>
-            <h1
-              className="text-2xl sm:text-3xl font-bold"
-              style={{ fontFamily: "var(--font-heading)" }}
-            >
-              Welcome, {displayName}!
-            </h1>
-            <p className="text-gray-500 text-sm mt-0.5">{user?.email}</p>
           </div>
+          <button
+            onClick={signOut}
+            className="text-xs text-white/50 hover:text-white font-medium underline underline-offset-4 decoration-white/20 hover:decoration-white transition-all"
+          >
+            Sign Out
+          </button>
         </div>
-        <button
-          onClick={signOut}
-          className="text-xs text-gray-400 hover:text-gray-700 font-medium underline underline-offset-4 decoration-gray-200 hover:decoration-gray-400 transition-all"
-        >
-          Sign Out
-        </button>
-      </div>
 
       {/* Coupon Vault — only render after loading completes, and only if coupons exist */}
       {!couponsLoading && coupons.length > 0 && (
         <>
           <h2
-            className="text-xl font-bold mb-4"
+            className="text-xl font-bold mb-4 text-white"
             style={{ fontFamily: "var(--font-heading)" }}
           >
             🎫 My Coupons
           </h2>
 
-            <div className="space-y-3 mb-8">
-              {coupons.map((coupon) => {
-                const isActive = coupon.status === "active";
-                const isUsed = coupon.status === "used";
-                const expiryDate = new Date(coupon.expiresAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                });
+          <div className="space-y-3 mb-8">
+            {coupons.map((coupon) => {
+              const isActive = coupon.status === "active";
+              const isUsed = coupon.status === "used";
+              const expiryDate = new Date(coupon.expiresAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              });
 
-                return (
-                  <div
-                    key={coupon.code}
-                    className={`rounded-2xl border p-5 transition-all ${
-                      isActive
-                        ? "bg-white border-orange-200 shadow-sm"
-                        : "bg-gray-50 border-gray-100 opacity-60"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            isActive
-                              ? "bg-green-100 text-green-700"
-                              : isUsed
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
-                        >
-                          {isActive ? "Active" : isUsed ? "Used" : "Expired"}
-                        </span>
-                        <span className="font-bold text-orange-600">
-                          {coupon.discountLabel}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-400">
-                        from {coupon.orderName}
+              return (
+                <div
+                  key={coupon.code}
+                  className={`rounded-3xl border p-5 transition-all ${
+                    isActive
+                      ? "bg-white/10 backdrop-blur-md border-[#C77B4A]/50 text-white shadow-xl"
+                      : "bg-white/5 border-white/10 text-white/50 opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          isActive
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            : isUsed
+                            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                            : "bg-white/10 text-white/40"
+                        }`}
+                      >
+                        {isActive ? "Active" : isUsed ? "Used" : "Expired"}
+                      </span>
+                      <span className="font-bold text-[#C77B4A]">
+                        {coupon.discountLabel}
                       </span>
                     </div>
-
-                    <div className="flex items-center justify-between mt-3">
-                      <div>
-                        <code className="text-lg font-bold tracking-wider text-gray-800">
-                          {coupon.code}
-                        </code>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {isActive ? `Valid until ${expiryDate}` : isUsed ? "Already redeemed" : `Expired ${expiryDate}`}
-                        </p>
-                      </div>
-                      {isActive && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(coupon.code);
-                              setCopiedCode(coupon.code);
-                              setTimeout(() => setCopiedCode(null), 2000);
-                            }}
-                            className="text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            {copiedCode === coupon.code ? "Copied!" : "Copy"}
-                          </button>
-                          <button
-                            onClick={() => router.push("/cart")}
-                            className="text-xs font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 px-4 py-1.5 rounded-lg transition-all shadow-sm"
-                          >
-                            Use →
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <span className="text-xs text-white/40">
+                      from {coupon.orderName}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="flex items-center justify-between mt-3">
+                    <div>
+                      <code className="text-lg font-bold tracking-wider text-white">
+                        {coupon.code}
+                      </code>
+                      <p className="text-xs text-white/50 mt-1">
+                        {isActive ? `Valid until ${expiryDate}` : isUsed ? "Already redeemed" : `Expired ${expiryDate}`}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(coupon.code);
+                            setCopiedCode(coupon.code);
+                            setTimeout(() => setCopiedCode(null), 2000);
+                          }}
+                          className="text-xs font-medium text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition-colors border border-white/15"
+                        >
+                          {copiedCode === coupon.code ? "Copied!" : "Copy"}
+                        </button>
+                        <button
+                          onClick={() => router.push("/cart")}
+                          className="text-xs font-bold text-white bg-[#C77B4A] hover:bg-[#b56b3c] px-4 py-1.5 rounded-xl transition-all shadow-md"
+                        >
+                          Use →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </>
       )}
 
       {/* Newsletter CTA — Top Position (Hidden if already subscribed) */}
       {!isLocallySubscribed && (
-        <div className="mb-8 bg-gradient-to-br from-orange-50/60 to-amber-50/60 rounded-2xl p-6 text-center border border-orange-100/80 shadow-sm">
-          <p className="font-semibold text-gray-800 mb-1" style={{ fontFamily: "var(--font-heading)" }}>
-            Stay Connected with Blank Seoul
+        <div className="mb-8 bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 text-center border border-white/15 shadow-2xl">
+          <p className="font-bold text-lg text-white mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+            🏛️ Artisan Guild Journal
           </p>
           
-          <div className="text-sm text-gray-600 my-4 space-y-2.5 max-w-sm mx-auto text-left">
-            <div className="flex items-start gap-2">
-              <span className="text-orange-500">✨</span>
-              <p>
-                <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
+          <div className="text-sm text-white/80 my-4 space-y-2.5 max-w-md mx-auto text-left bg-black/20 p-5 rounded-2xl border border-white/10">
+            <div className="flex items-start gap-2.5">
+              <span className="text-[#C77B4A] text-base">✨</span>
+              <p className="leading-relaxed">
+                <strong className="text-white font-semibold">First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
               </p>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-orange-500">📜</span>
-              <p>
-                <strong>Exclusive stories</strong>{" "}straight from their private workshops.
+            <div className="flex items-start gap-2.5">
+              <span className="text-[#C77B4A] text-base">📜</span>
+              <p className="leading-relaxed">
+                <strong className="text-white font-semibold">Exclusive stories</strong>{" "}straight from their private workshops.
               </p>
             </div>
           </div>
 
           {newsletterStatus === "success" ? (
-            <div className="bg-orange-100/50 border border-orange-200/50 rounded-xl p-4 max-w-sm mx-auto animate-fade-in">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 max-w-sm mx-auto animate-fade-in">
               <span className="text-2xl mb-1 block">🎉</span>
-              <p className="text-orange-800 font-semibold text-sm">{newsletterMessage}</p>
+              <p className="text-emerald-400 font-semibold text-sm">{newsletterMessage}</p>
             </div>
           ) : (
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto">
               <input
                 type="email"
                 value={newsletterEmail}
@@ -360,12 +361,12 @@ export default function AccountPage() {
                 placeholder="your@email.com"
                 required
                 disabled={newsletterStatus === "loading"}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-base disabled:opacity-50"
+                className="flex-1 px-4 py-3 rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#C77B4A] transition-all text-sm disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={newsletterStatus === "loading"}
-                className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center min-w-[140px]"
+                className="px-6 py-3 rounded-xl font-bold text-sm transition-all bg-[#C77B4A] hover:bg-[#b56b3c] text-white shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 flex items-center justify-center min-w-[140px]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 {newsletterStatus === "loading" ? (
@@ -378,12 +379,12 @@ export default function AccountPage() {
           )}
 
           {newsletterStatus === "error" && (
-            <p className="text-red-600 text-xs mt-2 font-medium">{newsletterMessage}</p>
+            <p className="text-red-400 text-xs mt-2 font-medium">{newsletterMessage}</p>
           )}
 
-          <p className="text-xs text-gray-400 mt-4 leading-none">
+          <p className="text-xs text-white/40 mt-4 leading-none">
             * No spam. Unsubscribe at any time. View our{" "}
-            <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
+            <Link href="/policies/privacy" className="underline hover:text-white transition-colors">
               Privacy Policy
             </Link>
             .
@@ -393,7 +394,7 @@ export default function AccountPage() {
 
       {/* Order History */}
       <h2
-        className="text-xl font-bold mb-4"
+        className="text-xl font-bold mb-4 text-white"
         style={{ fontFamily: "var(--font-heading)" }}
       >
         📦 My Orders
@@ -402,20 +403,20 @@ export default function AccountPage() {
       {ordersLoading ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+            <div key={i} className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/15 p-6 animate-pulse">
               <div className="flex items-start justify-between mb-4">
                 <div className="space-y-2">
-                  <div className="h-4 w-16 bg-gray-200 rounded" />
-                  <div className="h-5 w-48 bg-gray-200 rounded" />
-                  <div className="h-4 w-20 bg-gray-100 rounded" />
+                  <div className="h-4 w-16 bg-white/20 rounded" />
+                  <div className="h-5 w-48 bg-white/20 rounded" />
+                  <div className="h-4 w-20 bg-white/10 rounded" />
                 </div>
-                <div className="h-4 w-24 bg-gray-100 rounded" />
+                <div className="h-4 w-24 bg-white/10 rounded" />
               </div>
               <div className="flex items-center justify-between mt-4">
                 {[1, 2, 3, 4].map((j) => (
                   <div key={j} className="flex flex-col items-center gap-1">
-                    <div className="h-4 w-4 bg-gray-200 rounded-full" />
-                    <div className="h-3 w-16 bg-gray-100 rounded" />
+                    <div className="h-4 w-4 bg-white/20 rounded-full" />
+                    <div className="h-3 w-16 bg-white/10 rounded" />
                   </div>
                 ))}
               </div>
@@ -423,27 +424,26 @@ export default function AccountPage() {
           ))}
         </div>
       ) : ordersError ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div className="text-4xl mb-4">📭</div>
-          <p className="text-gray-500 mb-4">{ordersError}</p>
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/15 p-10 text-center">
+          <div className="text-5xl mb-4">📭</div>
+          <p className="text-white/70 mb-6">{ordersError}</p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 
-              text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
-              transition-all shadow-lg shadow-orange-500/25"
+            className="inline-block px-7 py-3 bg.C77B4A bg-[#C77B4A] hover:bg-[#b56b3c] 
+              text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-orange-500/25"
           >
             Shop Now →
           </Link>
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div className="text-4xl mb-4">📭</div>
-          <p className="text-gray-600 mb-4">No orders yet</p>
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/15 p-10 text-center">
+          <div className="text-5xl mb-4">📭</div>
+          <p className="text-white/70 text-lg mb-6">No orders yet</p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 
-              text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
-              transition-all shadow-lg shadow-orange-500/25"
+            className="inline-block px-8 py-3.5 bg-[#C77B4A] hover:bg-[#b56b3c] 
+              text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-orange-500/25"
+            style={{ fontFamily: "var(--font-heading)" }}
           >
             Shop Now →
           </Link>
@@ -459,19 +459,19 @@ export default function AccountPage() {
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.id)}`}
-                className="block bg-white rounded-2xl border border-gray-100 p-6 
-                  hover:shadow-lg hover:border-orange-200 transition-all"
+                className="block bg-white/10 backdrop-blur-md rounded-3xl border border-white/15 p-6 
+                  hover:border-[#C77B4A]/50 hover:shadow-2xl transition-all text-white"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-lg text-gray-900" style={{ fontFamily: "var(--font-heading)" }}>
+                    <h3 className="font-bold text-lg text-white" style={{ fontFamily: "var(--font-heading)" }}>
                       Order {order.name}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-0.5">
+                    <p className="text-white/60 text-sm mt-0.5">
                       {itemCount} item{itemCount > 1 ? "s" : ""} • ${parseFloat(order.totalPrice.amount).toFixed(2)}
                     </p>
                   </div>
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-white/50">
                     {new Date(order.processedAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -491,15 +491,15 @@ export default function AccountPage() {
                           <img
                             src={imageUrl}
                             alt={altText}
-                            className="w-12 h-12 rounded-xl object-cover border border-gray-100 bg-gray-50 group-hover:border-orange-200 transition-all"
+                            className="w-12 h-12 rounded-xl object-cover border border-white/20 bg-black/20 group-hover:border-[#C77B4A] transition-all"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl">
+                          <div className="w-12 h-12 rounded-xl bg-black/20 border border-white/20 flex items-center justify-center text-xl">
                             📦
                           </div>
                         )}
                         {item.quantity > 1 && (
-                          <span className="absolute -top-1.5 -right-1.5 bg-gray-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white leading-none">
+                          <span className="absolute -top-1.5 -right-1.5 bg-[#C77B4A] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white leading-none">
                             x{item.quantity}
                           </span>
                         )}
@@ -510,18 +510,18 @@ export default function AccountPage() {
 
                 <div className="mt-4">
                   {isCancelled ? (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-medium">
+                    <div className="flex items-center gap-2 text-sm text-white/60">
+                      <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-lg text-xs font-medium">
                         ❌ Cancelled
                       </span>
-                      <span className="text-xs text-gray-400">💳 Refund processed</span>
+                      <span className="text-xs text-white/40">💳 Refund processed</span>
                     </div>
                   ) : (
                     <OrderStatusBar step={step} />
                   )}
                 </div>
                 {showReorder && (
-                  <div className="flex justify-end mt-4 pt-4 border-t border-gray-50">
+                  <div className="flex justify-end mt-4 pt-4 border-t border-white/10">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -540,8 +540,8 @@ export default function AccountPage() {
                         });
                         router.push("/cart");
                       }}
-                      className="text-xs text-orange-600 hover:text-orange-700 font-semibold 
-                        bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all"
+                      className="text-xs text-white font-semibold 
+                        bg-[#C77B4A] hover:bg-[#b56b3c] px-3.5 py-1.5 rounded-xl transition-all shadow-sm"
                     >
                       🔄 Reorder
                     </button>
@@ -553,5 +553,6 @@ export default function AccountPage() {
         </div>
       )}
     </div>
+  </div>
   );
 }

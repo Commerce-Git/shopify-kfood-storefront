@@ -57,8 +57,8 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   return (
     <section className="py-12 sm:py-16 px-4 bg-transparent text-white" id="featured-products">
       <div className="max-w-[1200px] mx-auto">
-        {/* Product Grid — 3-Column Large Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Product Grid — 2-Column Extra-Large Magazine Gallery Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
           {hasShopifyProducts
             ? [...products]
               .sort((a, b) => {
@@ -83,19 +83,19 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                         alt={getProductImageAlt(product)}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 768px) 100vw, 50vw"
                       />
                       {isSoldOut && (
-                        <span className="absolute top-4 left-4 z-10 bg-primary/90 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md border border-white/10">
+                        <span className="absolute top-5 left-5 z-10 bg-primary/90 backdrop-blur-md text-white text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full shadow-md border border-white/10">
                           Sold Out
                         </span>
                       )}
                     </div>
-                    <div className="p-5 sm:p-6 flex flex-col justify-between flex-1">
-                      <h3 className="font-semibold text-white text-base sm:text-lg leading-snug line-clamp-2 mb-3" style={{ fontFamily: "var(--font-heading)" }}>
+                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                      <h3 className="font-bold text-white text-lg sm:text-xl md:text-2xl leading-snug line-clamp-2 mb-4" style={{ fontFamily: "var(--font-heading)" }}>
                         {product.title}
                       </h3>
-                      <span className="text-lg sm:text-xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
                         {formatPrice(product.priceRange.minVariantPrice.amount)}
                       </span>
                     </div>
@@ -113,14 +113,14 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     alt={product.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
-                <div className="p-5 sm:p-6 flex flex-col justify-between flex-1">
-                  <h3 className="font-semibold text-white text-base sm:text-lg leading-snug line-clamp-2 mb-3" style={{ fontFamily: "var(--font-heading)" }}>
+                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                  <h3 className="font-bold text-white text-lg sm:text-xl md:text-2xl leading-snug line-clamp-2 mb-4" style={{ fontFamily: "var(--font-heading)" }}>
                     {product.title}
                   </h3>
-                  <span className="text-lg sm:text-xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
+                  <span className="text-xl sm:text-2xl font-extrabold text-[#C77B4A]" style={{ fontFamily: "var(--font-heading)" }}>
                     ${product.price}
                   </span>
                 </div>

@@ -1,7 +1,6 @@
 import Hero from "./components/Hero";
 import FeaturedProducts from "./components/FeaturedProducts";
 import ArtisanSpotlight from "./components/ArtisanSpotlight";
-import Reviews from "./components/Reviews";
 import NewsletterCTA from "./components/NewsletterCTA";
 import { getAllProducts } from "@/lib/shopify/api";
 
@@ -32,10 +31,7 @@ export default async function Home() {
       {/* 3. Section 2 — FeaturedProducts: All 8 Masterpieces Showcase Grid */}
       <FeaturedProducts products={allProducts} />
 
-      {/* 4. Section 3 — Social Proof: Reviews */}
-      <Reviews />
-
-      {/* 6. Section 5 — Lead Capture: NewsletterCTA */}
+      {/* 4. Section 3 — Lead Capture: NewsletterCTA */}
       <NewsletterCTA />
     </div>
   );
