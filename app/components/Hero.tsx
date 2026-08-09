@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShopifyProduct } from "@/lib/shopify/types";
+import { getProductImage } from "@/lib/shopify/api";
 
 interface HeroProps {
   products?: ShopifyProduct[];
@@ -90,10 +91,6 @@ export default function Hero({ products = [] }: HeroProps) {
     sliderRef.current.scrollLeft = scrollLeftState - walk;
   };
 
-  const getProductImg = (product: ShopifyProduct) => {
-    return product.featuredImage?.url || product.images?.edges?.[0]?.node?.url || "/assets/blank_seoul_symbol.png";
-  };
-
   return (
     <section
       className="relative w-full min-h-[100svh] flex flex-col justify-center py-16 pt-28 sm:pt-32 md:pt-36 bg-transparent"
@@ -140,7 +137,7 @@ export default function Hero({ products = [] }: HeroProps) {
                   {/* Pure Image Artwork Container — 100% Pure Visual, No Text, No Overlays */}
                   <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/20 pointer-events-none">
                     <Image
-                      src={getProductImg(product)}
+                      src={getProductImage(product)}
                       alt={product.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700 select-none transform-gpu"
