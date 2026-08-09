@@ -50,6 +50,7 @@ export default function ArtisanSpotlight() {
                 src="/assets/blank_seoul_symbol.png"
                 alt="Blank Seoul Traditional Heritage Symbol"
                 fill
+                sizes="(max-width: 1024px) 100vw, 440px"
                 className="object-cover scale-105"
                 priority
               />
