@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
-import { getProductImage, getProductImageAlt, formatPrice } from "@/lib/shopify/api";
+import { getProductImage, getProductImageAlt, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
 
 // Fallback products from scraped Idus data (used when Shopify has no products)
 const FALLBACK_PRODUCTS = [
@@ -60,30 +60,30 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
         {/* Section Header */}
         <div className="text-center mb-14">
           <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
-            Curated Selection
+            ✨ All 8 Heritage Editions
           </span>
           <h2 className="heading-lg text-dark">
-            Most Loved <span className="gradient-text">Artisan Pieces</span>
+            Masterpiece <span className="gradient-text">Exhibition</span>
           </h2>
           <p className="text-text-muted mt-4 max-w-xl mx-auto">
-            Handpicked from Korea&apos;s finest independent artisans. Each piece is made with care and ships direct from Seoul.
+            All 8 signature handcrafted Korean art pieces, created by Seoul&apos;s finest independent artisans. Direct from Korea.
           </p>
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
           {hasShopifyProducts
             ? [...products]
                 .sort((a, b) => {
-                  const availA = a.availableForSale !== false;
-                  const availB = b.availableForSale !== false;
+                  const availA = !isProductSoldOut(a);
+                  const availB = !isProductSoldOut(b);
                   if (availA && !availB) return -1;
                   if (!availA && availB) return 1;
                   return 0;
                 })
-                .slice(0, 6)
+                .slice(0, 12)
                 .map((product) => {
-                  const isSoldOut = !product.availableForSale;
+                  const isSoldOut = isProductSoldOut(product);
                   return (
                     <Link
                   key={product.id}

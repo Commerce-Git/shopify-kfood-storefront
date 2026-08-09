@@ -1,6 +1,6 @@
 export default function ArtisanSpotlight() {
   return (
-    <section className="py-24 bg-white" id="why-blank-seoul">
+    <section className="py-24 bg-white" id="artisan-spotlight">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center mb-16">

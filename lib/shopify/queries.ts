@@ -91,7 +91,7 @@ export const GET_ALL_PRODUCTS = `
               currencyCode
             }
           }
-          variants(first: 1) {
+          variants(first: 10) {
             edges {
               node {
                 id
@@ -142,7 +142,7 @@ export const GET_COLLECTION_BY_HANDLE = `
                 currencyCode
               }
             }
-            variants(first: 1) {
+            variants(first: 10) {
               edges {
                 node {
                   id

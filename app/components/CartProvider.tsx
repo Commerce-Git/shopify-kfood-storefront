@@ -13,6 +13,7 @@ interface CartContextType {
   itemCount: number;
   subtotal: number;
   addToCart: (item: CartItem) => void;
+  addBundleToCart: (items: CartItem[]) => void;
   removeFromCart: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
@@ -95,6 +96,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, newItem];
     });
+  }, []);
+
+  const addBundleToCart = useCallback((bundleItems: CartItem[]) => {
+    setItems((prev) => {
+      let updated = [...prev];
+      for (const newItem of bundleItems) {
+        const idx = updated.findIndex((item) => item.variantId === newItem.variantId);
+        if (idx > -1) {
+          const existing = updated[idx];
+          const potentialQty = existing.quantity + newItem.quantity;
+          const limit = existing.stockLimit ?? newItem.stockLimit;
+          const newQty = limit != null ? Math.min(potentialQty, limit) : potentialQty;
+          updated[idx] = { ...existing, quantity: newQty };
+        } else {
+          updated.push(newItem);
+        }
+      }
+      return updated;
+    });
+    setIsCartOpen(true);
   }, []);
 
   const removeFromCart = useCallback((variantId: string) => {
@@ -232,6 +253,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         itemCount,
         subtotal,
         addToCart,
+        addBundleToCart,
         removeFromCart,
         updateQuantity,
         clearCart,

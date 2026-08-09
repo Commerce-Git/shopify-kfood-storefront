@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCollectionByHandle, formatPrice } from "@/lib/shopify/api";
+import { getCollectionByHandle, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 
 interface PageProps {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 function ProductCard({ product }: { product: ShopifyProduct }) {
   const image = product.images.edges[0]?.node;
   const price = product.priceRange.minVariantPrice.amount;
-  const isSoldOut = !product.availableForSale;
+  const isSoldOut = isProductSoldOut(product);
 
   return (
     <Link
@@ -73,8 +73,8 @@ export default async function CollectionPage({ params }: PageProps) {
 
   const rawProducts = collection.products?.edges.map((e) => e.node) || [];
   const products = [...rawProducts].sort((a, b) => {
-    const availA = a.availableForSale !== false;
-    const availB = b.availableForSale !== false;
+    const availA = !isProductSoldOut(a);
+    const availB = !isProductSoldOut(b);
     if (availA && !availB) return -1;
     if (!availA && availB) return 1;
     return 0;

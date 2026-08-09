@@ -144,3 +144,16 @@ export function getProductPricing(product: ShopifyProduct) {
     currency: variant?.price.currencyCode || "USD",
   };
 }
+
+/**
+ * Check if a product is completely sold out across ALL variants.
+ * Returns true ONLY if every single variant has availableForSale === false.
+ * If at least one variant is available, returns false.
+ */
+export function isProductSoldOut(product: ShopifyProduct): boolean {
+  if (product.variants?.edges && product.variants.edges.length > 0) {
+    return !product.variants.edges.some((edge) => edge.node.availableForSale);
+  }
+  return !product.availableForSale;
+}
+

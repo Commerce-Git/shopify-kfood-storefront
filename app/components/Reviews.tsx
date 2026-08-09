@@ -91,7 +91,7 @@ export default function Reviews() {
   }
 
   return (
-    <section className="section bg-surface-dim overflow-hidden" id="reviews-section">
+    <section className="section bg-surface-dim overflow-hidden" id="reviews">
       <div className="section-inner">
         {/* Section Header */}
         <div className="flex items-end justify-between mb-12">

@@ -7,11 +7,9 @@ import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/collections/wear-tradition-accessories", label: "Accessories" },
-  { href: "/collections/carry-art-bags", label: "Bags & Pouches" },
-  { href: "/collections/living-home-decor", label: "Home Decor" },
-  { href: "/about", label: "Our Story" },
+  { href: "/#featured-products", label: "The Collection" },
+  { href: "/#brand-story", label: "Our Story" },
+  { href: "/#artisan-spotlight", label: "Craftsmanship" },
   { href: "/faq", label: "FAQ" },
 ];
 
