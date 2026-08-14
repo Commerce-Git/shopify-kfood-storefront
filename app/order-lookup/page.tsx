@@ -21,9 +21,10 @@ interface TrackedLineItem {
 interface TrackedOrder {
   name: string;
   date: string;
-  status: "preparing" | "shipped";
+  status: "preparing" | "shipped" | "delivered";
   fulfillmentStatus: string;
-  wmsStatus: "placed" | "crafting" | "packaging" | "shipped";
+  wmsStatus: "placed" | "crafting" | "packaging" | "shipped" | "delivered";
+  deliveredAt?: string | null;
   itemCount: number;
   totalPrice?: string;
   lineItems?: TrackedLineItem[];
@@ -423,12 +424,33 @@ function OrderLookupContent() {
                         )}
 
                         {/* Live Handcrafting Progress Stepper */}
-                        <div className="mt-6 mb-8 pt-4 pb-2 border-t border-gray-50">
+                        <div className="mt-6 mb-6 pt-4 pb-2 border-t border-gray-50">
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-1">
                             <span>✨</span> Live Crafting & Delivery Status
                           </p>
                           <OrderStatusBar step={step} />
                         </div>
+
+                        {/* Delivered Celebration Banner */}
+                        {step === 4 && (
+                          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/80 p-4 mb-5 shadow-sm flex items-start sm:items-center gap-3 animate-fade-in">
+                            <span className="text-2xl select-none">🎉</span>
+                            <div>
+                              <h4 className="font-bold text-emerald-900 text-sm" style={{ fontFamily: "var(--font-heading)" }}>
+                                Package Delivered Successfully!
+                              </h4>
+                              <p className="text-xs text-emerald-700 mt-0.5">
+                                Your Korean artisan box has arrived safely!
+                              </p>
+                              {order.deliveredAt && (
+                                <p className="text-[11px] font-semibold text-emerald-800 mt-1 flex items-center gap-1">
+                                  <span>📍</span>
+                                  Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Tracking info */}
                         {order.tracking ? (

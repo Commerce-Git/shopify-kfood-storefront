@@ -150,6 +150,27 @@ export default function OrderDetailPage() {
         )}
       </div>
 
+      {/* Delivered Celebration Banner */}
+      {step === 4 && (
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl border border-emerald-200/80 p-5 mb-6 shadow-sm flex items-start sm:items-center gap-3.5 animate-fade-in">
+          <span className="text-3xl select-none">🎉</span>
+          <div>
+            <h3 className="font-bold text-emerald-900 text-base" style={{ fontFamily: "var(--font-heading)" }}>
+              Package Delivered Successfully!
+            </h3>
+            <p className="text-xs sm:text-sm text-emerald-700 mt-0.5 leading-relaxed">
+              Your handcrafted Korean treasures have arrived. We hope they bring you joy and a piece of Seoul&apos;s timeless beauty!
+            </p>
+            {order.deliveredAt && (
+              <p className="text-xs font-semibold text-emerald-800 mt-1.5 flex items-center gap-1">
+                <span>📍</span>
+                Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tracking Info */}
       {order.tracking?.number && (
         <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6 mb-6">

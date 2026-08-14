@@ -47,8 +47,13 @@ function maskEmail(email: string): string {
   return `${local[0]}***@${domain}`;
 }
 
-// Helper to aggregate multiple item statuses into a single order status
-function aggregateWmsStatus(shopifyStatus: string, artistStatuses: string[] | undefined): "placed" | "crafting" | "packaging" | "shipped" {
+// Helper to aggregate multiple item statuses into a single order status (fallback logic)
+function aggregateWmsStatus(
+  shopifyStatus: string,
+  artistStatuses: string[] | undefined,
+  deliveryStatus?: string | null
+): "placed" | "crafting" | "packaging" | "shipped" | "delivered" {
+  if (deliveryStatus === "delivered") return "delivered";
   if (shopifyStatus === "FULFILLED") return "shipped";
   if (!artistStatuses || artistStatuses.length === 0) return "placed";
 
@@ -96,27 +101,50 @@ export async function POST(request: NextRequest) {
     );
 
     const shopifyIds = activeOrders.map((o) => o.id);
+    const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
     let artistOrdersMap: Record<string, string[]> = {};
 
     if (shopifyIds.length > 0) {
-      const { data: artistOrders, error: dbError } = await supabaseAdmin
-        .from("artist_orders")
-        .select("shopify_order_id, status")
-        .in("shopify_order_id", shopifyIds);
+      // 1. Try querying unified order_status_view first
+      const { data: viewData, error: viewError } = await supabaseAdmin
+        .from("order_status_view")
+        .select("shopify_id, customer_status, delivered_at")
+        .in("shopify_id", shopifyIds);
 
-      if (!dbError && artistOrders) {
-        for (const row of artistOrders) {
-          if (!artistOrdersMap[row.shopify_order_id]) {
-            artistOrdersMap[row.shopify_order_id] = [];
+      if (!viewError && viewData && viewData.length > 0) {
+        for (const row of viewData) {
+          if (row.shopify_id && row.customer_status) {
+            viewStatusMap[row.shopify_id] = {
+              customer_status: row.customer_status,
+              delivered_at: row.delivered_at || null,
+            };
           }
-          artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+        }
+      }
+
+      // 2. Fallback to artist_orders for IDs not found in view
+      const missingIds = shopifyIds.filter((id) => !viewStatusMap[id]);
+      if (missingIds.length > 0) {
+        const { data: artistOrders, error: dbError } = await supabaseAdmin
+          .from("artist_orders")
+          .select("shopify_order_id, status")
+          .in("shopify_order_id", missingIds);
+
+        if (!dbError && artistOrders) {
+          for (const row of artistOrders) {
+            if (!artistOrdersMap[row.shopify_order_id]) {
+              artistOrdersMap[row.shopify_order_id] = [];
+            }
+            artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+          }
         }
       }
     }
 
     const publicOrders = activeOrders.map((order) => {
-      const wmsStatuses = artistOrdersMap[order.id];
-      const wmsStatus = aggregateWmsStatus(order.fulfillmentStatus, wmsStatuses);
+      const viewResult = viewStatusMap[order.id];
+      const wmsStatus = viewResult?.customer_status || aggregateWmsStatus(order.fulfillmentStatus, artistOrdersMap[order.id]);
+      const deliveredAt = viewResult?.delivered_at || null;
       const itemCount = order.lineItems.edges.reduce((sum, { node }) => sum + node.quantity, 0);
       const formattedPrice = order.totalPrice?.amount
         ? parseFloat(order.totalPrice.amount).toFixed(2)
@@ -129,9 +157,10 @@ export async function POST(request: NextRequest) {
           day: "numeric",
           year: "numeric",
         }),
-        status: order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
+        status: wmsStatus === "delivered" ? "delivered" : order.fulfillmentStatus === "FULFILLED" ? "shipped" : "preparing",
         fulfillmentStatus: order.fulfillmentStatus,
         wmsStatus,
+        deliveredAt,
         itemCount,
         totalPrice: formattedPrice,
         lineItems: order.lineItems.edges.map(({ node }) => ({

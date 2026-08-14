@@ -11,38 +11,53 @@ export default function ShippingPolicyPage() {
       <h1 className="heading-md text-dark mb-6">Shipping Policy</h1>
       <p className="text-sm text-text-muted mb-8">Last updated: April 2026</p>
 
-      <h2>Shipping Origin</h2>
+      <h2>Shipping Origin & Carriers</h2>
       <p>
-        All orders are shipped directly from Seoul, South Korea. We use Korea Post EMS
-        (Express Mail Service) as our primary shipping carrier to ensure fast and reliable
-        international delivery.
+        All orders are shipped directly from Seoul, South Korea. We partner with Korea Post to offer
+        dependable international shipping services:
       </p>
+      <ul>
+        <li>
+          <strong>Korea Post K-Packet (Standard International):</strong> Ideal for lightweight artisan accessories
+          and curation boxes under 2kg. Fast, tracked airmail service.
+        </li>
+        <li>
+          <strong>Korea Post EMS (Express Mail Service):</strong> Expedited international courier service
+          for priority orders and heavier items.
+        </li>
+      </ul>
 
       <h2>Delivery Times</h2>
       <ul>
-        <li><strong>United States (Contiguous 48 states):</strong> 7-14 business days</li>
-        <li><strong>Hawaii & Alaska:</strong> 10-18 business days</li>
-        <li><strong>US Territories:</strong> 14-21 business days</li>
+        <li><strong>Standard Shipping (K-Packet):</strong> 7–14 business days (US contiguous states)</li>
+        <li><strong>Express Shipping (EMS):</strong> 3–7 business days</li>
+        <li><strong>Hawaii, Alaska & US Territories:</strong> 10–18 business days</li>
       </ul>
       <p>
         Please note that delivery times are estimates and may vary due to customs
-        processing, weather conditions, or carrier delays. During peak seasons
-        (holidays, special promotions), delivery times may be slightly longer.
+        processing, weather conditions, or local carrier transit times. During peak holiday seasons,
+        delivery times may take slightly longer.
       </p>
 
-      <h2>Order Processing</h2>
+      <h2>Order Processing & Crafting</h2>
       <p>
-        Orders are processed within 1-2 business days (Monday-Friday, Korean Standard Time).
-        Once your order ships, you will receive a confirmation email with a tracking number.
+        Since our catalog features authentic handcrafted pieces by independent Korean artisans, each
+        order undergoes careful artisan preparation and quality inspection in Seoul before dispatch.
+        Once your package is packed and handed to the carrier, you will receive a shipping confirmation email
+        with your tracking number.
       </p>
 
       <h2>Tracking Your Order</h2>
       <p>
-        All shipments include full tracking via Korea Post EMS. You can track your package at{" "}
-        <a href="https://www.koreapost.go.kr" target="_blank" rel="noopener noreferrer">
-          koreapost.go.kr
-        </a>{" "}
-        or through your local postal service website once it arrives in the US.
+        Every shipment includes end-to-end tracking. You can track your order in real-time through our{" "}
+        <a href="/order-lookup">
+          Order Tracking Portal
+        </a>
+        , via{" "}
+        <a href="https://t.17track.net" target="_blank" rel="noopener noreferrer">
+          17Track
+        </a>
+        , or directly through USPS / your local national postal service website once the package arrives in your destination country.
       </p>
 
       <h2>Shipping Costs</h2>
