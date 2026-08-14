@@ -3,7 +3,7 @@
 
 ## 1. 프로젝트 개요
 
-한국의 프리미엄 수공예/라이프스타일 상품을 미국 시장에 D2C(Direct-to-Consumer)로 판매하는 **원 프로덕트(One-Product) 랜딩 페이지 및 헤드리스 커머스**입니다..
+한국의 프리미엄 수공예/라이프스타일 상품을 미국 시장에 D2C(Direct-to-Consumer)로 판매하는 **원 프로덕트(One-Product) 랜딩 페이지 및 헤드리스 커머스**입니다.
 
 - **아키텍처**: Headless Commerce (Next.js 프론트엔드 + Shopify 결제 백엔드)
 - **핵심 전략**: 상품 1개(큐레이션 박스)만 판매하는 랜딩 페이지형 스토어 (Russell Brunson의 Sales Funnel 프레임워크 적용)
