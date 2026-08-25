@@ -276,7 +276,7 @@ export default function CartPage() {
                   className="flex gap-4 p-4 bg-white rounded-xl border border-border-light"
                 >
                   <div className="w-20 h-20 rounded-lg bg-surface-dim overflow-hidden flex-shrink-0 relative">
-                    {item.image ? (
+                    {item.image?.url && item.image.url.trim() !== "" ? (
                       <Image
                         src={item.image.url}
                         alt={item.image.altText || item.title}

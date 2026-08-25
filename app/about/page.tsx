@@ -37,7 +37,7 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="pt-20">
+    <div className="pt-28 sm:pt-36 bg-[#FBF9F5]">
       {/* Hero Banner */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-dark" />

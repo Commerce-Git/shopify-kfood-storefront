@@ -107,7 +107,7 @@ export default async function CollectionsPage() {
   const hasShopifyProducts = products.length > 0;
 
   return (
-    <div className="pt-20">
+    <div className="pt-28 sm:pt-36 min-h-screen bg-[#FBF9F5]">
       {/* Header */}
       <section className="section bg-gradient-to-b from-surface-dim to-white">
         <div className="section-inner text-center">

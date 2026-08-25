@@ -54,53 +54,41 @@ export default function NewsletterCTA() {
   };
 
   return (
-    <section className="py-20 sm:py-24 px-4 bg-transparent text-white" id="newsletter">
-      <div className="max-w-2xl mx-auto text-center bg-white/5 backdrop-blur-md rounded-3xl p-8 sm:p-12 border border-white/10 shadow-2xl">
+    <section className="py-20 sm:py-28 px-4 bg-[#FBF9F5]" id="newsletter">
+      <div className="max-w-2xl mx-auto text-center bg-white rounded-3xl p-8 sm:p-12 border border-[#E8E2D6] shadow-md">
         {/* Micro Badge */}
-        <span className="text-accent text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+        <span className="text-[#C25E38] text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8E2D6]">
           <span>🏛️</span> ARTISAN GUILD JOURNAL
         </span>
 
         {/* Heading */}
         <h2
-          className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4 leading-snug"
+          className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 text-[#18181B] leading-tight"
           style={{ fontFamily: "var(--font-heading)" }}
         >
           Get Private Access to{" "}
-          <span className="bg-gradient-to-r from-[#F5D0A9] via-[#E8AA70] to-[#C77B4A] bg-clip-text text-transparent">
-            Limited Artisan Drops
+          <span className="text-[#C25E38]">
+            Limited Seoul Drops
           </span>
         </h2>
 
-        {/* 2 Core Value Bullet Points */}
-        <div className="text-sm sm:text-base text-white/80 my-6 space-y-2.5 max-w-md mx-auto text-left bg-black/20 p-5 rounded-2xl border border-white/10">
-          <div className="flex items-start gap-2.5">
-            <span className="text-accent text-base">✨</span>
-            <p className="leading-relaxed">
-              <strong className="text-white font-semibold">First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
-            </p>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <span className="text-accent text-base">📜</span>
-            <p className="leading-relaxed">
-              <strong className="text-white font-semibold">Exclusive stories</strong>{" "}straight from their private workshops.
-            </p>
-          </div>
-        </div>
+        <p className="text-xs sm:text-sm text-[#6B7280] max-w-md mx-auto mb-6 leading-relaxed">
+          Be the first to hear when our verified ateliers release new handcrafted collections. Receive an exclusive 10% welcome gift on your first piece.
+        </p>
 
         {/* Form or Subscribed State */}
         {isSubscribed || status === "success" ? (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6 animate-fade-in max-w-md mx-auto">
+          <div className="bg-[#F4EFE6] border border-[#E8E2D6] rounded-2xl p-6 animate-fade-in max-w-md mx-auto">
             <span className="text-3xl mb-2 block">🎉</span>
-            <p className="text-emerald-400 font-bold text-lg" style={{ fontFamily: "var(--font-heading)" }}>
+            <p className="text-[#1A2F25] font-bold text-base sm:text-lg" style={{ fontFamily: "var(--font-heading)" }}>
               {message || "You're on the Artisan Guild List!"}
             </p>
-            <p className="text-white/60 text-xs sm:text-sm mt-1">
+            <p className="text-[#6B7280] text-xs sm:text-sm mt-1">
               We&apos;ll notify you first when new limited handcrafted collections drop.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto">
             <input
               type="email"
               value={email}
@@ -108,30 +96,30 @@ export default function NewsletterCTA() {
               placeholder="your@email.com"
               required
               disabled={status === "loading"}
-              className="flex-1 px-5 py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all text-sm disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-xl bg-[#FBF9F5] border border-[#E8E2D6] text-[#18181B] placeholder-[#9CA3AF] focus:outline-none focus:border-[#C25E38] focus:ring-1 focus:ring-[#C25E38] transition-all text-sm disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className="px-7 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 disabled:opacity-50 bg-[#C77B4A] hover:bg-[#b56b3c] text-white shadow-lg hover:shadow-orange-500/25 flex items-center justify-center min-w-[150px]"
+              className="px-6 py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-300 disabled:opacity-50 bg-[#1A2F25] hover:bg-[#112019] text-white shadow-sm hover:shadow-md flex items-center justify-center min-w-[140px]"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {status === "loading" ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                "Get Early Access 🚀"
+                "Join Guild →"
               )}
             </button>
           </form>
         )}
 
         {status === "error" && (
-          <p className="text-red-400 text-xs sm:text-sm mt-3 font-medium">{message}</p>
+          <p className="text-red-600 text-xs sm:text-sm mt-3 font-medium">{message}</p>
         )}
 
-        <p className="text-white/40 text-xs mt-6">
-          * No spam. Unsubscribe at any time. View our{" "}
-          <Link href="/policies/privacy" className="underline hover:text-white transition-colors">
+        <p className="text-[#9CA3AF] text-xs mt-5">
+          * No spam ever. Unsubscribe at any time. View our{" "}
+          <Link href="/policies/privacy" className="underline hover:text-[#18181B] transition-colors">
             Privacy Policy
           </Link>
           .

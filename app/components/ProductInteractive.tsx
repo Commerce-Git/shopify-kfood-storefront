@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import { formatPrice, getProductImages } from "@/lib/shopify/api";
+import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
 import ProductGallery from "./ProductGallery";
 import AddToCartSection from "./AddToCartSection";
 
@@ -12,13 +14,24 @@ interface ProductInteractiveProps {
 }
 
 const HIGHLIGHTS = [
-  "Authentic Korean craftsmanship & design",
-  "Ships direct from Seoul with tracked shipping (7-14 days)",
-  "Tracking number provided for every order",
+  {
+    icon: "🇰🇷",
+    text: "Made in Korea",
+  },
+  {
+    icon: "✈️",
+    text: "Direct Seoul Dispatch · Tracked shipping (7–14 days)",
+  },
+  {
+    icon: "🛡️",
+    text: "Delivery Protection · Damage & loss covered",
+  },
 ];
 
 export default function ProductInteractive({ product, isPreview = false }: ProductInteractiveProps) {
   const images = getProductImages(product);
+  const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""));
+  const artistDisplayName = artistProfile.nameEn || product.vendor || "Seoul Master";
 
   // Helper to ignore query parameters when matching URLs
   const stripQuery = (url: string) => url.split('?')[0];
@@ -144,6 +157,16 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
             </div>
           )}
 
+          {/* Artist / Maker Attribution */}
+          {product.vendor && (
+            <Link
+              href={`/artists/${getArtistSlug(product.vendor)}`}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C25E38] hover:text-[#A74B28] transition-colors self-start group/vendor"
+            >
+              <span>🏛️</span> Handcrafted by <span className="underline group-hover/vendor:text-[#A74B28]">{artistDisplayName}</span> ›
+            </Link>
+          )}
+
           <h1 className="heading-lg text-dark">{product.title}</h1>
 
           {/* Price */}
@@ -167,40 +190,19 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
           </div>
 
           <div
-            className="text-text-muted leading-relaxed prose prose-sm max-w-none"
+            className="text-text-muted leading-relaxed prose prose-sm max-w-none [&_.bg-purple-50]:!bg-[#FDF9F3] [&_.border-purple-200]:!border-[#E8DFC8] [&_.text-purple-700]:!text-[#C25E38] [&_.text-purple-600]:!text-[#C25E38] [&_.text-purple-900]:!text-[#18181B]"
             dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
           />
 
           {/* Features */}
-          <div className="space-y-2.5">
+          <div className="space-y-2 pt-2">
             {HIGHLIGHTS.map((feature) => (
               <div
-                key={feature}
-                className="flex items-center gap-3 text-sm text-text"
+                key={feature.text}
+                className="flex items-center gap-3 text-xs sm:text-sm font-semibold text-[#18181B] bg-white p-3 rounded-xl border border-[#E8DFC8]/70 shadow-2xs"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-success flex-shrink-0"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    fill="currentColor"
-                    opacity="0.15"
-                  />
-                  <path
-                    d="M8 12l2.5 2.5L16 9"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {feature}
+                <span className="text-base shrink-0">{feature.icon}</span>
+                <span>{feature.text}</span>
               </div>
             ))}
           </div>
@@ -313,6 +315,42 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Meet the Maker / Atelier Profile Box */}
+      {product.vendor && (
+        <div className="max-w-[1000px] mx-auto bg-[#F4EFE6] rounded-3xl p-6 sm:p-10 border border-[#E8DFC8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-2xs">
+          <div className="flex items-center gap-5">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-[#E8DFC8] bg-white shadow-xs">
+              <img
+                src={artistProfile.avatar || "/assets/blank_seoul_symbol.png"}
+                alt={artistDisplayName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-[#C25E38]">
+                <span>🏛️</span> Verified Independent Atelier
+              </span>
+              <h3
+                className="text-lg sm:text-xl font-bold text-[#18181B] mt-0.5"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                {artistDisplayName}
+              </h3>
+              <p className="text-xs text-[#6B7280] mt-1 max-w-md line-clamp-2">
+                {artistProfile.bio}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href={`/artists/${getArtistSlug(product.vendor)}`}
+            className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-bold uppercase tracking-wider transition-colors text-center shrink-0 shadow-xs"
+          >
+            Explore Studio Works →
+          </Link>
         </div>
       )}
     </div>

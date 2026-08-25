@@ -29,12 +29,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-const HIGHLIGHTS = [
-  "Authentic Korean craftsmanship & design",
-  "Ships direct from Seoul with tracked shipping (7-14 days)",
-  "Tracking number provided for every order",
-];
-
 export default async function ProductPage({ params }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
@@ -91,7 +85,7 @@ export default async function ProductPage({ params }: PageProps) {
     : null;
 
   return (
-    <div className="pt-20">
+    <div className="pt-28 sm:pt-36 min-h-screen bg-[#FBF9F5]">
       {jsonLd && (
         <script
           type="application/ld+json"

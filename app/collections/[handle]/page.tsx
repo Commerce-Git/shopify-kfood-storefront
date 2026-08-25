@@ -81,7 +81,7 @@ export default async function CollectionPage({ params }: PageProps) {
   });
 
   return (
-    <div className="pt-24 pb-20">
+    <div className="pt-28 sm:pt-36 pb-20 min-h-screen bg-[#FBF9F5]">
       {/* Header */}
       <section className="py-16 px-4 bg-surface-dim border-b border-border-light mb-12">
         <div className="max-w-[1200px] mx-auto text-center animate-fade-in-up">

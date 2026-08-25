@@ -8,25 +8,27 @@
 
 /* --- Brand Design Tokens --- */
 @theme inline {
-  /* Colors — Deep Green + Gold Accent */
-  --color-primary: #2D4A3E;
-  --color-primary-hover: #1F3A2F;
-  --color-primary-light: #4A7A68;
-  --color-primary-glow: rgba(45, 74, 62, 0.4);
-  --color-accent: #C77B4A;
-  --color-accent-hover: #B56A3A;
-  --color-success: #00D68F;
-  --color-warning: #FFB800;
-  --color-dark: #121212;
-  --color-dark-soft: #1A1A2E;
+  /* Colors — Modern Hanok Warm Gallery Palette */
+  --color-primary: #1A2F25;
+  --color-primary-hover: #112019;
+  --color-primary-light: #2D4A3E;
+  --color-primary-glow: rgba(26, 47, 37, 0.2);
+  --color-accent: #C25E38;
+  --color-accent-hover: #A74B28;
+  --color-accent-gold: #D4A373;
+  --color-success: #15803D;
+  --color-warning: #B45309;
+  --color-dark: #111827;
+  --color-dark-soft: #1F2937;
   --color-surface: #FFFFFF;
-  --color-surface-dim: #F5F5F7;
-  --color-background: #FAFAFA;
-  --color-text: #333333;
-  --color-text-muted: #888888;
-  --color-text-light: #BBBBBB;
-  --color-border: #E5E5E5;
-  --color-border-light: #F0F0F0;
+  --color-surface-warm: #F4EFE6;
+  --color-surface-dim: #F8F5EE;
+  --color-background: #FBF9F5;
+  --color-text: #18181B;
+  --color-text-muted: #6B7280;
+  --color-text-light: #9CA3AF;
+  --color-border: #E8E2D6;
+  --color-border-light: #F2ECE1;
 
   /* Fonts */
   --font-heading: "Outfit", sans-serif;

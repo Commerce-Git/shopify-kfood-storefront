@@ -44,12 +44,12 @@ export default function ProductGallery({ images, title, activeImageUrl, onImageS
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-surface-dim">
+      <div className="relative aspect-square rounded-3xl overflow-hidden bg-white border border-[#E8DFC8] shadow-xs">
         <Image
           src={mainImage.url}
           alt={mainImage.alt || title}
           fill
-          className="object-cover transition-opacity duration-300"
+          className="object-contain p-4 sm:p-6 transition-opacity duration-300"
           sizes="(max-width: 1024px) 100vw, 50vw"
           priority
         />

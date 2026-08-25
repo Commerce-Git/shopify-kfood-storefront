@@ -1,38 +1,142 @@
-import Hero from "./components/Hero";
-import FeaturedProducts from "./components/FeaturedProducts";
-import ArtisanSpotlight from "./components/ArtisanSpotlight";
-import NewsletterCTA from "./components/NewsletterCTA";
+import EtsyHorizontalShelf, { EtsyCardItem } from "./components/EtsyHorizontalShelf";
+import EtsyEditorialSplitBanner from "./components/EtsyEditorialSplitBanner";
+import AtelierSpotlight from "./components/AtelierSpotlight";
 import { getAllProducts } from "@/lib/shopify/api";
+import { getEnrichedArtistsWithProducts } from "@/lib/artists";
+import type { ShopifyProduct } from "@/lib/shopify/types";
+
+// Helper to map live Shopify product to Etsy card item
+function mapShopifyToCard(sp: ShopifyProduct): EtsyCardItem {
+  const imageUrl = sp.images?.edges?.[0]?.node?.url || "/assets/brand-story-craft.png";
+  const priceVal = sp.variants?.edges?.[0]?.node?.price?.amount;
+  const compareVal = sp.variants?.edges?.[0]?.node?.compareAtPrice?.amount;
+
+  const priceFormatted = priceVal ? Number(priceVal).toFixed(2) : "0.00";
+  const originalFormatted = compareVal ? Number(compareVal).toFixed(2) : undefined;
+
+  return {
+    id: sp.id,
+    title: sp.title,
+    handle: sp.handle,
+    artist: sp.vendor || "Seoul Artisan",
+    price: priceFormatted,
+    originalPrice: originalFormatted,
+    image: imageUrl,
+  };
+}
 
 export default async function Home() {
-  // Fetch all 8 signature products for the exhibition gallery
-  const allProducts = await getAllProducts(50);
+  // Fetch all live products directly from Shopify Storefront API
+  const liveProducts = await getAllProducts(50);
+  const enrichedArtists = await getEnrichedArtistsWithProducts(liveProducts);
+
+  // Group 1: Bags & Wallets
+  const bagsAndWallets: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("bag") ||
+        type.includes("pouch") ||
+        type.includes("wallet") ||
+        title.includes("wallet") ||
+        title.includes("bag") ||
+        title.includes("pouch") ||
+        title.includes("tote")
+      );
+    })
+    .map(mapShopifyToCard);
+
+  // Group 2: Charms & Keyrings
+  const charmsAndKeyrings: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("charm") ||
+        type.includes("keyring") ||
+        title.includes("keyring") ||
+        title.includes("strap") ||
+        title.includes("daenggi")
+      );
+    })
+    .map(mapShopifyToCard);
+
+  // Group 3: Jewelry & Hair
+  const jewelryAndHair: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("hair") ||
+        type.includes("jewelry") ||
+        title.includes("scrunchie") ||
+        title.includes("hair")
+      );
+    })
+    .map(mapShopifyToCard);
+
+  // Group 4: Home & Goods
+  const homeAndGoods: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("home") ||
+        type.includes("living") ||
+        title.includes("coaster") ||
+        title.includes("tea")
+      );
+    })
+    .map(mapShopifyToCard);
 
   return (
-    <div className="relative w-full bg-gradient-to-b from-[#0F1A15] via-[#1A2E25] via-[#12221B] to-[#0A140F] text-white overflow-hidden">
-      {/* 100% Unified Monolithic Background texture */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+    <div className="relative w-full bg-[#FFFFFF] text-[#18181B] overflow-hidden pt-28 sm:pt-36">
+      {/* 1. Bags & Wallets (1-Line Horizontal Scroll Shelf) */}
+      <EtsyHorizontalShelf
+        id="shelf-bags"
+        title="Bags & Wallets"
+        subtitle="Traditional Joseon patterns, Hangul embroidery, and authentic leather Hopae daily carry"
+        items={bagsAndWallets}
+        viewAllHref="/collections/bags-wallets"
       />
 
-      {/* Unified subtle glow accents */}
-      <div className="absolute top-1/6 left-1/4 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[180px] pointer-events-none" />
-      <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[160px] pointer-events-none" />
+      {/* 2. Mid-Page Editorial Story Split Banner */}
+      <EtsyEditorialSplitBanner />
 
-      {/* 1. Hero — Full Hero Product Carousel Slider */}
-      <Hero products={allProducts} />
+      {/* 3. Charms & Keyrings (1-Line Horizontal Scroll Shelf) */}
+      <EtsyHorizontalShelf
+        id="shelf-charms"
+        title="Charms & Keyrings"
+        subtitle="Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots"
+        items={charmsAndKeyrings}
+        viewAllHref="/collections/charms-keyrings"
+      />
 
-      {/* 2. Section 1 — ArtisanSpotlight: Brand Strengths & Core Values */}
-      <ArtisanSpotlight />
+      {/* 4. Jewelry & Hair (1-Line Horizontal Scroll Shelf) */}
+      {jewelryAndHair.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-jewelry"
+          title="Jewelry & Hair"
+          subtitle="Botanical floral silk scrunchies and heritage Korean hair ornaments"
+          items={jewelryAndHair}
+          viewAllHref="/collections/jewelry-hair"
+        />
+      )}
 
-      {/* 3. Section 2 — FeaturedProducts: All 8 Masterpieces Showcase Grid */}
-      <FeaturedProducts products={allProducts} />
+      {/* 5. Home & Goods (1-Line Horizontal Scroll Shelf) */}
+      {homeAndGoods.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-home"
+          title="Home & Goods"
+          subtitle="Iridescent Sun & Moon Joseon tea coaster sets and heritage living crafts"
+          items={homeAndGoods}
+          viewAllHref="/collections/home-goods"
+        />
+      )}
 
-      {/* 4. Section 3 — Lead Capture: NewsletterCTA */}
-      <NewsletterCTA />
+      {/* 6. Partner Studios Showcase */}
+      <AtelierSpotlight artists={enrichedArtists.map((a) => a.profile)} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function FAQPage() {
   return (
-    <div className="pt-20">
+    <div className="pt-28 sm:pt-36 min-h-screen bg-[#FBF9F5]">
       {/* Hero */}
       <section className="py-16 sm:py-24 bg-surface-dim border-b border-border-light">
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6">

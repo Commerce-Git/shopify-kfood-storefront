@@ -74,6 +74,9 @@ export const GET_ALL_PRODUCTS = `
           handle
           title
           description
+          vendor
+          productType
+          tags
           availableForSale
           images(first: 1) {
             edges {
