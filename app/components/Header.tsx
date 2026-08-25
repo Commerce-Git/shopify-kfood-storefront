@@ -12,6 +12,7 @@ const SUB_NAV_LINKS = [
   { href: "/collections/jewelry-hair", label: "🎀 Jewelry & Hair" },
   { href: "/collections/home-goods", label: "🍵 Home & Goods" },
   { href: "/collections", label: "👑 Shop All" },
+  { href: "/artists", label: "🏛️ Ateliers" },
 ];
 
 export default function Header() {
@@ -37,17 +38,27 @@ export default function Header() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const target = document.getElementById("shelf-edc") || document.getElementById("masterpieces");
-    if (target) {
+    const q = searchQuery.trim();
+    if (!q) return;
+
+    // Scroll to shelf or navigate
+    const target = document.getElementById("shelf-bags") || document.getElementById("shelf-charms");
+    if (target && pathname === "/") {
       target.scrollIntoView({ behavior: "smooth" });
+    } else {
+      router.push(`/collections`);
     }
   };
 
   return (
     <>
       <header id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] border-b border-[#E1E3DF] shadow-2xs">
-        {/* Main Search & Brand Bar (Etsy Style) */}
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5">
+        {/* =========================================================================
+            ROW 1: Top Navigation Bar
+            - Desktop: [Logo] --- [Wide Search Form] --- [Account | Wishlist | Cart]
+            - Mobile:  [Logo] -------------------------- [Account | Wishlist | Cart]
+           ========================================================================= */}
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-3 pb-2 md:py-3.5">
           <div className="flex items-center justify-between gap-3 sm:gap-6">
             {/* Left: Brand Logo (Etsy-inspired bold serif craft aesthetic) */}
             <Link href="/" className="flex items-center gap-1 shrink-0 group" id="header-logo">
@@ -60,22 +71,31 @@ export default function Header() {
               </span>
             </Link>
 
-            {/* Center: Full-Width Etsy Search Bar with Orange Circular Search Button */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl relative">
-              <div className="relative flex items-center">
+            {/* Desktop Center: Full-Width Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-2xl relative">
+              <div className="relative flex items-center w-full">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for handcrafted Korean items, hopae wallets, silk knots..."
-                  className="w-full pl-5 pr-12 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
+                  placeholder="Search for handcrafted Korean goods, hopae wallets, silk knots..."
+                  className="w-full pl-5 pr-14 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-12 text-xs font-bold text-[#9CA3AF] hover:text-[#18181B] p-1"
+                  >
+                    ✕
+                  </button>
+                )}
                 <button
                   type="submit"
-                  className="absolute right-1.5 p-2 rounded-full bg-[#C25E38] text-white hover:bg-[#A74B28] transition-colors flex items-center justify-center"
+                  className="absolute right-1.5 w-9 h-9 rounded-full bg-[#C25E38] text-white hover:bg-[#A74B28] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
                   aria-label="Search"
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
@@ -83,9 +103,9 @@ export default function Header() {
               </div>
             </form>
 
-            {/* Right: Utility Actions (Sign in/Account, Heart, Cart) */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Sign in / Account Action (Global E-Commerce Standard) */}
+            {/* Right: Actions (Desktop & Mobile Shared Clean Icons) */}
+            <div className="flex items-center gap-1 sm:gap-4">
+              {/* Sign in / Account Action */}
               {mounted && isLoggedIn ? (
                 <Link
                   href="/account"
@@ -98,22 +118,35 @@ export default function Header() {
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  {/* Active Session Indicator Dot */}
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
                 </Link>
               ) : (
-                <Link
-                  href="/account/login"
-                  className="text-xs sm:text-sm font-bold text-[#18181B] hover:text-[#C25E38] py-1.5 px-3 rounded-full hover:bg-[#F4EFE6] transition-colors whitespace-nowrap"
-                  id="header-signin-link"
-                >
-                  Sign in
-                </Link>
+                <>
+                  {/* Desktop Text Button */}
+                  <Link
+                    href="/account/login"
+                    className="hidden md:inline-block text-xs sm:text-sm font-bold text-[#18181B] hover:text-[#C25E38] py-1.5 px-3 rounded-full hover:bg-[#F4EFE6] transition-colors whitespace-nowrap"
+                    id="header-signin-link"
+                  >
+                    Sign in
+                  </Link>
+                  {/* Mobile Clean Icon */}
+                  <Link
+                    href="/account/login"
+                    className="md:hidden p-2 rounded-full text-[#18181B] hover:bg-[#F4EFE6] transition-colors flex items-center justify-center"
+                    aria-label="Sign in"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </Link>
+                </>
               )}
 
               {/* Favorites / Wishlist Heart (Etsy Style) */}
               <Link
-                href="/#shelf-edc"
+                href="/#shelf-bags"
                 className="relative p-2 rounded-full text-[#18181B] hover:bg-[#F4EFE6] transition-colors"
                 id="header-favorites-button"
                 aria-label="Favorites"
@@ -122,7 +155,7 @@ export default function Header() {
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 {wishlistCount > 0 && (
-                  <span className="absolute 0 top-0.5 right-0.5 w-4 h-4 bg-[#C25E38] text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#C25E38] text-white text-[9px] font-black rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
@@ -146,34 +179,77 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-xl text-[#18181B] hover:bg-[#F4EFE6]"
-                aria-label="Toggle menu"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  {mobileMenuOpen ? (
-                    <>
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </>
-                  ) : (
-                    <>
-                      <line x1="4" y1="7" x2="20" y2="7" />
-                      <line x1="4" y1="12" x2="20" y2="12" />
-                      <line x1="4" y1="17" x2="20" y2="17" />
-                    </>
-                  )}
-                </svg>
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Sub-Nav Category Strip (Etsy Style) */}
-        <div className="border-t border-[#F2ECE1] bg-white hidden sm:block">
+        {/* =========================================================================
+            ROW 2 (Mobile ONLY): Etsy-Style Full-Width Search & Hamburger Bar
+            - Left: Hamburger Menu Button (☰)
+            - Right: Full-width Rounded Search Bar with Circular Orange Submit (🔍)
+           ========================================================================= */}
+        <div className="md:hidden px-4 pb-3 pt-0.5">
+          <div className="flex items-center gap-2">
+            {/* Hamburger Menu Button (Etsy Clean Style) */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-[#18181B] hover:bg-[#F4EFE6] rounded-full shrink-0 transition-colors"
+              aria-label="Toggle category menu"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                {mobileMenuOpen ? (
+                  <>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </>
+                ) : (
+                  <>
+                    <line x1="4" y1="7" x2="20" y2="7" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="17" x2="20" y2="17" />
+                  </>
+                )}
+              </svg>
+            </button>
+
+            {/* Mobile Full-Width Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+              <div className="relative flex items-center w-full">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for anything..."
+                  className="w-full pl-4 pr-11 py-2.5 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-10 text-xs font-bold text-[#9CA3AF] hover:text-[#18181B] p-1"
+                  >
+                    ✕
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="absolute right-1.5 w-7 h-7 rounded-full bg-[#C25E38] text-white hover:bg-[#A74B28] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+                  aria-label="Search"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            ROW 2 (Desktop ONLY): Sub-Nav Category Strip (Etsy Style)
+           ========================================================================= */}
+        <div className="border-t border-[#F2ECE1] bg-white hidden md:block">
           <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
             <nav className="flex items-center justify-center gap-8 py-2 overflow-x-auto no-scrollbar">
               {SUB_NAV_LINKS.map((link) => (
@@ -190,21 +266,38 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* =========================================================================
+          Mobile Drawer (Category & Studio Navigation)
+         ========================================================================= */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="fixed top-0 right-0 h-full w-72 bg-white p-6 shadow-2xl overflow-y-auto"
+            className="fixed top-0 left-0 h-full w-72 bg-white p-6 shadow-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D6]">
-              <span className="text-lg font-black text-[#18181B]">Menu</span>
-              <button onClick={() => setMobileMenuOpen(false)} className="p-1 text-[#6B7280]">✕</button>
+              <span
+                className="text-lg font-black tracking-tight"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                <span className="text-[#C25E38]">BLANK</span>
+                <span className="text-[#18181B] ml-1">SEOUL</span>
+              </span>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1.5 rounded-full hover:bg-[#F4EFE6] text-[#6B7280] font-bold"
+              >
+                ✕
+              </button>
             </div>
-            <nav className="flex flex-col gap-2 mt-4">
+
+            <nav className="flex flex-col gap-1.5 mt-5">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-3 mb-1">
+                Shop Collections
+              </span>
               {SUB_NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
@@ -215,7 +308,12 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <div className="border-t border-[#F2ECE1] my-2 pt-2" />
+
+              <div className="border-t border-[#F2ECE1] my-3 pt-3" />
+
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-3 mb-1">
+                My Account & Support
+              </span>
               <Link
                 href="/account"
                 onClick={() => setMobileMenuOpen(false)}
@@ -228,7 +326,14 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-3 py-2.5 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6]"
               >
-                Track Order
+                📦 Track Order
+              </Link>
+              <Link
+                href="/faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6]"
+              >
+                💬 FAQ & Help
               </Link>
             </nav>
           </div>

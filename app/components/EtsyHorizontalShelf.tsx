@@ -151,6 +151,7 @@ export default function EtsyHorizontalShelf({
           {/* Horizontal Scroll Track */}
           <div
             ref={scrollContainerRef}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             className="flex items-start gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2"
           >
             {items.map((item) => {
