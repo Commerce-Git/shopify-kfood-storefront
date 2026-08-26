@@ -46,25 +46,29 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
   const hasMultipleVariantsWithImages = product.variants.edges.length > 1 && variantImageUrls.size > 0;
 
   // Gallery images for top gallery:
-  // If product HAS multiple variant images: show ONLY variant images in top gallery (exclude main composite Media 1 from top).
-  // If product DOES NOT have variant images: show Media 1 (representative image).
-  let galleryImages = images.filter((img, idx) => {
-    if (hasMultipleVariantsWithImages) {
-      return variantImageUrls.has(stripQuery(img.url));
-    }
-    return idx === 0;
+  // If product HAS multiple variant images: show ONLY unique variant images in top gallery.
+  // Deduplicate by stripped URL so identical photos across variants (e.g. Small/Medium) don't duplicate.
+  const seenGalleryUrls = new Set<string>();
+  const galleryImages = (hasMultipleVariantsWithImages
+    ? images.filter((img) => variantImageUrls.has(stripQuery(img.url)))
+    : [images[0]]
+  ).filter((img) => {
+    if (!img?.url) return false;
+    const key = stripQuery(img.url);
+    if (seenGalleryUrls.has(key)) return false;
+    seenGalleryUrls.add(key);
+    return true;
   });
 
-  if (galleryImages.length === 0) {
-    galleryImages = [images[0]].filter(Boolean);
-  }
-
   // Detailed images for bottom lookbook stack:
-  // Shows all remaining images that are NOT in top galleryImages!
-  // Includes Media 1 (composite main thumbnail) + all lifestyle/interior lookbook images.
-  const detailedImages = images.filter(
-    (img) => !galleryImages.some((gImg) => stripQuery(gImg.url) === stripQuery(img.url))
-  );
+  // Strictly excludes any image that belongs to a variant or is already in the top gallery.
+  // If the product only has variant photos (no pure lookbook photos), detailedImages will be empty and auto-hide!
+  const detailedImages = images.filter((img) => {
+    const key = stripQuery(img.url);
+    if (variantImageUrls.has(key)) return false;
+    if (galleryImages.some((gImg) => stripQuery(gImg.url) === key)) return false;
+    return true;
+  });
 
   // Parse available options from variants
   const optionMap: Record<string, Set<string>> = {};
@@ -77,12 +81,20 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
     });
   });
 
+  // Sort option groups: Color/Style first, followed by Size/Dimension
   const allOptions = Object.keys(optionMap)
     .map((name) => ({
       name,
       values: Array.from(optionMap[name]),
     }))
-    .filter((opt) => opt.name !== "Title" && opt.values.length > 1);
+    .filter((opt) => opt.name !== "Title" && opt.values.length > 1)
+    .sort((a, b) => {
+      const aLower = a.name.toLowerCase();
+      const bLower = b.name.toLowerCase();
+      if (aLower.includes("color") || aLower.includes("style") || aLower.includes("pattern")) return -1;
+      if (bLower.includes("color") || bLower.includes("style") || bLower.includes("pattern")) return 1;
+      return 0;
+    });
 
   // State for selected option values
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
@@ -112,17 +124,34 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
       ? Math.round(((compareNum - priceNum) / compareNum) * 100)
       : null;
 
+  // Smart gallery selection: changes visual options (Color) while preserving non-visual options (Size)
   const handleImageSelect = (url: string) => {
-    const matchingVariant = product.variants.edges.find(
-      (edge) => edge.node.image?.url === url
-    )?.node;
+    const stripped = stripQuery(url);
+
+    // 1. Try to find a variant matching this photo AND the user's currently selected non-visual options (e.g. Size)
+    let matchingVariant = product.variants.edges.find((edge) => {
+      const hasImg = edge.node.image?.url && stripQuery(edge.node.image.url) === stripped;
+      if (!hasImg) return false;
+      return edge.node.selectedOptions.some(
+        (opt) => !opt.name.toLowerCase().includes("color") && selectedOptions[opt.name] === opt.value
+      );
+    })?.node;
+
+    // 2. Fallback to any variant with this image
+    if (!matchingVariant) {
+      matchingVariant = product.variants.edges.find(
+        (edge) => edge.node.image?.url && stripQuery(edge.node.image.url) === stripped
+      )?.node;
+    }
 
     if (matchingVariant) {
-      const newOptions: Record<string, string> = {};
-      matchingVariant.selectedOptions.forEach((opt) => {
-        newOptions[opt.name] = opt.value;
+      setSelectedOptions((prev) => {
+        const updated = { ...prev };
+        matchingVariant.selectedOptions.forEach((opt) => {
+          updated[opt.name] = opt.value;
+        });
+        return updated;
       });
-      setSelectedOptions(newOptions);
     }
   };
 
