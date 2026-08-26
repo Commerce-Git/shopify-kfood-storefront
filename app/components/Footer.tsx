@@ -25,10 +25,10 @@ const TRUST_PILLARS = [
 ];
 
 const FOOTER_SHOP = [
-  { label: "Bags & Wallets", href: "/collections/bags-wallets" },
+  { label: "Bags & Purses", href: "/collections/bags-purses" },
   { label: "Charms & Keyrings", href: "/collections/charms-keyrings" },
   { label: "Jewelry & Hair", href: "/collections/jewelry-hair" },
-  { label: "Home & Goods", href: "/collections/home-goods" },
+  { label: "Home & Living", href: "/collections/home-living" },
   { label: "Shop All Collections", href: "/collections" },
   { label: "Verified Seoul Ateliers", href: "/artists" },
 ];

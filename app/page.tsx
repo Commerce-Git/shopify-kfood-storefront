@@ -30,13 +30,14 @@ export default async function Home() {
   const liveProducts = await getAllProducts(50);
   const enrichedArtists = await getEnrichedArtistsWithProducts(liveProducts);
 
-  // Group 1: Bags & Wallets
-  const bagsAndWallets: EtsyCardItem[] = liveProducts
+  // Group 1: Bags & Purses (Matching Shopify Smart Rule)
+  const bagsAndPurses: EtsyCardItem[] = liveProducts
     .filter((p) => {
       const type = (p.productType || "").toLowerCase();
       const title = (p.title || "").toLowerCase();
       return (
         type.includes("bag") ||
+        type.includes("purse") ||
         type.includes("pouch") ||
         type.includes("wallet") ||
         title.includes("wallet") ||
@@ -47,7 +48,7 @@ export default async function Home() {
     })
     .map(mapShopifyToCard);
 
-  // Group 2: Charms & Keyrings
+  // Group 2: Charms & Keyrings (Matching Shopify Smart Rule)
   const charmsAndKeyrings: EtsyCardItem[] = liveProducts
     .filter((p) => {
       const type = (p.productType || "").toLowerCase();
@@ -62,7 +63,7 @@ export default async function Home() {
     })
     .map(mapShopifyToCard);
 
-  // Group 3: Jewelry & Hair
+  // Group 3: Jewelry & Hair (Matching Shopify Smart Rule)
   const jewelryAndHair: EtsyCardItem[] = liveProducts
     .filter((p) => {
       const type = (p.productType || "").toLowerCase();
@@ -76,44 +77,81 @@ export default async function Home() {
     })
     .map(mapShopifyToCard);
 
-  // Group 4: Home & Goods
-  const homeAndGoods: EtsyCardItem[] = liveProducts
+  // Group 4: Home & Living (Matching Shopify Smart Rule)
+  const homeAndLiving: EtsyCardItem[] = liveProducts
     .filter((p) => {
       const type = (p.productType || "").toLowerCase();
       const title = (p.title || "").toLowerCase();
       return (
         type.includes("home") ||
         type.includes("living") ||
+        type.includes("goods") ||
         title.includes("coaster") ||
-        title.includes("tea")
+        title.includes("tea") ||
+        title.includes("fabric") ||
+        title.includes("mat")
+      );
+    })
+    .map(mapShopifyToCard);
+
+  // Group 5: Stationery & Paper (Matching Shopify Smart Rule)
+  const stationeryAndPaper: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("stationery") ||
+        type.includes("paper") ||
+        title.includes("notebook") ||
+        title.includes("pen") ||
+        title.includes("postcard")
+      );
+    })
+    .map(mapShopifyToCard);
+
+  // Group 6: Art & Objects (Matching Shopify Smart Rule)
+  const artAndObjects: EtsyCardItem[] = liveProducts
+    .filter((p) => {
+      const type = (p.productType || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return (
+        type.includes("art") ||
+        type.includes("object") ||
+        title.includes("ceramic") ||
+        title.includes("woodcraft") ||
+        title.includes("sculpture")
       );
     })
     .map(mapShopifyToCard);
 
   return (
     <div className="relative w-full bg-[#FFFFFF] text-[#18181B] overflow-hidden pt-28 sm:pt-36">
-      {/* 1. Bags & Wallets (1-Line Horizontal Scroll Shelf) */}
-      <EtsyHorizontalShelf
-        id="shelf-bags"
-        title="Bags & Wallets"
-        subtitle="Traditional Joseon patterns, Hangul embroidery, and authentic leather Hopae daily carry"
-        items={bagsAndWallets}
-        viewAllHref="/collections/bags-wallets"
-      />
+      {/* 1. Bags & Purses (Auto-Hidden if 0) */}
+      {bagsAndPurses.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-bags"
+          title="Bags & Purses"
+          subtitle="Traditional Joseon patterns, Hangul embroidery, and authentic leather Hopae daily carry"
+          items={bagsAndPurses}
+          viewAllHref="/collections/bags-purses"
+        />
+      )}
 
       {/* 2. Mid-Page Editorial Story Split Banner */}
       <EtsyEditorialSplitBanner />
 
-      {/* 3. Charms & Keyrings (1-Line Horizontal Scroll Shelf) */}
-      <EtsyHorizontalShelf
-        id="shelf-charms"
-        title="Charms & Keyrings"
-        subtitle="Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots"
-        items={charmsAndKeyrings}
-        viewAllHref="/collections/charms-keyrings"
-      />
+      {/* 3. Charms & Keyrings (Auto-Hidden if 0) */}
+      {charmsAndKeyrings.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-charms"
+          title="Charms & Keyrings"
+          subtitle="Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots"
+          items={charmsAndKeyrings}
+          viewAllHref="/collections/charms-keyrings"
+        />
+      )}
 
-      {/* 4. Jewelry & Hair (1-Line Horizontal Scroll Shelf) */}
+      {/* 4. Jewelry & Hair (Auto-Hidden if 0) */}
       {jewelryAndHair.length > 0 && (
         <EtsyHorizontalShelf
           id="shelf-jewelry"
@@ -124,18 +162,40 @@ export default async function Home() {
         />
       )}
 
-      {/* 5. Home & Goods (1-Line Horizontal Scroll Shelf) */}
-      {homeAndGoods.length > 0 && (
+      {/* 5. Home & Living (Auto-Hidden if 0) */}
+      {homeAndLiving.length > 0 && (
         <EtsyHorizontalShelf
           id="shelf-home"
-          title="Home & Goods"
+          title="Home & Living"
           subtitle="Iridescent Sun & Moon Joseon tea coaster sets and heritage living crafts"
-          items={homeAndGoods}
-          viewAllHref="/collections/home-goods"
+          items={homeAndLiving}
+          viewAllHref="/collections/home-living"
         />
       )}
 
-      {/* 6. Partner Studios Showcase */}
+      {/* 6. Stationery & Paper (Auto-Hidden if 0) */}
+      {stationeryAndPaper.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-stationery"
+          title="Stationery & Paper"
+          subtitle="Artisan Hanji notebooks, calligraphic craft, and heritage desk stationery"
+          items={stationeryAndPaper}
+          viewAllHref="/collections/stationery-paper"
+        />
+      )}
+
+      {/* 7. Art & Objects (Auto-Hidden if 0) */}
+      {artAndObjects.length > 0 && (
+        <EtsyHorizontalShelf
+          id="shelf-art"
+          title="Art & Objects"
+          subtitle="Sculptural Korean ceramics, master woodwork, and fine craft objects"
+          items={artAndObjects}
+          viewAllHref="/collections/art-objects"
+        />
+      )}
+
+      {/* 8. Partner Studios Showcase */}
       <AtelierSpotlight artists={enrichedArtists.map((a) => a.profile)} />
     </div>
   );

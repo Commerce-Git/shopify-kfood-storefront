@@ -7,10 +7,10 @@ import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 
 const SUB_NAV_LINKS = [
-  { href: "/collections/bags-wallets", label: "👜 Bags & Wallets" },
+  { href: "/collections/bags-purses", label: "👜 Bags & Purses" },
   { href: "/collections/charms-keyrings", label: "✨ Charms & Keyrings" },
   { href: "/collections/jewelry-hair", label: "🎀 Jewelry & Hair" },
-  { href: "/collections/home-goods", label: "🍵 Home & Goods" },
+  { href: "/collections/home-living", label: "🍵 Home & Living" },
   { href: "/collections", label: "👑 Shop All" },
   { href: "/artists", label: "🏛️ Ateliers" },
 ];

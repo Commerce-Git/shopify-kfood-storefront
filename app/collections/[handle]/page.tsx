@@ -5,6 +5,13 @@ import { notFound } from "next/navigation";
 import { getCollectionByHandle, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 
+const HANDLE_ALIASES: Record<string, string> = {
+  "bags-wallets": "bags-purses",
+  "home-goods": "home-living",
+  "bags": "bags-purses",
+  "home": "home-living",
+};
+
 interface PageProps {
   params: Promise<{ handle: string }>;
 }
@@ -12,7 +19,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const collection = await getCollectionByHandle(decodedHandle);
+  const targetHandle = HANDLE_ALIASES[decodedHandle] || decodedHandle;
+  const collection = await getCollectionByHandle(targetHandle);
 
   if (!collection) {
     return { title: "Collection Not Found" };
@@ -65,7 +73,8 @@ function ProductCard({ product }: { product: ShopifyProduct }) {
 export default async function CollectionPage({ params }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const collection = await getCollectionByHandle(decodedHandle);
+  const targetHandle = HANDLE_ALIASES[decodedHandle] || decodedHandle;
+  const collection = await getCollectionByHandle(targetHandle);
 
   if (!collection) {
     notFound();
@@ -97,19 +106,32 @@ export default async function CollectionPage({ params }: PageProps) {
       {/* Grid */}
       <section className="px-4">
         <div className="max-w-[1200px] mx-auto">
-          <div className="mb-6 text-sm text-text-muted font-medium">
-            {products.length} {products.length === 1 ? 'Product' : 'Products'}
-          </div>
-
           {products.length > 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="mb-6 text-sm text-text-muted font-medium">
+                {products.length} {products.length === 1 ? 'Product' : 'Products'}
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="text-center py-20 text-text-muted">
-              No products found in this collection.
+            <div className="text-center py-20 bg-white rounded-3xl border border-[#E8DFC8]/60 p-8 max-w-lg mx-auto shadow-2xs">
+              <span className="text-4xl mb-3 block">🏛️</span>
+              <h2 className="text-lg font-bold text-[#18181B] mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+                New Artisan Curations Arriving Soon
+              </h2>
+              <p className="text-xs sm:text-sm text-[#6B7280] mb-6">
+                Our master ateliers in Seoul are crafting new pieces for this collection. Explore other active works in the meantime.
+              </p>
+              <Link
+                href="/collections"
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-bold transition-colors shadow-sm"
+              >
+                Explore All Collections ›
+              </Link>
             </div>
           )}
         </div>
