@@ -312,7 +312,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
             {/* Exhibition Catalog Header */}
             <div className="text-center mb-10 sm:mb-14">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8DFC8] text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#C25E38] mb-3 shadow-2xs">
-                <span>🏛️</span> Authentic Seoul Atelier Work
+                <span>🇰🇷</span> 100% Made in Korea · Direct from Seoul
               </span>
               <h2
                 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight"
@@ -321,7 +321,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
                 Craft & Lookbook Details
               </h2>
               <p className="text-xs sm:text-sm text-[#6B7280] max-w-lg mx-auto mt-2 leading-relaxed">
-                Every piece is meticulously handcrafted in independent Seoul ateliers. Explore the authentic textures, master stitches, and heritage finishes.
+                Crafted in Korea with uncompromising quality standards and dispatched directly from Seoul. Explore authentic textures, refined stitches, and heritage finishes.
               </p>
               <div className="h-0.5 w-12 bg-[#C25E38]/30 mx-auto mt-4" />
             </div>
