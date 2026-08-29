@@ -305,43 +305,45 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
         </div>
       </div>
 
-      {/* Detailed Images Section */}
+      {/* Detailed Images Section (Single-Column Gallery Lookbook Stack) */}
       {detailedImages.length > 0 && (
         <div className="border-t border-border-light pt-16">
-          <div className="bg-[#FAF9F6] py-16 px-4 md:px-8 rounded-3xl border border-stone-100 max-w-[1000px] mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-text-muted">
-                Detail View
+          <div className="bg-[#FAF9F6] py-12 sm:py-16 px-4 sm:px-8 rounded-3xl border border-[#E8DFC8]/60 max-w-[880px] mx-auto shadow-2xs">
+            {/* Exhibition Catalog Header */}
+            <div className="text-center mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8DFC8] text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#C25E38] mb-3 shadow-2xs">
+                <span>🏛️</span> Authentic Seoul Atelier Work
+              </span>
+              <h2
+                className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                Craft & Lookbook Details
               </h2>
-              <div className="h-0.5 w-8 bg-primary/20 mx-auto mt-3" />
+              <p className="text-xs sm:text-sm text-[#6B7280] max-w-lg mx-auto mt-2 leading-relaxed">
+                Every piece is meticulously handcrafted in independent Seoul ateliers. Explore the authentic textures, master stitches, and heritage finishes.
+              </p>
+              <div className="h-0.5 w-12 bg-[#C25E38]/30 mx-auto mt-4" />
             </div>
             
-            {/* 2026 Bento Grid Layout preserving original ratios */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[900px] mx-auto">
-              {detailedImages.map((img, idx) => {
-                // Rhythm: first image of every 3 occupies full width, others occupy half width on desktop
-                // Auto-promote last orphan image to full width so there's never an empty gap
-                const isLastImage = idx === detailedImages.length - 1;
-                const wouldBeOrphan = isLastImage && idx % 3 === 1;
-                const isFullWidth = idx % 3 === 0 || wouldBeOrphan;
-                return (
-                  <div 
-                    key={idx} 
-                    className={`
-                      overflow-hidden rounded-2xl border border-stone-200/50 bg-white shadow-sm
-                      transition-all duration-500 ease-out hover:scale-[1.01] hover:shadow-md
-                      ${isFullWidth ? "md:col-span-2" : "md:col-span-1"}
-                    `}
-                  >
+            {/* Single-Column Vertical Lookbook Stack */}
+            <div className="flex flex-col gap-8 sm:gap-12">
+              {detailedImages.map((img, idx) => (
+                <div 
+                  key={idx} 
+                  className="overflow-hidden rounded-2xl border border-[#E8DFC8]/70 bg-white shadow-2xs transition-all duration-500 ease-out hover:shadow-md"
+                >
+                  <div className="bg-[#F5F0E6] w-full">
                     <img
                       src={img.url}
-                      alt={img.alt || `${product.title} detail ${idx + 1}`}
-                      className="w-full h-auto block object-contain"
+                      alt={img.alt || `${product.title} craft detail ${idx + 1}`}
+                      className="w-full h-auto block object-cover mx-auto"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </div>
