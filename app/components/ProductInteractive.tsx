@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import { formatPrice, getProductImages } from "@/lib/shopify/api";
 import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
 import ProductGallery from "./ProductGallery";
 import AddToCartSection from "./AddToCartSection";
+import MobileStickyBottomBar from "./MobileStickyBottomBar";
 
 interface ProductInteractiveProps {
   product: ShopifyProduct;
@@ -29,6 +30,7 @@ const HIGHLIGHTS = [
 ];
 
 export default function ProductInteractive({ product, isPreview = false }: ProductInteractiveProps) {
+  const buyBoxRef = useRef<HTMLDivElement>(null);
   const images = getProductImages(product);
   const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""));
   const artistDisplayName = artistProfile.nameEn || product.vendor || "Seoul Master";
@@ -177,8 +179,8 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
           onImageSelect={handleImageSelect}
         />
 
-        {/* Product Info */}
-        <div className="flex flex-col gap-6 lg:pt-4">
+        {/* Product Info (Sticky Sidebar on Desktop) */}
+        <div ref={buyBoxRef} className="flex flex-col gap-6 lg:pt-4 lg:sticky lg:top-28 lg:self-start">
           {selectedVariant?.availableForSale && (
             <div className="inline-flex self-start items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold uppercase tracking-wider">
               <span className="w-2 h-2 bg-slate-500 rounded-full" />
@@ -384,6 +386,19 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
           </Link>
         </div>
       )}
+
+      {/* 2026 Mobile Sticky Bottom Action Bar + Bottom Drawer Sheet */}
+      <MobileStickyBottomBar
+        product={product}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
+        allOptions={allOptions}
+        selectedVariant={selectedVariant}
+        price={price}
+        currency={currency}
+        targetRef={buyBoxRef}
+        isOptionValueSoldOut={isOptionValueSoldOut}
+      />
     </div>
   );
 }
