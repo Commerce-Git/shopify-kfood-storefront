@@ -94,24 +94,27 @@ export default function MobileStickyBottomBar({
 
   return (
     <>
-      {/* 1. Mobile Floating Bottom Bar (Appears when scrolled past buy box) */}
+      {/* 1. Universal Floating Bottom Bar (Mobile 1-Tap Bar + Desktop Floating Glass Island) */}
       <div
         className={`
-          fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white/95 backdrop-blur-md
-          border-t border-[#E8DFC8]/90 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
-          transition-transform duration-300 ease-out
-          ${isVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}
+          fixed z-30 transition-all duration-300 ease-out
+          bottom-0 left-0 right-0 lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-3xl lg:px-4
+          ${
+            isVisible
+              ? "translate-y-0 opacity-100"
+              : "translate-y-full lg:translate-y-12 opacity-0 pointer-events-none"
+          }
         `}
       >
-        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+        <div className="bg-white/95 backdrop-blur-md border border-[#E8DFC8]/90 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_12px_35px_rgba(0,0,0,0.12)] lg:rounded-2xl flex items-center justify-between gap-3 max-w-lg lg:max-w-none mx-auto">
           {/* Left: Thumbnail + Option summary & price (Tapping opens Drawer) */}
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-3 text-left min-w-0 flex-1 group"
+            className="flex items-center gap-3 text-left min-w-0 flex-1 group cursor-pointer"
           >
             {activeImage && (
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-[#E8DFC8] bg-surface-dim">
+              <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-[#E8DFC8] bg-[#FAF9F6] shadow-2xs">
                 <Image
                   src={activeImage.url}
                   alt={activeImage.altText || product.title}
@@ -123,15 +126,17 @@ export default function MobileStickyBottomBar({
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-dark truncate">
-                  {selectedOptionsSummary || product.title}
+                <span className="text-xs font-bold text-[#18181B] truncate">
+                  {selectedOptionsSummary ? `${product.title} · ${selectedOptionsSummary}` : product.title}
                 </span>
-                <span className="text-[10px] text-[#C25E38] font-semibold underline shrink-0">
-                  Change
-                </span>
+                {allOptions.length > 0 && (
+                  <span className="text-[10px] text-[#C25E38] font-semibold underline shrink-0 hover:text-[#18181B] transition-colors">
+                    Change
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm font-extrabold text-dark" style={{ fontFamily: "var(--font-heading)" }}>
+                <span className="text-sm font-extrabold text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
                   {formatPrice(price, currency)}
                 </span>
                 {isSoldOut ? (
@@ -153,7 +158,7 @@ export default function MobileStickyBottomBar({
             onClick={allOptions.length > 0 && !selectedOptionsSummary ? () => setIsDrawerOpen(true) : handleDirectAddToCart}
             disabled={isSoldOut || isAdding}
             className={`
-              px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 shadow-sm
+              px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 shadow-sm cursor-pointer
               ${isSoldOut
                 ? "bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300"
                 : "bg-[#18181B] hover:bg-[#C25E38] active:scale-95 text-white"
@@ -174,17 +179,17 @@ export default function MobileStickyBottomBar({
         </div>
       </div>
 
-      {/* 2. Seamless Mobile Bottom Drawer Sheet */}
+      {/* 2. Seamless Bottom Drawer Sheet / Desktop Center Modal */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden animate-fade-in">
+        <div className="fixed inset-0 z-40 animate-fade-in flex items-end lg:items-center lg:justify-center p-0 lg:p-4">
           {/* Dim Backdrop Overlay */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setIsDrawerOpen(false)}
           />
 
-          {/* Drawer Panel (Slides up from bottom) */}
-          <div className="absolute bottom-0 left-0 right-0 bg-[#FDFBF7] rounded-t-3xl border-t border-[#E8DFC8] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
+          {/* Drawer / Modal Panel (Slides up on mobile, centered modal on desktop) */}
+          <div className="relative w-full lg:max-w-md bg-[#FDFBF7] rounded-t-3xl lg:rounded-3xl border border-[#E8DFC8] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
             {/* Drawer Header */}
             <div className="flex items-start justify-between pb-4 border-b border-[#E8DFC8]/70">
               <div className="flex items-center gap-3">
