@@ -6,8 +6,9 @@ import Image from "next/image";
 import { useCart } from "../components/CartProvider";
 import { useAuth } from "../components/AuthProvider";
 import { storefrontFetch } from "@/lib/shopify/storefront";
-import { CREATE_CART } from "@/lib/shopify/queries";
+import { CREATE_CART, GET_PRODUCT_BY_HANDLE } from "@/lib/shopify/queries";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import type { CartItem } from "@/lib/shopify/types";
 
 interface CartResponse {
   cartCreate: {
@@ -22,16 +23,103 @@ interface CartResponse {
   };
 }
 
-
+// 2026 Curated In-Cart Companion Order Bumps (100% Real Live Shopify Products)
+const UPSELL_CANDIDATES = [
+  {
+    variantId: "gid://shopify/ProductVariant/52855941595448",
+    productHandle: "gat-mother-of-pearl-keyring",
+    title: "Gat Mother-of-Pearl Keyring",
+    variantTitle: "Default Title",
+    price: "38.00",
+    image: {
+      url: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/fffa8bfa008f4a06b22b52fdbbf8d0e4_512.jpg?v=1787474869",
+      altText: "Gat Mother-of-Pearl Keyring",
+      width: 500,
+      height: 500,
+    },
+    pitch: "Traditional Joseon Gat hat adorned with shimmering mother-of-pearl",
+    emoji: "✨",
+  },
+  {
+    variantId: "gid://shopify/ProductVariant/52838545883448",
+    productHandle: "dancheong-tassel-keyring",
+    title: "Dancheong Tassel Keyring",
+    variantTitle: "Default Title",
+    price: "32.00",
+    image: {
+      url: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/1787475577145.jpg?v=1787475728",
+      altText: "Dancheong Tassel Keyring",
+      width: 500,
+      height: 500,
+    },
+    pitch: "Vibrant palace Dancheong pattern with a silk tassel accent",
+    emoji: "🏮",
+  },
+  {
+    variantId: "gid://shopify/ProductVariant/52849149477176",
+    productHandle: "chrysanthemum-knot-daenggi-keyring",
+    title: "Chrysanthemum Knot Daenggi Keyring",
+    variantTitle: "Default Title",
+    price: "49.00",
+    image: {
+      url: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/cf1fc98f78814ae4ade57230a1b18037_512.jpg?v=1787647748",
+      altText: "Chrysanthemum Knot Daenggi Keyring",
+      width: 500,
+      height: 500,
+    },
+    pitch: "Joseon ribbon charm woven with traditional chrysanthemum knots",
+    emoji: "🎀",
+  },
+  {
+    variantId: "gid://shopify/ProductVariant/52834203173176",
+    productHandle: "joseon-peony-pattern-card-wallet",
+    title: "Joseon Peony Pattern Card Wallet",
+    variantTitle: "Default Title",
+    price: "32.00",
+    image: {
+      url: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/6b2fa81621ab40238edfecff6fbba7b4_512.jpg?v=1787293514",
+      altText: "Joseon Peony Pattern Card Wallet",
+      width: 500,
+      height: 500,
+    },
+    pitch: "Blue porcelain peony pattern card wallet with dedicated key loop",
+    emoji: "🌸",
+  },
+];
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, removeFromCart, updateQuantity, backupToStorageOnly, restoreFromBackup, dismissBackup, getCheckoutBackup } =
-    useCart();
+  const {
+    items,
+    itemCount,
+    subtotal,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    updateItemVariant,
+    backupToStorageOnly,
+    restoreFromBackup,
+    dismissBackup,
+    getCheckoutBackup,
+  } = useCart();
+
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addedUpsellId, setAddedUpsellId] = useState<string | null>(null);
+  const [upsellStockMap, setUpsellStockMap] = useState<Record<string, { quantity: number | null; outOfStock: boolean }>>({});
+  
+  interface ProductVariantOption {
+    id: string;
+    title: string;
+    price: string;
+    availableForSale: boolean;
+    image?: {
+      url: string;
+      altText?: string | null;
+    } | null;
+  }
+  const [productVariantsMap, setProductVariantsMap] = useState<Record<string, ProductVariantOption[]>>({});
   const { user } = useAuth();
-
   const [backup, setBackup] = useState<any>(null);
 
   // Initialize backup safely on client mount to prevent hydration mismatch
@@ -40,6 +128,27 @@ export default function CartPage() {
       setBackup(getCheckoutBackup());
     }
   }, [itemCount, getCheckoutBackup]);
+
+  // Non-blocking background live stock guard for upsell candidates
+  useEffect(() => {
+    UPSELL_CANDIDATES.forEach((candidate) => {
+      fetch(`/api/stock?variantId=${encodeURIComponent(candidate.variantId)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            const outOfStock = data.currentlyNotInStock === true || data.quantityAvailable === 0;
+            setUpsellStockMap((prev) => ({
+              ...prev,
+              [candidate.variantId]: {
+                quantity: data.quantityAvailable ?? null,
+                outOfStock,
+              },
+            }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, []);
 
   const handleDismissBackup = () => {
     dismissBackup();
@@ -56,7 +165,6 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
 
-
   // Fetch available coupons for logged-in users
   useEffect(() => {
     if (!user?.email) return;
@@ -72,6 +180,75 @@ export default function CartPage() {
       .catch(() => {})
       .finally(() => setCouponLoading(false));
   }, [user?.email]);
+
+  // Fetch product variants for multi-variant items in cart
+  useEffect(() => {
+    const multiVariantHandles = Array.from(
+      new Set(
+        items
+          .filter((item) => item.variantTitle && item.variantTitle !== "Default Title")
+          .map((item) => item.productHandle)
+      )
+    );
+
+    multiVariantHandles.forEach((handle) => {
+      if (productVariantsMap[handle]) return;
+
+      storefrontFetch<{
+        product?: {
+          variants?: {
+            edges: Array<{
+              node: {
+                id: string;
+                title: string;
+                availableForSale: boolean;
+                price: { amount: string };
+                image?: { url: string; altText?: string } | null;
+              };
+            }>;
+          };
+        };
+      }>(GET_PRODUCT_BY_HANDLE, { handle })
+        .then((res) => {
+          const variantNodes =
+            res.product?.variants?.edges?.map((e) => ({
+              id: e.node.id,
+              title: e.node.title,
+              price: parseFloat(e.node.price.amount).toFixed(2),
+              availableForSale: e.node.availableForSale,
+              image: e.node.image,
+            })) || [];
+
+          if (variantNodes.length > 0) {
+            setProductVariantsMap((prev) => ({
+              ...prev,
+              [handle]: variantNodes,
+            }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, [items, productVariantsMap]);
+
+  const handleOptionChange = (item: CartItem, newVariantId: string) => {
+    const variants = productVariantsMap[item.productHandle];
+    const targetVariant = variants?.find((v) => v.id === newVariantId);
+    if (!targetVariant || !targetVariant.availableForSale) return;
+
+    updateItemVariant(item.variantId, {
+      variantId: targetVariant.id,
+      variantTitle: targetVariant.title,
+      price: targetVariant.price,
+      image: targetVariant.image
+        ? {
+            url: targetVariant.image.url,
+            altText: targetVariant.image.altText || item.title,
+            width: 500,
+            height: 500,
+          }
+        : item.image,
+    });
+  };
 
   async function handleCheckout() {
     if (items.length === 0) return;
@@ -112,6 +289,79 @@ export default function CartPage() {
     }
   }
 
+  // Dynamic Contextual Matching: Sort candidates based on current cart items
+  const hasBagInCart = items.some(
+    (i) =>
+      i.productHandle.includes("bag") ||
+      i.productHandle.includes("pouch") ||
+      i.productHandle.includes("tote")
+  );
+  const hasWalletInCart = items.some(
+    (i) =>
+      i.productHandle.includes("wallet") ||
+      i.productHandle.includes("case") ||
+      i.productHandle.includes("hopae")
+  );
+  const hasFabricInCart = items.some(
+    (i) =>
+      i.productHandle.includes("fabric") ||
+      i.productHandle.includes("knot") ||
+      i.productHandle.includes("coaster")
+  );
+
+  const contextualCandidates = [...UPSELL_CANDIDATES].sort((a, b) => {
+    if (hasBagInCart) {
+      if (a.productHandle === "dancheong-tassel-keyring") return -1;
+      if (b.productHandle === "dancheong-tassel-keyring") return 1;
+      if (a.productHandle === "chrysanthemum-knot-daenggi-keyring") return -1;
+      if (b.productHandle === "chrysanthemum-knot-daenggi-keyring") return 1;
+    } else if (hasWalletInCart) {
+      if (a.productHandle === "gat-mother-of-pearl-keyring") return -1;
+      if (b.productHandle === "gat-mother-of-pearl-keyring") return 1;
+      if (a.productHandle === "dancheong-tassel-keyring") return -1;
+      if (b.productHandle === "dancheong-tassel-keyring") return 1;
+    } else if (hasFabricInCart) {
+      if (a.productHandle === "gat-mother-of-pearl-keyring") return -1;
+      if (b.productHandle === "gat-mother-of-pearl-keyring") return 1;
+      if (a.productHandle === "joseon-peony-pattern-card-wallet") return -1;
+      if (b.productHandle === "joseon-peony-pattern-card-wallet") return 1;
+    }
+    return 0;
+  });
+
+  // Filter out upsells already present in the cart AND out-of-stock items (Live Guard)
+  const availableUpsells = contextualCandidates.filter(
+    (candidate) =>
+      !items.some(
+        (item) =>
+          item.variantId === candidate.variantId ||
+          item.productHandle === candidate.productHandle
+      ) &&
+      upsellStockMap[candidate.variantId]?.outOfStock !== true
+  );
+
+  const handleAddUpsell = (upsell: (typeof UPSELL_CANDIDATES)[0]) => {
+    if (addedUpsellId) return; // Prevent double-click debounce
+    setAddedUpsellId(upsell.variantId);
+
+    const liveStockLimit = upsellStockMap[upsell.variantId]?.quantity ?? undefined;
+
+    addToCart({
+      variantId: upsell.variantId,
+      productHandle: upsell.productHandle,
+      title: upsell.title,
+      variantTitle: upsell.variantTitle,
+      price: upsell.price,
+      quantity: 1,
+      image: upsell.image,
+      stockLimit: liveStockLimit,
+    });
+
+    setTimeout(() => {
+      setAddedUpsellId(null);
+    }, 800);
+  };
+
   // Full-screen redirect overlay
   if (isRedirecting) {
     return (
@@ -122,45 +372,48 @@ export default function CartPage() {
             Redirecting to Secure Checkout
           </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Please wait while we connect you to our payment partner...
+            Please wait while we connect you to our encrypted payment gateway...
           </p>
-          <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-3 border-[#C25E38] border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       </div>
     );
   }
 
+  // Empty cart state
   if (itemCount === 0) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center">
-        <div className="text-center px-4">
+      <div className="pt-20 min-h-screen flex items-center justify-center bg-[#FAF9F6]">
+        <div className="text-center px-4 max-w-md mx-auto">
           <div className="text-6xl mb-6">🛒</div>
-          <h1 className="heading-md text-dark mb-3">Your Blank Seoul Box is Waiting!</h1>
-          <p className="text-text-muted mb-8">
-            Looks like you haven&apos;t added any K-Culture items yet!
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] mb-3" style={{ fontFamily: "var(--font-heading)" }}>
+            Your Blank Seoul Box is Waiting!
+          </h1>
+          <p className="text-sm text-[#71717A] mb-8 leading-relaxed">
+            Looks like you haven&apos;t added any authentic Korean treasures to your collection yet.
           </p>
 
           {/* Checkout restore banner */}
           {backup && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 max-w-sm mx-auto">
-              <p className="text-sm font-semibold text-amber-900 mb-1">
+            <div className="bg-[#FDF9F3] border border-[#E8DFC8] rounded-2xl p-5 mb-8 text-left shadow-xs">
+              <p className="text-sm font-bold text-[#18181B] mb-1">
                 Didn&apos;t complete your purchase?
               </p>
-              <p className="text-xs text-amber-700 mb-4">
+              <p className="text-xs text-[#71717A] mb-4">
                 Your previous cart ({backup.items.length} {backup.items.length === 1 ? "item" : "items"}) is saved.
               </p>
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={restoreFromBackup}
-                  className="text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500
-                    text-white px-4 py-2 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all"
+                  className="flex-1 text-xs font-bold bg-[#C25E38] text-white px-4 py-2.5 rounded-xl hover:bg-[#A74B28] transition-all shadow-xs"
                 >
-                  Restore My Cart
+                  Restore My Cart ⚡
                 </button>
                 <button
+                  type="button"
                   onClick={handleDismissBackup}
-                  className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl
-                    border border-gray-200 hover:bg-gray-50 transition-all"
+                  className="text-xs font-medium text-[#71717A] hover:text-[#18181B] px-4 py-2.5 rounded-xl border border-[#E8DFC8] hover:bg-white transition-all"
                 >
                   No Thanks
                 </button>
@@ -168,7 +421,7 @@ export default function CartPage() {
             </div>
           )}
 
-          <Link href="/" className="btn-primary">
+          <Link href="/" className="btn-primary inline-flex items-center gap-2 text-sm font-bold py-3.5 px-8">
             Yes, Build My Blank Seoul Box! →
           </Link>
         </div>
@@ -176,8 +429,18 @@ export default function CartPage() {
     );
   }
 
+  // Calculate discount when coupon is applied
+  let discountAmount = 0;
+  if (appliedCoupon && availableCoupon) {
+    const match = availableCoupon.discountLabel.match(/(\d+)%/);
+    if (match) {
+      discountAmount = subtotal * (parseInt(match[1]) / 100);
+    }
+  }
+  const finalTotal = subtotal - discountAmount;
+
   return (
-    <div className="min-h-screen pb-24 md:pb-12 bg-[#faf9f6]">
+    <div className="min-h-screen pb-24 md:pb-16 bg-[#FAF9F6]">
       {/* Walled Garden Layout CSS override */}
       <style dangerouslySetInnerHTML={{ __html: `
         header, footer {
@@ -185,34 +448,27 @@ export default function CartPage() {
         }
         body {
           padding-top: 0 !important;
-          background-color: #faf9f6 !important;
+          background-color: #FAF9F6 !important;
         }
       `}} />
 
-      {/* Simplified Secure Checkout Header */}
-      <div className="bg-white border-b border-gray-200/60 py-4.5 mb-8 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 grid grid-cols-3 items-center">
-          {/* Col 1: Left-aligned Back Link */}
+      {/* ── 1. Walled Garden Minimalist Header ── */}
+      <div className="bg-white border-b border-[#E8DFC8]/60 py-4 mb-6 sm:mb-8 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 grid grid-cols-3 items-center">
+          {/* Col 1: Left Back Link */}
           <div className="justify-self-start">
             <Link
               href="/"
-              className="text-xs font-semibold text-text-light hover:text-primary transition-colors flex items-center gap-1.5"
+              className="text-xs font-bold text-[#71717A] hover:text-[#C25E38] transition-colors flex items-center gap-1.5"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M19 12H5M12 5l-7 7 7 7" />
               </svg>
               Back to Shop
             </Link>
           </div>
 
-          {/* Col 2: Centered Brand Logo matching main Header */}
+          {/* Col 2: Centered Brand Logo */}
           <div className="justify-self-center">
             <Link href="/" className="flex items-center gap-1">
               <span
@@ -220,476 +476,418 @@ export default function CartPage() {
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 <span className="gradient-text">Blank</span>
-                <span className="text-dark"> Seoul</span>
+                <span className="text-[#18181B]"> Seoul</span>
               </span>
             </Link>
           </div>
 
-          {/* Col 3: Right-aligned Secure Checkout Badge */}
+          {/* Col 3: Right Secure Badge */}
           <div className="justify-self-end">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50/80 px-3 py-1 rounded-full border border-green-200/50">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#2E7D32] bg-[#E8F5E9] px-3 py-1 rounded-full border border-[#C8E6C9]">
               <span>🔒</span> Secure Checkout
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3-Step Stepper */}
-      <div className="max-w-3xl mx-auto px-4 mb-8">
-        <div className="flex items-center justify-between text-xs font-semibold text-text-muted select-none">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-primary font-bold">
-            <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px]">1</span>
+      {/* ── 2. 3-Step Checkout Stepper ── */}
+      <div className="max-w-4xl mx-auto px-4 mb-6 sm:mb-8">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#71717A] select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[#C25E38] font-bold">
+            <span className="w-5 h-5 rounded-full bg-[#C25E38] text-white flex items-center justify-center text-[10px]">1</span>
             <span className="hidden sm:inline">Review Cart</span>
           </div>
-          <div className="flex-1 h-[2px] bg-gray-200/60 mx-2 sm:mx-4" />
-          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400">
-            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">2</span>
+          <div className="flex-1 h-[2px] bg-[#E8DFC8]/70 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[#A1A1AA]">
+            <span className="w-5 h-5 rounded-full bg-[#F4EFE6] text-[#71717A] flex items-center justify-center text-[10px] border border-[#E8DFC8]">2</span>
             <span className="hidden sm:inline">Shipping Info</span>
           </div>
-          <div className="flex-1 h-[2px] bg-gray-200/60 mx-2 sm:mx-4" />
-          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400">
-            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">3</span>
+          <div className="flex-1 h-[2px] bg-[#E8DFC8]/70 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[#A1A1AA]">
+            <span className="w-5 h-5 rounded-full bg-[#F4EFE6] text-[#71717A] flex items-center justify-center text-[10px] border border-[#E8DFC8]">3</span>
             <span className="hidden sm:inline">Secure Payment</span>
           </div>
         </div>
       </div>
 
-      <div className="section pt-0">
-        <div className="section-inner max-w-3xl">
-          <h1 className="heading-lg text-dark mb-2">
-            Your Cart
-          </h1>
-          <p className="text-text-muted mb-6">
-            {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
-          </p>
+      {/* ── 3. Main 2-Column Responsive Layout ── */}
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-          {/* Cart Items */}
-          <div className="space-y-4 mb-6">
-            {items.map((item) => {
-              const lineTotal = (
-                parseFloat(item.price) * item.quantity
-              ).toFixed(2);
+          {/* ════════ LEFT COLUMN: Cart Items & In-Cart Upsells (7 Cols) ════════ */}
+          <div className="lg:col-span-7 xl:col-span-7 space-y-6">
 
-              return (
-                <div
-                  key={item.variantId}
-                  className="flex gap-4 p-4 bg-white rounded-xl border border-border-light"
-                >
-                  <div className="w-20 h-20 rounded-lg bg-surface-dim overflow-hidden flex-shrink-0 relative">
-                    {item.image?.url && item.image.url.trim() !== "" ? (
-                      <Image
-                        src={item.image.url}
-                        alt={item.image.altText || item.title}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-2xl">
-                        📦
+            {/* Cart Items Card Container */}
+            <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 sm:p-6 shadow-2xs">
+              <div className="flex items-baseline justify-between mb-4 pb-3 border-b border-[#E8DFC8]/50">
+                <h1 className="text-lg sm:text-xl font-extrabold text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+                  Your Selected Treasures
+                </h1>
+                <span className="text-xs font-semibold text-[#71717A]">
+                  {itemCount} {itemCount === 1 ? "item" : "items"}
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="divide-y divide-[#E8DFC8]/40">
+                {items.map((item) => {
+                  const lineTotal = (parseFloat(item.price) * item.quantity).toFixed(2);
+
+                  return (
+                    <div key={item.variantId} className="py-4 first:pt-0 last:pb-0 flex gap-4 items-center">
+                      {/* Product Thumbnail */}
+                      <div className="w-20 h-20 rounded-xl bg-[#FAF9F6] border border-[#E8DFC8]/60 overflow-hidden shrink-0 relative">
+                        {item.image?.url && item.image.url.trim() !== "" ? (
+                          <Image
+                            src={item.image.url}
+                            alt={item.image.altText || item.title}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-2xl">
+                            📦
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h3
-                      className="text-sm font-bold text-dark truncate"
-                      style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                      {item.title}
-                    </h3>
-                    {item.variantTitle !== "Default Title" && (
-                      <p className="text-xs text-text-muted">
-                        {item.variantTitle}
-                      </p>
-                    )}
-                    <p className="text-sm font-semibold text-dark mt-1">
-                      ${lineTotal}
-                      {item.quantity > 1 && (
-                        <span className="text-xs text-text-muted font-normal ml-1">
-                          (${item.price} each)
-                        </span>
-                      )}
-                    </p>
-                  </div>
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/product/${item.productHandle}`}
+                          className="text-sm font-bold text-[#18181B] hover:text-[#C25E38] transition-colors truncate block"
+                          style={{ fontFamily: "var(--font-heading)" }}
+                        >
+                          {item.title}
+                        </Link>
+                        {item.variantTitle && item.variantTitle !== "Default Title" && (
+                          <div className="flex items-center gap-1.5 mt-1 text-xs text-[#71717A]">
+                            <span className="shrink-0 font-medium">Option:</span>
+                            {productVariantsMap[item.productHandle] && productVariantsMap[item.productHandle].length > 1 ? (
+                              <select
+                                value={item.variantId}
+                                onChange={(e) => handleOptionChange(item, e.target.value)}
+                                className="text-xs font-semibold text-[#18181B] bg-[#FAF9F6] border border-[#E8DFC8] rounded-lg px-2 py-0.5 hover:border-[#18181B] focus:border-[#18181B] transition-colors cursor-pointer outline-none shadow-2xs max-w-[200px] truncate"
+                                aria-label="Change variant option"
+                              >
+                                {productVariantsMap[item.productHandle].map((v) => (
+                                  <option key={v.id} value={v.id} disabled={!v.availableForSale}>
+                                    {v.title} (${v.price}) {!v.availableForSale ? "— Sold Out" : ""}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span className="font-semibold text-[#3F3F46]">
+                                {item.variantTitle}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-sm font-extrabold text-[#18181B] mt-1">
+                          ${lineTotal}
+                          {item.quantity > 1 && (
+                            <span className="text-xs text-[#71717A] font-normal ml-1.5">
+                              (${item.price} each)
+                            </span>
+                          )}
+                        </p>
+                      </div>
 
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-2">
+                      {/* Quantity Selector */}
+                      <div className="flex flex-col items-center shrink-0">
+                        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#FAF9F6] border border-[#E8DFC8]">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                            className="w-7 h-7 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] transition-colors text-xs font-bold text-[#18181B] shadow-2xs"
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span className="text-xs font-bold w-6 text-center text-[#18181B]">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                            disabled={item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit}
+                            className="w-7 h-7 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] transition-colors text-xs font-bold text-[#18181B] shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit && (
+                          <span className="text-[9px] text-amber-600 font-semibold mt-1 select-none whitespace-nowrap">
+                            Max stock ({item.stockLimit} left)
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Remove Button */}
                       <button
-                        onClick={() =>
-                          updateQuantity(item.variantId, item.quantity - 1)
-                        }
-                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm"
-                        aria-label="Decrease quantity"
+                        type="button"
+                        onClick={() => removeFromCart(item.variantId)}
+                        className="text-[#A1A1AA] hover:text-red-500 transition-colors p-1 shrink-0"
+                        aria-label="Remove item"
                       >
-                        −
-                      </button>
-                      <span className="text-sm font-medium w-6 text-center">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.variantId, item.quantity + 1)
-                        }
-                        disabled={item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit}
-                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-primary transition-colors text-sm disabled:opacity-30 disabled:border-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed disabled:pointer-events-none"
-                        aria-label="Increase quantity"
-                      >
-                        +
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
                       </button>
                     </div>
-                    {item.stockLimit !== undefined && item.stockLimit !== null && item.quantity >= item.stockLimit && (
-                      <span className="text-[9px] text-amber-600 font-semibold mt-1 select-none whitespace-nowrap animate-pulse">
-                        Max stock reached ({item.stockLimit} left)
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => removeFromCart(item.variantId)}
-                    className="text-text-light hover:text-red-500 transition-colors self-start"
-                    aria-label="Remove item"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-
-
-          {/* Upsell Placeholder — activate when more products are added */}
-          {/* 
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center gap-4">
-            <span className="text-3xl">🌶️</span>
-            <div className="flex-1">
-              <p className="font-semibold text-sm text-gray-900">Add Spicy Ramen Pack?</p>
-              <p className="text-xs text-gray-600">Only $8.00 — pairs perfectly with your Blank Seoul Box!</p>
-            </div>
-            <button className="text-xs font-semibold text-orange-600 bg-white border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-50">
-              + Add
-            </button>
-          </div>
-          */}
-
-          {/* Coupon Banner */}
-          {!couponLoading && availableCoupon && !appliedCoupon && (
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-5 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🎫</span>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">
-                      You have a {availableCoupon.discountLabel} coupon!
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Code: <code className="font-semibold">{availableCoupon.code}</code>
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setAppliedCoupon(availableCoupon.code)}
-                  className="text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 
-                    hover:from-orange-600 hover:to-red-600 px-4 py-2 rounded-xl transition-all shadow-sm"
-                >
-                  Yes, Apply My Coupon! 🎉
-                </button>
+                  );
+                })}
               </div>
             </div>
-          )}
 
-          {/* Applied Coupon */}
-          {appliedCoupon && (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">✅</span>
-                  <span className="text-sm font-semibold text-green-800">
-                    {availableCoupon?.discountLabel} coupon applied!
-                  </span>
-                  <code className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">
-                    {appliedCoupon}
-                  </code>
+            {/* ── 4. 1-Click In-Cart Order Bump (Smart Filtered) ── */}
+            {availableUpsells.length > 0 && (
+              <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 shadow-2xs">
+                <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-[#E8DFC8]/50">
+                  <span className="text-base">✨</span>
+                  <div>
+                    <h2 className="text-xs sm:text-sm font-bold text-[#18181B] uppercase tracking-wider">
+                      Complete Your Seoul Box
+                    </h2>
+                    <p className="text-[11px] text-[#71717A]">
+                      Popular companion treasures handcrafted in Seoul — 1-click addition.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {availableUpsells.slice(0, 2).map((upsell) => (
+                    <div
+                      key={upsell.variantId}
+                      className="p-3 rounded-xl bg-[#FDF9F3]/60 border border-[#E8DFC8] flex items-center justify-between gap-3 hover:bg-[#FDF9F3] transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-white border border-[#E8DFC8] overflow-hidden shrink-0 relative">
+                          <Image
+                            src={upsell.image.url}
+                            alt={upsell.title}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#18181B] truncate">
+                            {upsell.title}
+                          </p>
+                          <p className="text-xs font-extrabold text-[#C25E38] mt-0.5">
+                            ${upsell.price}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddUpsell(upsell)}
+                        disabled={Boolean(addedUpsellId)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs shrink-0 whitespace-nowrap cursor-pointer ${
+                          addedUpsellId === upsell.variantId
+                            ? "bg-[#2E7D32] text-white border border-[#2E7D32] scale-105"
+                            : "bg-white border border-[#C25E38] text-[#C25E38] hover:bg-[#C25E38] hover:text-white"
+                        }`}
+                      >
+                        {addedUpsellId === upsell.variantId ? "✓ Added!" : "+ Add"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── 5. Coupon Section ── */}
+            {!couponLoading && availableCoupon && !appliedCoupon && (
+              <div className="bg-[#FDF9F3] border border-[#E8DFC8] rounded-2xl p-4 sm:p-5 shadow-2xs">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎫</span>
+                    <div>
+                      <p className="text-xs sm:text-sm font-bold text-[#18181B]">
+                        You have a {availableCoupon.discountLabel} discount coupon!
+                      </p>
+                      <p className="text-[11px] text-[#71717A]">
+                        Code: <code className="font-bold text-[#C25E38]">{availableCoupon.code}</code>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAppliedCoupon(availableCoupon.code)}
+                    className="text-xs font-bold text-white bg-[#C25E38] hover:bg-[#A74B28] px-4 py-2 rounded-xl transition-all shadow-xs"
+                  >
+                    Apply Coupon 🎉
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {appliedCoupon && (
+              <div className="bg-[#E8F5E9]/80 border border-[#C8E6C9] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">✅</span>
+                  <div>
+                    <span className="text-xs font-bold text-[#1B5E20]">
+                      {availableCoupon?.discountLabel} coupon applied!
+                    </span>
+                    <span className="text-[10px] font-bold text-[#2E7D32] bg-white px-2 py-0.5 rounded border border-[#C8E6C9] ml-2">
+                      {appliedCoupon}
+                    </span>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setAppliedCoupon(null)}
-                  className="text-xs text-gray-500 hover:text-red-500 font-medium transition-colors"
+                  className="text-xs text-[#71717A] hover:text-red-500 font-bold transition-colors"
                 >
                   Remove
                 </button>
               </div>
-              <p className="text-xs text-green-600 mt-1 ml-7">
-                Discount will be applied at checkout
-              </p>
-            </div>
-          )}
+            )}
 
-
-
-          {/* Value Propositions / Guarantees */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
-              Your Order Guarantees
-            </h3>
-            <div className="space-y-5">
-              {/* Free Shipping */}
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">We Cover Your Shipping</p>
-                  <p className="text-xs text-gray-500">Your order ships for free — tracked all the way to your door.</p>
-                </div>
-              </div>
-
-              {/* Free Cancellation */}
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Zero Risk, Guaranteed</p>
-                  <p className="text-xs text-gray-500">Not 100% sure? No problem — cancel it yourself in one click within {CANCEL_WINDOW_HOURS} hours.</p>
-                </div>
-              </div>
-
-              {/* Authenticity */}
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">You Can&#39;t Get This Anywhere Else</p>
-                  <p className="text-xs text-gray-500">Every piece is handmade by Korean artisans — shipped only from Seoul.</p>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Checkout Objection FAQ */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
-              Frequently Asked Questions
-            </h3>
-            <div className="space-y-4">
-              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
-                  <span>When will my order ship and arrive?</span>
-                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
-                </summary>
-                <p className="text-xs text-text-muted mt-2 leading-relaxed">
-                  All orders are securely packaged and shipped directly from Seoul within 1-2 business days. Delivery via Tracked Air Mail takes 7-14 business days globally, with full live tracking.
-                </p>
-              </details>
+          {/* ════════ RIGHT COLUMN: Sticky Order Summary & Checkout (5 Cols) ════════ */}
+          <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24 space-y-4">
+            <div className="bg-white border border-[#E8DFC8]/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+              <h2 className="text-base font-extrabold text-[#18181B] pb-3 border-b border-[#E8DFC8]/50" style={{ fontFamily: "var(--font-heading)" }}>
+                Order Summary
+              </h2>
 
-              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer border-t border-gray-100 pt-4">
-                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
-                  <span>How do I cancel my order?</span>
-                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
-                </summary>
-                <p className="text-xs text-text-muted mt-2 leading-relaxed">
-                  You have a {CANCEL_WINDOW_HOURS}-hour grace period to cancel your order directly from your confirmation page in a single click — no customer support emails needed.
-                </p>
-              </details>
+              {/* Price Breakdown */}
+              <div className="space-y-2.5 text-xs text-[#52525B]">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-[#18181B]">${subtotal.toFixed(2)}</span>
+                </div>
 
-              <details className="group [&_summary::-webkit-details-marker]:hidden cursor-pointer border-t border-gray-100 pt-4">
-                <summary className="flex items-center justify-between text-sm font-semibold text-gray-900 group-open:text-primary transition-colors">
-                  <span>Are these authentic artisan goods?</span>
-                  <span className="transition-transform group-open:-rotate-180 text-xs text-text-light">▼</span>
-                </summary>
-                <p className="text-xs text-text-muted mt-2 leading-relaxed">
-                  Yes. We source directly from independent Korean designers and artisans in Seoul. Every piece represents genuine Korean heritage and craftsmanship.
-                </p>
-              </details>
-            </div>
-          </div>
-
-          {/* Summary */}
-          {(() => {
-            // Calculate discount when coupon is applied
-            let discountAmount = 0;
-            if (appliedCoupon && availableCoupon) {
-              const match = availableCoupon.discountLabel.match(/(\d+)%/);
-              if (match) {
-                discountAmount = subtotal * (parseInt(match[1]) / 100);
-              }
-            }
-            const total = subtotal - discountAmount;
-
-            return (
-              <div className="bg-surface-dim rounded-2xl p-6 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Subtotal</span>
-                  <span className="font-semibold text-dark">
-                    ${subtotal.toFixed(2)}
+                <div className="flex justify-between items-center">
+                  <span>Shipping</span>
+                  <span className="font-bold text-[#2E7D32] bg-[#E8F5E9] px-2 py-0.5 rounded text-[11px]">
+                    FREE
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Shipping</span>
-                  <span className="font-semibold text-green-600">FREE</span>
-                </div>
+
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-600 font-medium">
-                      🎫 {availableCoupon?.discountLabel} Discount
-                    </span>
-                    <span className="font-semibold text-green-600">
-                      -${discountAmount.toFixed(2)}
-                    </span>
+                  <div className="flex justify-between text-[#2E7D32]">
+                    <span className="font-medium">🎫 {availableCoupon?.discountLabel} Discount</span>
+                    <span className="font-bold">-${discountAmount.toFixed(2)}</span>
                   </div>
-                )}
-                <div className="border-t border-border pt-4 flex justify-between">
-                  <span
-                    className="text-base font-bold text-dark"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    Total
-                  </span>
-                  <div className="text-right">
-                    {discountAmount > 0 && (
-                      <span className="text-sm text-text-muted line-through mr-2">
-                        ${subtotal.toFixed(2)}
-                      </span>
-                    )}
-                    <span
-                      className={`text-xl font-extrabold ${discountAmount > 0 ? "text-green-600" : "text-dark"}`}
-                      style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                      ${total.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleCheckout}
-                  disabled={loading}
-                  className={`btn-primary w-full text-base py-4 mt-2 ${loading ? "opacity-70 cursor-wait" : ""
-                    }`}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg
-                        className="animate-spin h-5 w-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      Redirecting to checkout...
-                    </span>
-                  ) : (
-                    "Yes! Send Me The Blank Seoul Box! 🚀"
-                  )}
-                </button>
-
-                {error && (
-                  <p className="text-sm text-red-500 text-center">{error}</p>
-                )}
-
-                {/* Trust Badges */}
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>🔒</span> Secure Shopify Checkout
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>🔄</span> Free Cancellation before shipment
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>📦</span> Free Tracked Air Shipping
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                    <span>🇰🇷</span> Handcrafted in Korea
-                  </div>
-                </div>
-
-                {user?.email && (
-                  <p className="text-xs text-text-muted/70">
-                    💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
-                  </p>
                 )}
               </div>
-            );
-          })()}
 
-          <div className="text-center mt-6">
-            <Link
-              href="/"
-              className="text-sm font-medium text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+              {/* Final Total */}
+              <div className="border-t border-[#E8DFC8]/60 pt-3.5 flex justify-between items-baseline">
+                <div>
+                  <span className="text-sm font-extrabold text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+                    Total (USD)
+                  </span>
+                  <p className="text-[10px] text-[#71717A]">Taxes and shipping included</p>
+                </div>
+                <div className="text-right">
+                  {discountAmount > 0 && (
+                    <span className="text-xs text-[#71717A] line-through mr-2">
+                      ${subtotal.toFixed(2)}
+                    </span>
+                  )}
+                  <span className="text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+                    ${finalTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* ── ⚡ Zero Risk, Guaranteed Gold Card (Russell Brunson CRO Hero) ── */}
+              <div className="p-3.5 rounded-xl bg-[#FDF9F3] border border-[#E8DFC8] flex items-start gap-2.5 text-xs shadow-2xs">
+                <span className="text-base shrink-0 mt-0.5">⚡</span>
+                <div className="leading-relaxed">
+                  <p className="font-bold text-[#18181B]">Zero Risk, Guaranteed</p>
+                  <p className="text-[#71717A] text-[11px] mt-0.5">
+                    Not 100% sure? Cancel yourself in 1 click within {CANCEL_WINDOW_HOURS} hours directly from your order page.
+                  </p>
+                </div>
+              </div>
+
+              {/* Main Checkout CTA Button */}
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={loading}
+                className={`btn-primary w-full text-sm sm:text-base font-bold py-4 shadow-md transition-all cursor-pointer ${
+                  loading ? "opacity-70 cursor-wait" : "hover:shadow-lg hover:scale-[1.01]"
+                }`}
               >
-                <path d="M19 12H5M12 5l-7 7 7 7" />
-              </svg>
-              Continue Shopping
-            </Link>
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Connecting to Checkout...
+                  </span>
+                ) : (
+                  "Yes! Send Me The Blank Seoul Box! 🚀"
+                )}
+              </button>
+
+              {error && (
+                <p className="text-xs text-red-500 text-center font-medium bg-red-50 p-2 rounded-lg border border-red-200">
+                  {error}
+                </p>
+              )}
+
+              {/* ── 1-Line Micro Trust Bar ── */}
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[11px] text-[#71717A] font-medium border-t border-[#E8DFC8]/40">
+                <span className="flex items-center gap-1">🔒 256-Bit SSL</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">✈️ Tracked Express</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">🛡️ 30-Day Returns</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">🇰🇷 Made in Korea</span>
+              </div>
+            </div>
+
+            {/* Continue Shopping Link */}
+            <div className="text-center pt-1">
+              <Link
+                href="/"
+                className="text-xs font-bold text-[#71717A] hover:text-[#C25E38] transition-colors inline-flex items-center gap-1"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 5l-7 7 7 7" />
+                </svg>
+                Continue Exploring Curations
+              </Link>
+            </div>
           </div>
+
         </div>
       </div>
 
-      {/* Mobile Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
-        <div className="flex items-center justify-between gap-4">
+      {/* ── Mobile Fixed Floating Checkout Bottom Bar ── */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#E8DFC8] p-3.5 sm:p-4 lg:hidden z-40 shadow-xl">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-text-muted">Total</p>
-            {(() => {
-              let discount = 0;
-              if (appliedCoupon && availableCoupon) {
-                const m = availableCoupon.discountLabel.match(/(\d+)%/);
-                if (m) discount = subtotal * (parseInt(m[1]) / 100);
-              }
-              return (
-                <p
-                  className={`text-lg font-extrabold ${discount > 0 ? "text-green-600" : "text-dark"}`}
-                  style={{ fontFamily: "var(--font-heading)" }}
-                >
-                  ${(subtotal - discount).toFixed(2)}
-                </p>
-              );
-            })()}
+            <p className="text-[10px] text-[#71717A] uppercase font-bold tracking-wider">Total</p>
+            <p className="text-lg font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+              ${finalTotal.toFixed(2)}
+            </p>
           </div>
           <button
+            type="button"
             onClick={handleCheckout}
             disabled={loading}
-            className={`btn-primary flex-1 py-3.5 text-base ${loading ? "opacity-70 cursor-wait" : ""
-              }`}
+            className={`btn-primary flex-1 py-3 text-sm font-bold shadow-md cursor-pointer ${
+              loading ? "opacity-70 cursor-wait" : ""
+            }`}
           >
-            {loading ? "Processing..." : "Send My Blank Seoul Box 🚀"}
+            {loading ? "Processing..." : "Send My Box 🚀"}
           </button>
         </div>
       </div>

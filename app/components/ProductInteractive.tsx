@@ -8,6 +8,8 @@ import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
 import ProductGallery from "./ProductGallery";
 import AddToCartSection from "./AddToCartSection";
 import MobileStickyBottomBar from "./MobileStickyBottomBar";
+import ProductViewsBadge from "./ProductViewsBadge";
+import ProductTrustAccordions from "./ProductTrustAccordions";
 
 interface ProductInteractiveProps {
   product: ShopifyProduct;
@@ -98,11 +100,12 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
       return 0;
     });
 
-  // State for selected option values
+  // State for selected option values (defaults to the first IN-STOCK variant to optimize CRO!)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaultOptions: Record<string, string> = {};
-    const firstVariant = product.variants.edges[0]?.node;
-    firstVariant?.selectedOptions.forEach((opt) => {
+    const inStockVariant = product.variants.edges.find((e) => e.node.availableForSale)?.node;
+    const targetVariant = inStockVariant || product.variants.edges[0]?.node;
+    targetVariant?.selectedOptions.forEach((opt) => {
       defaultOptions[opt.name] = opt.value;
     });
     return defaultOptions;
@@ -157,14 +160,27 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
     }
   };
 
+  // 2026 Gold Standard Matrix Availability Logic
   const isOptionValueSoldOut = (optionName: string, value: string) => {
+    const isFirstOption = allOptions.length > 0 && allOptions[0].name === optionName;
+
+    // For 1st option (e.g. Color), it is ONLY sold out if ALL variants with this color are out of stock
+    if (isFirstOption && allOptions.length > 1) {
+      const variantsWithThisValue = product.variants.edges.filter((edge) =>
+        edge.node.selectedOptions.some((opt) => opt.name === optionName && opt.value === value)
+      );
+      if (variantsWithThisValue.length === 0) return true;
+      return variantsWithThisValue.every((edge) => !edge.node.availableForSale);
+    }
+
+    // For 2nd+ option (e.g. Size), check availability with the currently selected options
     const queryOptions = { ...selectedOptions, [optionName]: value };
     const matchingVariant = product.variants.edges.find((edge) => {
       return edge.node.selectedOptions.every(
         (opt) => queryOptions[opt.name] === opt.value
       );
     })?.node;
-    
+
     return matchingVariant ? !matchingVariant.availableForSale : true;
   };
 
@@ -180,70 +196,48 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
         />
 
         {/* Product Info (Sticky Sidebar on Desktop) */}
-        <div ref={buyBoxRef} className="flex flex-col gap-6 lg:pt-4 lg:sticky lg:top-28 lg:self-start">
-          {selectedVariant?.availableForSale && (
-            <div className="inline-flex self-start items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold uppercase tracking-wider">
-              <span className="w-2 h-2 bg-slate-500 rounded-full" />
-              {product.tags.includes("limited") ? "Low Stock" : "Made to Order"}
-            </div>
-          )}
+        <div ref={buyBoxRef} className="flex flex-col gap-5 lg:pt-2 lg:sticky lg:top-28 lg:self-start">
+          {/* 1. Product Title */}
+          <h1
+            className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#18181B] tracking-tight leading-tight"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            {product.title}
+          </h1>
 
-          {/* Artist / Maker Attribution */}
-          {product.vendor && (
-            <Link
-              href={`/artists/${getArtistSlug(product.vendor)}`}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C25E38] hover:text-[#A74B28] transition-colors self-start group/vendor"
-            >
-              <span>🏛️</span> Handcrafted by <span className="underline group-hover/vendor:text-[#A74B28]">{artistDisplayName}</span> ›
-            </Link>
-          )}
-
-          <h1 className="heading-lg text-dark">{product.title}</h1>
-
-          {/* Price */}
-          <div className="flex items-baseline gap-3">
-            <span
-              className="text-4xl font-extrabold text-dark"
-              style={{ fontFamily: "var(--font-heading)" }}
-            >
-              {formatPrice(price, currency)}
-            </span>
-            {compareNum && compareNum > priceNum && (
-              <span className="text-lg text-text-muted line-through">
-                {formatPrice(compareAtPrice!, currency)}
-              </span>
-            )}
-            {discount && (
-              <span className="text-sm font-semibold text-success bg-success/10 px-2 py-0.5 rounded-full">
-                {discount}% OFF
-              </span>
-            )}
-          </div>
-
-          <div
-            className="text-text-muted leading-relaxed prose prose-sm max-w-none [&_.bg-purple-50]:!bg-[#FDF9F3] [&_.border-purple-200]:!border-[#E8DFC8] [&_.text-purple-700]:!text-[#C25E38] [&_.text-purple-600]:!text-[#C25E38] [&_.text-purple-900]:!text-[#18181B]"
-            dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-          />
-
-          {/* Features */}
-          <div className="space-y-2 pt-2">
-            {HIGHLIGHTS.map((feature) => (
-              <div
-                key={feature.text}
-                className="flex items-center gap-3 text-xs sm:text-sm font-semibold text-[#18181B] bg-white p-3 rounded-xl border border-[#E8DFC8]/70 shadow-2xs"
+          {/* 3. Price & Origin Badge */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8DFC8]/70">
+            <div className="flex items-baseline gap-3">
+              <span
+                className="text-3xl sm:text-4xl font-extrabold text-[#18181B]"
+                style={{ fontFamily: "var(--font-heading)" }}
               >
-                <span className="text-base shrink-0">{feature.icon}</span>
-                <span>{feature.text}</span>
-              </div>
-            ))}
+                {formatPrice(price, currency)}
+              </span>
+              {compareNum && compareNum > priceNum && (
+                <span className="text-base sm:text-lg text-text-muted line-through">
+                  {formatPrice(compareAtPrice!, currency)}
+                </span>
+              )}
+              {discount && (
+                <span className="text-xs font-bold text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
+                  {discount}% OFF
+                </span>
+              )}
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDF9F3] border border-[#E8DFC8] text-[11px] font-bold text-[#C25E38] shadow-2xs">
+              <span className="text-xs">🇰🇷</span>
+              <span>Made in Korea · Seoul Origin</span>
+            </div>
           </div>
 
-          {/* Options Selectors */}
+          {/* 4. Options Selectors (Elevated Above the Fold!) */}
           {allOptions.length > 0 && (
-            <div className="space-y-4 pt-6 border-t border-border-light">
+            <div className="space-y-4 pt-1">
               {allOptions.map((option) => (
                 <div key={option.name} className="space-y-2">
-                  <span className="text-xs font-bold text-dark uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-[#18181B] uppercase tracking-wider block">
                     Select {option.name}
                   </span>
                   <div className="flex flex-wrap gap-2">
@@ -261,19 +255,21 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
                             }))
                           }
                           className={`
-                            relative px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 overflow-hidden
-                            ${isSelected
-                              ? "border-primary bg-primary text-white shadow-sm"
-                              : isSoldOut
-                                ? "border-border-light bg-surface-dim/40 text-text-muted opacity-55 cursor-pointer"
-                                : "border-border-light bg-white text-dark hover:border-dark/30"
+                            relative px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 min-h-[40px] select-none
+                            ${
+                              isSelected
+                                ? "bg-[#18181B] text-white shadow-xs"
+                                : isSoldOut
+                                ? "bg-[#F8F5F0] text-[#A1A1AA] border border-[#E8DFC8]/60 hover:border-[#18181B]/40 cursor-pointer"
+                                : "bg-white text-[#18181B] border border-[#E8DFC8] hover:border-[#18181B] shadow-2xs"
                             }
                           `}
                         >
-                          <span>{value}</span>
-                          {isSoldOut && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="w-[140%] h-[1px] bg-text-muted/40 rotate-12" />
+                          <span className={!isSelected && isSoldOut ? "opacity-60" : ""}>{value}</span>
+                          {/* Clean 1px Hairline Strike Line (ONLY on unselected sold out items!) */}
+                          {!isSelected && isSoldOut && (
+                            <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl pointer-events-none">
+                              <div className="w-[140%] h-[1px] bg-[#D4D4D8] rotate-12" />
                             </div>
                           )}
                         </button>
@@ -285,9 +281,9 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
             </div>
           )}
 
-          {/* Add to Cart Section */}
+          {/* 5. Add to Cart Section (Immediate Action Zone) */}
           {selectedVariant?.id && (
-            <div className="pt-6 border-t border-border-light">
+            <div className="pt-2 space-y-3">
               <AddToCartSection
                 variantId={selectedVariant.id}
                 price={price}
@@ -299,8 +295,27 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
                 variantTitle={selectedVariant.title}
                 image={selectedVariant.image || product.images.edges[0]?.node || null}
               />
+
+              {/* 1-Line Compact Micro Trust Bar */}
+              <div className="grid grid-cols-3 gap-2 pt-2 text-[11px] text-[#71717A] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <span>🔒</span>
+                  <span className="font-semibold">Secure Checkout</span>
+                </div>
+                <div className="flex items-center justify-center gap-1 border-x border-[#E8DFC8]/60">
+                  <span>✈️</span>
+                  <span className="font-semibold">Tracked Dispatch</span>
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                  <span>🛡️</span>
+                  <span className="font-semibold">30-Day Returns</span>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* Etsy-Standard 2-Tier Product Trust Accordions */}
+          <ProductTrustAccordions product={product} />
 
 
 

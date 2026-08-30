@@ -190,12 +190,6 @@ export default function BuyButton({
           </div>
         </div>
       )}
-
-      {user?.email && (
-        <p className="text-xs text-text-muted/70 mt-1">
-          💡 Use <span className="font-medium">{user.email}</span> at checkout to track your order
-        </p>
-      )}
     </div>
   );
 }

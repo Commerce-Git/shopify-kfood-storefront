@@ -127,6 +127,7 @@ export default function AddToCartSection({
             variantTitle={variantTitle}
             image={image}
             stockLimit={stockCount}
+            showSecureBadge={false}
           />
         </div>
       </div>

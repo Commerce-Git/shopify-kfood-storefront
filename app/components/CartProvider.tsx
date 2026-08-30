@@ -16,6 +16,16 @@ interface CartContextType {
   addBundleToCart: (items: CartItem[]) => void;
   removeFromCart: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
+  updateItemVariant: (
+    oldVariantId: string,
+    newVariant: {
+      variantId: string;
+      variantTitle: string;
+      price: string;
+      image?: CartItem["image"];
+      stockLimit?: number | null;
+    }
+  ) => void;
   clearCart: () => void;
   checkoutAndBackup: (variantIds: string[]) => void;
   backupToStorageOnly: (variantIds: string[]) => void;
@@ -140,6 +150,66 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const updateItemVariant = useCallback(
+    (
+      oldVariantId: string,
+      newVariant: {
+        variantId: string;
+        variantTitle: string;
+        price: string;
+        image?: CartItem["image"];
+        stockLimit?: number | null;
+      }
+    ) => {
+      setItems((prev) => {
+        const oldItem = prev.find((item) => item.variantId === oldVariantId);
+        if (!oldItem) return prev;
+
+        // If target variant already exists in cart, merge quantity
+        const existingTarget = prev.find(
+          (item) =>
+            item.variantId === newVariant.variantId &&
+            item.variantId !== oldVariantId
+        );
+        if (existingTarget) {
+          const mergedQty = existingTarget.quantity + oldItem.quantity;
+          const limit =
+            newVariant.stockLimit !== undefined
+              ? newVariant.stockLimit
+              : existingTarget.stockLimit;
+          const finalQty =
+            limit !== undefined && limit !== null
+              ? Math.min(mergedQty, limit)
+              : mergedQty;
+
+          return prev
+            .filter((item) => item.variantId !== oldVariantId)
+            .map((item) =>
+              item.variantId === newVariant.variantId
+                ? { ...item, quantity: finalQty, stockLimit: limit }
+                : item
+            );
+        }
+
+        // Otherwise, mutate the existing item in place
+        return prev.map((item) => {
+          if (item.variantId === oldVariantId) {
+            return {
+              ...item,
+              variantId: newVariant.variantId,
+              variantTitle: newVariant.variantTitle,
+              price: newVariant.price,
+              image: newVariant.image || item.image,
+              stockLimit: newVariant.stockLimit,
+            };
+          }
+          return item;
+        });
+      });
+    },
+    []
+  );
+
   const clearCart = useCallback(() => setItems([]), []);
 
   // Backup checkout items and remove them from cart
@@ -256,6 +326,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addBundleToCart,
         removeFromCart,
         updateQuantity,
+        updateItemVariant,
         clearCart,
         checkoutAndBackup,
         backupToStorageOnly,
