@@ -43,7 +43,7 @@ const FOOTER_LEGAL = [
 const FOOTER_SUPPORT = [
   { label: "Track Your Order", href: "/order-lookup" },
   { label: "FAQ & Help Center", href: "/faq" },
-  { label: "Contact Support", href: "mailto:support@blankseoul.com" },
+  { label: "Contact Support", href: "/faq#contact" },
   { label: "My Account & Orders", href: "/account" },
 ];
 

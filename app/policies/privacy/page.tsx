@@ -9,8 +9,48 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <>
-      <h1 className="heading-md text-dark mb-6">Privacy Policy</h1>
-      <p className="text-sm text-text-muted mb-8">Last updated: July 21, 2026</p>
+      <h1 className="heading-md text-dark mb-4">Privacy Policy</h1>
+      <p className="text-sm text-text-muted mb-6">Last updated: August 2026</p>
+
+      {/* 2026 Modern Fast Facts Summary Grid */}
+      <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
+        <h3
+          className="text-xs font-bold uppercase tracking-wider text-[#C25E38] mb-3 flex items-center gap-1.5"
+          style={{ fontFamily: "var(--font-heading)" }}
+        >
+          <span>⚡</span> Privacy at a Glance
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#3F3F46]">
+          <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-base shrink-0">🏢</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Data Controller</strong>
+              <span>Blank Palette LLC (Sheridan, WY, USA)</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-base shrink-0">🔒</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Payment Security</strong>
+              <span>256-Bit SSL (Zero raw card numbers stored)</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-base shrink-0">🚫</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">No Data Selling</strong>
+              <span>We NEVER sell your personal data (CCPA Compliant)</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-base shrink-0">✉️</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Privacy Rights Support</strong>
+              <span>Access & Deletion via support@blankseoul.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <p>
         Blank Palette LLC operates this store and website, including all related
@@ -383,18 +423,19 @@ export default function PrivacyPolicyPage() {
         applicable law.
       </p>
 
-      <h2>Contact</h2>
+      <h2>Contact & Data Privacy Requests</h2>
       <p>
-        Should you have any questions about our privacy practices or this Privacy
-        Policy, or if you would like to exercise any of the rights available to
-        you, please email us at{" "}
-        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> or
-        contact us at:
+        Should you have questions about our privacy practices, wish to exercise any of your statutory consumer rights (access, correction, or deletion), or submit a Global Privacy Control inquiry, please email us directly at{" "}
+        <a href="mailto:support@blankseoul.com?subject=Privacy%20Data%20Request" className="text-[#C25E38] font-semibold underline">
+          support@blankseoul.com
+        </a>{" "}
+        (Subject: Privacy Data Request) or write to our corporate legal office:
       </p>
-      <p>
-        Blank Palette LLC
+      <p className="bg-white p-4 rounded-xl border border-[#E8DFC8]/60 text-xs text-[#3F3F46] not-prose space-y-1">
+        <strong className="block text-[#18181B] font-bold text-sm">Blank Palette LLC</strong>
+        <span>30 N Gould St, STE R, Sheridan, WY 82801, USA</span>
         <br />
-        30 N Gould St, STE R, Sheridan, WY 82801, USA
+        <span>Email: <a href="mailto:support@blankseoul.com" className="text-[#C25E38] font-medium underline">support@blankseoul.com</a></span>
       </p>
     </>
   );
