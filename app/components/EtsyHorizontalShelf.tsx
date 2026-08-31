@@ -114,9 +114,10 @@ export default function EtsyHorizontalShelf({
 
           <Link
             href={viewAllHref}
-            className="px-4 py-1.5 rounded-full border border-[#222222] text-xs font-bold text-[#18181B] hover:bg-[#F5F0E6] transition-colors shadow-2xs shrink-0 mb-1"
+            className="group/btn inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-[#E4E4E7] bg-white text-xs font-semibold text-[#18181B] hover:border-[#C25E38] hover:text-[#C25E38] hover:bg-[#FAF9F6] transition-all shadow-2xs shrink-0 mb-1"
           >
-            View all
+            <span>View all</span>
+            <span className="group-hover/btn:translate-x-0.5 transition-transform text-sm leading-none font-bold">›</span>
           </Link>
         </div>
 

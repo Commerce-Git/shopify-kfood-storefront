@@ -182,18 +182,18 @@ export function getCollectionConfig(handle: string): CollectionConfig | undefine
 }
 
 /**
- * Get Top Navigation Links for Header.tsx
+ * Get Top Navigation Links for Header.tsx (Pure Quiet Luxury Typography)
  */
 export function getNavLinks(): { href: string; label: string }[] {
   const topCategories = MASTER_COLLECTIONS.slice(0, 4).map((c) => ({
     href: `/collections/${c.handle}`,
-    label: `${c.navEmoji} ${c.shortLabel}`,
+    label: c.shortLabel,
   }));
 
   return [
     ...topCategories,
-    { href: "/collections", label: "👑 Shop All" },
-    { href: "/artists", label: "🏛️ Ateliers" },
+    { href: "/collections", label: "Shop All" },
+    { href: "/artists", label: "Ateliers" },
   ];
 }
 

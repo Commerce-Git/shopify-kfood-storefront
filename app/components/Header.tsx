@@ -50,20 +50,28 @@ export default function Header() {
     <>
       <header id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] border-b border-[#E1E3DF] shadow-2xs">
         {/* =========================================================================
+            TOP ANNOUNCEMENT STRIP: Simple & Clean Quiet Luxury Free Shipping & Origin Bar
+           ========================================================================= */}
+        <div className="bg-[#18181B] text-white py-1.5 px-4 text-center border-b border-white/10">
+          <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
+            All products Made in Korea &middot; Free shipping on all orders
+          </p>
+        </div>
+
+        {/* =========================================================================
             ROW 1: Top Navigation Bar
             - Desktop: [Logo] --- [Wide Search Form] --- [Account | Wishlist | Cart]
             - Mobile:  [Logo] -------------------------- [Account | Wishlist | Cart]
            ========================================================================= */}
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-3 pb-2 md:py-3.5">
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-2 pb-2 md:py-3">
           <div className="flex items-center justify-between gap-3 sm:gap-6">
-            {/* Left: Brand Logo (Etsy-inspired bold serif craft aesthetic) */}
+            {/* Left: Brand Logo (2026 Luxury Artisan House Mark) */}
             <Link href="/" className="flex items-center gap-1 shrink-0 group" id="header-logo">
               <span
-                className="text-2xl sm:text-3xl font-black tracking-tight"
+                className="text-2xl sm:text-[28px] font-black tracking-tight text-[#18181B] group-hover:text-[#C25E38] transition-colors"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                <span className="text-[#C25E38]">BLANK</span>
-                <span className="text-[#18181B] ml-1">SEOUL</span>
+                BLANK SEOUL<span className="text-[#C25E38]">.</span>
               </span>
             </Link>
 
@@ -243,20 +251,33 @@ export default function Header() {
         </div>
 
         {/* =========================================================================
-            ROW 2 (Desktop ONLY): Sub-Nav Category Strip (Etsy Style)
+            ROW 2 (Desktop ONLY): Sub-Nav Category Strip (Quiet Luxury Style)
            ========================================================================= */}
         <div className="border-t border-[#F2ECE1] bg-white hidden md:block">
           <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
-            <nav className="flex items-center justify-center gap-8 py-2 overflow-x-auto no-scrollbar">
-              {SUB_NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-xs font-bold text-[#4B5563] hover:text-[#C25E38] transition-colors whitespace-nowrap"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <nav className="flex items-center justify-center gap-8 py-2.5 overflow-x-auto no-scrollbar">
+              {SUB_NAV_LINKS.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`relative text-xs tracking-wide transition-colors whitespace-nowrap py-1 group ${
+                      isActive
+                        ? "text-[#C25E38] font-bold"
+                        : "text-[#4B5563] hover:text-[#18181B] font-semibold"
+                    }`}
+                  >
+                    {link.label}
+                    {/* Active/Hover Underline Indicator */}
+                    <span
+                      className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
+                        isActive ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -276,11 +297,10 @@ export default function Header() {
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D6]">
               <span
-                className="text-lg font-black tracking-tight"
+                className="text-lg font-black tracking-tight text-[#18181B]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                <span className="text-[#C25E38]">BLANK</span>
-                <span className="text-[#18181B] ml-1">SEOUL</span>
+                BLANK SEOUL<span className="text-[#C25E38]">.</span>
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}

@@ -96,13 +96,12 @@ export default function Footer() {
           {/* Brand Identity Column (4 Cols on desktop) */}
           <div className="md:col-span-4 flex flex-col justify-between gap-6">
             <div>
-              <Link href="/" className="inline-block mb-3.5">
+              <Link href="/" className="inline-block mb-3.5 group">
                 <span
-                  className="text-2xl sm:text-3xl font-black tracking-tight"
+                  className="text-2xl sm:text-3xl font-black tracking-tight text-white group-hover:text-[#D4A373] transition-colors"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
-                  <span className="text-[#C25E38]">BLANK</span>
-                  <span className="text-white ml-1.5">SEOUL</span>
+                  BLANK SEOUL<span className="text-[#C25E38]">.</span>
                 </span>
               </Link>
               <p className="text-xs sm:text-sm text-white/70 leading-relaxed max-w-sm">
