@@ -4,13 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCollectionByHandle, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
 import type { ShopifyProduct } from "@/lib/shopify/types";
-
-const HANDLE_ALIASES: Record<string, string> = {
-  "bags-wallets": "bags-purses",
-  "home-goods": "home-living",
-  "bags": "bags-purses",
-  "home": "home-living",
-};
+import { resolveCollectionHandle, getCollectionConfig } from "@/lib/config/collections";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -19,8 +13,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const targetHandle = HANDLE_ALIASES[decodedHandle] || decodedHandle;
+  const targetHandle = resolveCollectionHandle(decodedHandle);
   const collection = await getCollectionByHandle(targetHandle);
+  const config = getCollectionConfig(targetHandle);
 
   if (!collection) {
     return { title: "Collection Not Found" };
@@ -28,7 +23,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${collection.title} — Blank Seoul`,
-    description: collection.description || `Browse the ${collection.title} collection from Blank Seoul.`,
+    description:
+      config?.shelfSubtitle ||
+      `Browse the ${collection.title} collection from Blank Seoul. Made in Korea.`,
   };
 }
 
@@ -73,8 +70,9 @@ function ProductCard({ product }: { product: ShopifyProduct }) {
 export default async function CollectionPage({ params }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const targetHandle = HANDLE_ALIASES[decodedHandle] || decodedHandle;
+  const targetHandle = resolveCollectionHandle(decodedHandle);
   const collection = await getCollectionByHandle(targetHandle);
+  const config = getCollectionConfig(targetHandle);
 
   if (!collection) {
     notFound();
@@ -91,32 +89,28 @@ export default async function CollectionPage({ params }: PageProps) {
 
   return (
     <div className="pt-28 sm:pt-36 pb-20 min-h-screen bg-[#FBF9F5]">
-      {/* Header */}
-      <section className="py-16 px-4 bg-surface-dim border-b border-border-light mb-12">
-        <div className="max-w-[1200px] mx-auto text-center animate-fade-in-up">
-          <h1 className="heading-xl text-dark mb-4">
-            {collection.title}
-          </h1>
-          <p className="text-text-muted text-lg max-w-2xl mx-auto" style={{ fontFamily: "var(--font-body)" }}>
-            {collection.description || `Discover our beautifully curated ${collection.title} collection, handcrafted by Korean artisans.`}
-          </p>
-        </div>
-      </section>
-
-      {/* Grid */}
-      <section className="px-4">
+      {/* Pure Product Grid with Quiet Luxury Micro-Header */}
+      <section className="px-4 pt-4 sm:pt-6">
         <div className="max-w-[1200px] mx-auto">
+          {/* Micro-Header Bar (Quiet Luxury) */}
+          <div className="flex items-center justify-between border-b border-[#E8DFC8]/60 pb-3 mb-6 sm:mb-8">
+            <h1
+              className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#18181B]"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              {collection.title}
+            </h1>
+            <span className="text-[11px] sm:text-xs text-text-muted font-medium tracking-wider">
+              {products.length} {products.length === 1 ? "Piece" : "Pieces"}
+            </span>
+          </div>
+
           {products.length > 0 ? (
-            <>
-              <div className="mb-6 text-sm text-text-muted font-medium">
-                {products.length} {products.length === 1 ? 'Product' : 'Products'}
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           ) : (
             <div className="text-center py-20 bg-white rounded-3xl border border-[#E8DFC8]/60 p-8 max-w-lg mx-auto shadow-2xs">
               <span className="text-4xl mb-3 block">🏛️</span>

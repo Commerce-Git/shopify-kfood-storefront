@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getFooterLinks } from "@/lib/config/collections";
 
 const TRUST_PILLARS = [
   {
@@ -24,14 +25,7 @@ const TRUST_PILLARS = [
   },
 ];
 
-const FOOTER_SHOP = [
-  { label: "Bags & Purses", href: "/collections/bags-purses" },
-  { label: "Charms & Keyrings", href: "/collections/charms-keyrings" },
-  { label: "Jewelry & Hair", href: "/collections/jewelry-hair" },
-  { label: "Home & Living", href: "/collections/home-living" },
-  { label: "Shop All Collections", href: "/collections" },
-  { label: "Verified Seoul Ateliers", href: "/artists" },
-];
+const FOOTER_SHOP = getFooterLinks();
 
 const FOOTER_LEGAL = [
   { label: "Shipping Policy", href: "/policies/shipping" },

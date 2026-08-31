@@ -15,46 +15,46 @@ export default function EtsyEditorialSplitBanner() {
             {/* Left 60%: Hook & Brand Manifesto Story */}
             <div className="lg:col-span-7 flex flex-col gap-4 text-center lg:text-left">
               <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-[11px] font-extrabold uppercase tracking-widest text-[#D4A373]">
-                <span>🇰🇷</span> 100% Made in Korea · Direct from Seoul
+                <span>🇰🇷</span> Dispatched Direct from Seoul
               </div>
 
               <h2
                 className="text-2xl sm:text-4xl lg:text-[40px] font-serif font-bold text-white leading-tight"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                100% Made in Korea. Crafted & Dispatched Direct from Seoul.
+                All Products Made in Korea.
               </h2>
 
               <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Zero cheap overseas counterfeits, no dropshipping. Every piece on Blank Seoul is 100% designed and crafted in Korea by verified artisan studios and skilled local workshops—dispatched directly from our Seoul hub straight to your doorstep with tracked global express.
+                Every product on Blank Seoul is authentically designed and made in Korea—curated from skilled local workshops and verified studios, dispatched directly from Seoul with tracked global express.
               </p>
 
-              {/* 3 Core Authenticity Pillars (Anti-Dropshipping Trust) */}
+              {/* 3 Core Authenticity Pillars (Legally Safe & Comprehensive) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 mt-4 border-t border-white/15 text-left">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>🇰🇷</span> 100% Made in Korea
+                    <span>🇰🇷</span> Made in Korea
                   </div>
                   <p className="text-[11px] text-white/70 leading-snug">
-                    Zero overseas counterfeits, 100% authentic Korean origin.
+                    Authentically designed and produced in Korea.
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>🏛️</span> Verified Korean Craft
+                    <span>🏛️</span> Verified Quality
                   </div>
                   <p className="text-[11px] text-white/70 leading-snug">
-                    Original works by independent Korean designers & studios.
+                    Curated from skilled Korean makers & workshops.
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>✈️</span> Direct Seoul Dispatch
+                    <span>✈️</span> Direct Air Express
                   </div>
                   <p className="text-[11px] text-white/70 leading-snug">
-                    Insured express international delivery from Seoul Hub.
+                    Insured international express straight to your door.
                   </p>
                 </div>
               </div>

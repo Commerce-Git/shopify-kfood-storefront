@@ -7,7 +7,7 @@ import type { ShopifyProduct } from "@/lib/shopify/types";
 export const metadata: Metadata = {
   title: "Shop All — Korean Artisan Goods",
   description:
-    "Browse our full collection of handcrafted Korean artisan goods — pouches, accessories, keyrings, wallets, and more. Direct from Seoul.",
+    "Browse our full collection of authentic Korean artisan goods made in Korea — pouches, accessories, keyrings, wallets, and more. Direct from Seoul.",
 };
 
 // Fallback products when Shopify has no products
@@ -107,25 +107,29 @@ export default async function CollectionsPage() {
   const hasShopifyProducts = products.length > 0;
 
   return (
-    <div className="pt-28 sm:pt-36 min-h-screen bg-[#FBF9F5]">
-      {/* Header */}
-      <section className="section bg-gradient-to-b from-surface-dim to-white">
-        <div className="section-inner text-center">
-          <span className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 block">
-            Shop All
-          </span>
-          <h1 className="heading-lg text-dark mb-4">
-            Korean Artisan <span className="gradient-text">Collection</span>
-          </h1>
-          <p className="text-text-muted max-w-lg mx-auto">
-            Every piece is handcrafted by independent Korean artisans and shipped directly from Seoul. Browse our full collection below.
-          </p>
-        </div>
-      </section>
-
-      {/* Product Grid */}
-      <section className="px-4 pb-24">
+    <div className="pt-28 sm:pt-36 pb-24 min-h-screen bg-[#FBF9F5]">
+      {/* Pure Product Grid with Quiet Luxury Micro-Header */}
+      <section className="px-4 pt-4 sm:pt-6">
         <div className="max-w-[1200px] mx-auto">
+          {/* Micro-Header Bar (Quiet Luxury) */}
+          <div className="flex items-center justify-between border-b border-[#E8DFC8]/60 pb-3 mb-6 sm:mb-8">
+            <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+              <h1
+                className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#18181B]"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                Shop All
+              </h1>
+              <span className="text-[11px] sm:text-xs text-text-muted font-medium tracking-wide">
+                — All Products Made in Korea
+              </span>
+            </div>
+            <span className="text-[11px] sm:text-xs text-text-muted font-medium tracking-wider whitespace-nowrap">
+              {products.length} {products.length === 1 ? "Piece" : "Pieces"}
+            </span>
+          </div>
+
+          {/* Product Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
             {hasShopifyProducts
               ? products.map((product) => (

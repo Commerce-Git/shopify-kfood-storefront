@@ -5,15 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
+import { getNavLinks, findMatchingShelfId } from "@/lib/config/collections";
 
-const SUB_NAV_LINKS = [
-  { href: "/collections/bags-purses", label: "👜 Bags & Purses" },
-  { href: "/collections/charms-keyrings", label: "✨ Charms & Keyrings" },
-  { href: "/collections/jewelry-hair", label: "🎀 Jewelry & Hair" },
-  { href: "/collections/home-living", label: "🍵 Home & Living" },
-  { href: "/collections", label: "👑 Shop All" },
-  { href: "/artists", label: "🏛️ Ateliers" },
-];
+const SUB_NAV_LINKS = getNavLinks();
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,8 +35,10 @@ export default function Header() {
     const q = searchQuery.trim();
     if (!q) return;
 
-    // Scroll to shelf or navigate
-    const target = document.getElementById("shelf-bags") || document.getElementById("shelf-charms");
+    // Dynamically find matching shelf DOM ID or navigate to Shop All
+    const shelfId = findMatchingShelfId(q);
+    const target = shelfId ? document.getElementById(shelfId) : null;
+
     if (target && pathname === "/") {
       target.scrollIntoView({ behavior: "smooth" });
     } else {
@@ -78,7 +74,7 @@ export default function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for handcrafted Korean goods, hopae wallets, silk knots..."
+                  placeholder="Search for Korean artisan goods, hopae wallets, silk knots..."
                   className="w-full pl-5 pr-14 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
                 />
                 {searchQuery && (
