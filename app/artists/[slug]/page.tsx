@@ -25,10 +25,10 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 
   return {
     title: `${displayName} — Studio Works | Blank Seoul`,
-    description: `Explore authentic Korean handcrafted works by ${displayName} dispatched direct from Seoul.`,
+    description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Seoul.`,
     openGraph: {
       title: `${displayName} — Blank Seoul`,
-      description: `Explore authentic Korean handcrafted works by ${displayName} dispatched direct from Seoul.`,
+      description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Seoul.`,
       images: [artist.avatar],
     },
   };

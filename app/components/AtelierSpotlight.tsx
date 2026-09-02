@@ -11,37 +11,6 @@ interface Atelier {
   avatar: string;
 }
 
-const ATELIERS: Atelier[] = [
-  {
-    slug: "lalabi",
-    name: "바늘꽃 라라비",
-    nameEn: "Lalabi Studio",
-    discipline: "Silk & Fabric Embroidery",
-    avatar: "/assets/blank_seoul_symbol.png",
-  },
-  {
-    slug: "kkamagwi",
-    name: "까마귀 수장고",
-    nameEn: "Kkamagwi Atelier",
-    discipline: "Joseon Knots & Mother-of-Pearl",
-    avatar: "/assets/blank_seoul_symbol.png",
-  },
-  {
-    slug: "miyu",
-    name: "미유",
-    nameEn: "Miyu Art",
-    discipline: "Dancheong Pigments & Folk Art",
-    avatar: "/assets/blank_seoul_symbol.png",
-  },
-  {
-    slug: "sosimhan-gomson",
-    name: "소심한곰손",
-    nameEn: "Sosimhan Gomson",
-    discipline: "Joseon Living Crafts",
-    avatar: "/assets/blank_seoul_symbol.png",
-  },
-];
-
 interface AtelierSpotlightProps {
   artists?: Array<{
     slug: string;
@@ -52,7 +21,11 @@ interface AtelierSpotlightProps {
 }
 
 export default function AtelierSpotlight({ artists }: AtelierSpotlightProps) {
-  const displayAteliers = artists && artists.length > 0 ? artists : ATELIERS;
+  if (!artists || artists.length === 0) {
+    return null;
+  }
+
+  const displayAteliers = artists;
   return (
     <section className="py-10 sm:py-14 bg-[#F5F0E6] border-y border-[#E8DFC8]" id="ateliers">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
@@ -69,7 +42,7 @@ export default function AtelierSpotlight({ artists }: AtelierSpotlightProps) {
               Meet the Seoul Masters
             </h2>
             <p className="text-xs sm:text-sm text-[#6B7280] mt-0.5">
-              Tap any atelier to explore their dedicated handcrafted studio collection.
+              Tap any atelier to explore their dedicated authentic Korean studio collection.
             </p>
           </div>
 

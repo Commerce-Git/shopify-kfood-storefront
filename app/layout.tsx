@@ -22,14 +22,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://blankseoul.com"),
   title: {
-    default: "Blank Seoul — Handcrafted Korean Artisan Goods 🇰🇷",
+    default: "Blank Seoul — All Products Made in Korea 🇰🇷",
     template: "%s | Blank Seoul",
   },
   description:
-    "Discover handcrafted Korean artisan goods — traditional pouches, hair accessories, keyrings, and more. Made by independent Korean artisans, delivered direct from Seoul.",
+    "Discover authentic Korean artisan goods made in Korea — traditional pouches, hair accessories, keyrings, and more. Delivered direct from Seoul with free global express.",
   keywords: [
     "Korean artisan goods",
-    "Korean handmade",
+    "Made in Korea",
     "Korean traditional crafts",
     "K-Culture",
     "Korean accessories",
@@ -43,23 +43,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Blank Seoul",
-    title: "Blank Seoul — Handcrafted Korean Artisan Goods 🇰🇷",
+    title: "Blank Seoul — All Products Made in Korea 🇰🇷",
     description:
-      "Handcrafted Korean artisan goods — traditional pouches, accessories, and keyrings. Direct from Seoul.",
+      "All products made in Korea — authentic pouches, accessories, and keyrings. Dispatched direct from Seoul.",
     images: [
       {
         url: "/assets/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Blank Seoul — Korean artisan crafts",
+        alt: "Blank Seoul — All Products Made in Korea",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blank Seoul — Handcrafted Korean Artisan Goods",
+    title: "Blank Seoul — All Products Made in Korea",
     description:
-      "Handcrafted Korean artisan goods — direct from Seoul to your door.",
+      "All products made in Korea — direct from Seoul to your door.",
   },
   robots: {
     index: true,
