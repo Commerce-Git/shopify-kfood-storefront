@@ -51,7 +51,7 @@ export default function PlatformHero() {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-[#6B7280] max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Discover authentic, handcrafted treasures born in Seoul&apos;s heritage ateliers. 
+              Discover authentic, handcrafted treasures curated in Seoul and crafted across Korea&apos;s heritage studios. 
               Each piece is personally crafted with centuries-old tradition, verified for excellence, and delivered straight from Korea.
             </p>
 
@@ -67,7 +67,7 @@ export default function PlatformHero() {
                 href="/#ateliers"
                 className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#FFFFFF] text-[#18181B] font-bold text-sm tracking-wide border border-[#E8E2D6] hover:bg-[#F4EFE6] hover:border-[#D8D0C0] transition-all text-center"
               >
-                🏛️ Meet Our Ateliers
+                Meet Our Master Studios →
               </Link>
             </div>
 
@@ -77,13 +77,13 @@ export default function PlatformHero() {
                 <p className="text-xl sm:text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
                   100%
                 </p>
-                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Handcrafted in Seoul</p>
+                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Handcrafted in Korea</p>
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
                   Verified
                 </p>
-                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Independent Ateliers</p>
+                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Independent Studios</p>
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
@@ -107,9 +107,9 @@ export default function PlatformHero() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
 
-              {/* Floating Badge 1: Atelier Origin */}
+              {/* Floating Badge 1: Studio Origin */}
               <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#E8E2D6] shadow-sm flex items-center gap-1.5 text-xs font-bold text-[#1A2F25]">
-                <span>🇰🇷</span> Seoul Heritage Ateliers
+                <span>🇰🇷</span> Korean Heritage Studios
               </div>
 
               {/* Bottom Caption Card */}
@@ -121,7 +121,7 @@ export default function PlatformHero() {
                   Authentic Crafts, Preserving Joseon Heritage
                 </p>
                 <p className="text-xs text-white/80 mt-1">
-                  Personally handmade in Seoul studios with pure silk knots, leather, and fine embroidery.
+                  Personally handmade in Korean studios with pure silk knots, leather, and fine embroidery.
                 </p>
               </div>
             </div>

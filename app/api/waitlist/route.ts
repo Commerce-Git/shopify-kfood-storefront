@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: "You're already on the early access list! 🎉",
+        message: "You are already registered for early access.",
         existing: true,
       });
     }
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json({
           success: true,
-          message: "You're already on the early access list! 🎉",
+          message: "You are already registered for early access.",
           existing: true,
         });
       }
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "You're in! You'll get first access before anyone else. 🚀",
+      message: "Your notification is set. You will be notified first the moment new pieces arrive.",
       existing: false,
     });
   } catch (error) {

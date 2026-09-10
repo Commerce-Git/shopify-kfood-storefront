@@ -163,19 +163,28 @@ export async function adminGraphQL(
 // ---- Types (Admin REST API format) ----
 
 interface AdminLineItem {
+  id?: number;
   title: string;
   quantity: number;
   price: string;
   variant_id: number | null;
   variant_title?: string | null;
+  vendor?: string | null;
 }
 
-interface AdminFulfillment {
+export interface AdminFulfillmentLineItem {
+  id: number;
+  variant_id: number | null;
+  quantity: number;
+}
+
+export interface AdminFulfillment {
   id: number;
   status: string;
   tracking_number: string | null;
   tracking_url: string | null;
   tracking_company: string | null;
+  line_items?: AdminFulfillmentLineItem[];
 }
 
 interface AdminOrder {
@@ -196,6 +205,31 @@ interface AdminOrder {
 
 // ---- Mapped types (compatible with existing UI) ----
 
+export interface OrderPackageItem {
+  title: string;
+  quantity: number;
+  variantId: string | null;
+  variantTitle: string | null;
+  price: { amount: string; currencyCode: string };
+  image: { url: string; altText: string | null } | null;
+}
+
+export interface OrderPackage {
+  packageId: string;
+  vendor: string;
+  vendorSlug: string;
+  artistAvatar?: string | null;
+  items: OrderPackageItem[];
+  step: number; // 0: Ordered, 1: Crafting, 2: Packaging, 3: In Transit, 4: Delivered
+  wmsStatus: "placed" | "crafting" | "packaging" | "shipped" | "delivered";
+  tracking: {
+    number: string | null;
+    url: string | null;
+    company: string | null;
+  } | null;
+  deliveredAt?: string | null;
+}
+
 export interface MappedOrder {
   id: string;
   name: string;
@@ -214,6 +248,7 @@ export interface MappedOrder {
         title: string;
         quantity: number;
         variantId: string | null;
+        vendor?: string;
         variant: {
           title: string | null;
           price: { amount: string; currencyCode: string };
@@ -227,8 +262,10 @@ export interface MappedOrder {
     url: string | null;
     company: string | null;
   } | null;
+  fulfillments?: AdminFulfillment[];
   wmsStatus?: "placed" | "crafting" | "packaging" | "shipped" | "delivered";
   deliveredAt?: string | null;
+  packages?: OrderPackage[];
 }
 
 // ---- API Functions ----
@@ -304,6 +341,7 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
           variantId: item.variant_id
             ? `gid://shopify/ProductVariant/${item.variant_id}`
             : null,
+          vendor: item.vendor || "Blank Seoul",
           variant: {
             title: item.variant_title || "",
             price: {
@@ -322,6 +360,7 @@ function mapAdminOrder(order: AdminOrder): MappedOrder {
         company: fulfillment.tracking_company,
       }
       : null,
+    fulfillments: order.fulfillments || [],
   };
 }
 

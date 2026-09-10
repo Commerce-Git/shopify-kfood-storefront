@@ -20,11 +20,11 @@ export default function EtsyHeroBanner() {
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 Discover Extraordinary Handcrafted Pieces,{" "}
-                <span className="text-[#C25E38] block sm:inline">Direct from Seoul.</span>
+                <span className="text-[#C25E38] block sm:inline">Made in Korea.</span>
               </h1>
 
               <p className="text-sm sm:text-base text-[#4B5563] max-w-xl leading-relaxed">
-                Connect directly with Korea&apos;s independent master craft studios. Every single piece is personally handmade by verified artisans, inspected for excellence, and dispatched directly from Seoul ateliers with tracked international shipping.
+                Connect directly with Korea&apos;s independent master craft studios. Every single piece is personally handmade by verified artisans, inspected for excellence, and dispatched directly from Korea with tracked international shipping.
               </p>
 
               {/* Action Buttons */}

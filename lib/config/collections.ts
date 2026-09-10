@@ -1,6 +1,8 @@
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import type { EtsyCardItem } from "@/app/components/EtsyHorizontalShelf";
 
+export type SuperCategoryType = "wear" | "living" | "ritual";
+
 export interface CollectionConfig {
   handle: string;
   title: string;
@@ -11,10 +13,11 @@ export interface CollectionConfig {
   keywords: string[];
   productTypeConditions: string[];
   priority: number;
+  superCategory: SuperCategoryType;
 }
 
 /**
- * Master Registry of all 12 Korean Traditional Craft Smart Collections.
+ * Master Registry of all 11 Korean Traditional Craft Smart Collections.
  * This is the SINGLE SOURCE OF TRUTH (SSOT) for the entire storefront.
  */
 export const MASTER_COLLECTIONS: CollectionConfig[] = [
@@ -29,6 +32,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["bag", "purse", "pouch", "wallet", "tote", "hopae", "drawstring"],
     productTypeConditions: ["Bags & Pouches", "Bag", "Pouch", "Wallet", "Tote"],
     priority: 1,
+    superCategory: "wear",
   },
   {
     handle: "jewelry-charms",
@@ -41,6 +45,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["charm", "keyring", "strap", "daenggi", "gat", "tassel", "ornament"],
     productTypeConditions: ["Jewelry & Charms", "Keyring", "Charm", "Jewelry"],
     priority: 2,
+    superCategory: "wear",
   },
   {
     handle: "hair-wear",
@@ -53,6 +58,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["hair", "scrunchie", "hairpin", "binyeo", "daenggi"],
     productTypeConditions: ["Hair Wear", "Hair", "Scrunchie"],
     priority: 3,
+    superCategory: "wear",
   },
   {
     handle: "fabric-living",
@@ -65,6 +71,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["coaster", "tea", "fabric", "mat", "bojagi", "knot", "tableware"],
     productTypeConditions: ["Fabric Living", "Home & Living", "Living"],
     priority: 4,
+    superCategory: "living",
   },
   {
     handle: "modern-hanbok",
@@ -77,6 +84,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["hanbok", "jeogori", "chima", "robe", "jacket", "korean fashion"],
     productTypeConditions: ["Modern Hanbok", "Hanbok", "Apparel"],
     priority: 5,
+    superCategory: "wear",
   },
   {
     handle: "hanji-stationery",
@@ -89,6 +97,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["stationery", "paper", "hanji", "notebook", "pen", "bookmark", "letter"],
     productTypeConditions: ["Hanji & Stationery", "Stationery", "Paper"],
     priority: 6,
+    superCategory: "ritual",
   },
   {
     handle: "ceramics-dining",
@@ -101,6 +110,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["ceramic", "porcelain", "moon jar", "celadon", "cup", "plate", "bowl"],
     productTypeConditions: ["Ceramics & Dining", "Ceramics", "Dining"],
     priority: 7,
+    superCategory: "living",
   },
   {
     handle: "woodcraft-najeon",
@@ -113,6 +123,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["wood", "najeon", "lacquer", "box", "tray", "mother of pearl"],
     productTypeConditions: ["Woodcraft & Najeon", "Woodcraft", "Najeon"],
     priority: 8,
+    superCategory: "living",
   },
   {
     handle: "metal-decor",
@@ -125,6 +136,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["metal", "brass", "bell", "chime", "bronze", "copper"],
     productTypeConditions: ["Metal Decor", "Metal", "Decor"],
     priority: 9,
+    superCategory: "ritual",
   },
   {
     handle: "incense-wellness",
@@ -137,6 +149,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["incense", "wellness", "burner", "agarwood", "candle", "fragrance"],
     productTypeConditions: ["Incense & Wellness", "Incense", "Wellness"],
     priority: 10,
+    superCategory: "ritual",
   },
   {
     handle: "lighting-mood",
@@ -149,6 +162,71 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     keywords: ["lamp", "light", "lantern", "lighting", "illumination", "mood"],
     productTypeConditions: ["Lighting & Mood", "Lighting", "Mood"],
     priority: 11,
+    superCategory: "living",
+  },
+];
+
+export interface SuperCategoryConfig {
+  id: SuperCategoryType;
+  slug: string;
+  title: string;
+  shortLabel: string;
+  subtitle: string;
+  editorial: {
+    title: string;
+    subtitle: string;
+    image: string;
+    href: string;
+    badgeText: string;
+  };
+  categoryHandles: string[];
+}
+
+export const SUPER_CATEGORIES: SuperCategoryConfig[] = [
+  {
+    id: "wear",
+    slug: "wear-adornment",
+    title: "Wear & Adornment",
+    shortLabel: "Wear & Adornment",
+    subtitle: "Korean fashion accents, royal Joseon daily carry, and wearable heritage crafts",
+    editorial: {
+      title: "Palace Dancheong Jade Norigae",
+      subtitle: "Hand-knotted silk Daenggi cords & natural jade charms",
+      image: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/1789036545240.jpg?v=1789036840",
+      href: "/collections/jewelry-charms",
+      badgeText: "Curator's Pick · In Stock",
+    },
+    categoryHandles: ["bags-pouches", "jewelry-charms", "hair-wear", "modern-hanbok"],
+  },
+  {
+    id: "living",
+    slug: "living-objects",
+    title: "Living & Objects",
+    shortLabel: "Living & Objects",
+    subtitle: "Heirloom Moon jars, celadon teaware, mother-of-pearl boxes, and ambient lights",
+    editorial: {
+      title: "Inlaid Crane Celadon Vases",
+      subtitle: "Goryeo dynasty traditional celadon glazing & bamboo teaware",
+      image: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/1789048015622.jpg?v=1789048263",
+      href: "/collections/ceramics-dining",
+      badgeText: "Master Studio · In Stock",
+    },
+    categoryHandles: ["ceramics-dining", "woodcraft-najeon", "fabric-living", "lighting-mood"],
+  },
+  {
+    id: "ritual",
+    slug: "ritual-mood",
+    title: "Ritual & Mood",
+    shortLabel: "Ritual & Mood",
+    subtitle: "Natural temple agarwood scents, forged acoustic brass chimes, and mulberry paper",
+    editorial: {
+      title: "Temple Agarwood & Acoustic Chimes",
+      subtitle: "Natural Korean meditative incense & hand-forged brass bells",
+      image: "/assets/brand-story-craft.png",
+      href: "/collections/incense-wellness",
+      badgeText: "Artisan Drop · Coming Soon",
+    },
+    categoryHandles: ["incense-wellness", "metal-decor", "hanji-stationery"],
   },
 ];
 
@@ -165,6 +243,22 @@ MASTER_COLLECTIONS.forEach((col) => {
 });
 
 /**
+ * Check if a handle is a super-category slug.
+ */
+export function isSuperCategory(slug: string): boolean {
+  const clean = slug.toLowerCase().trim();
+  return SUPER_CATEGORIES.some((sc) => sc.slug === clean || sc.id === clean);
+}
+
+/**
+ * Get super category configuration by slug or id.
+ */
+export function getSuperCategory(slug: string): SuperCategoryConfig | undefined {
+  const clean = slug.toLowerCase().trim();
+  return SUPER_CATEGORIES.find((sc) => sc.slug === clean || sc.id === clean);
+}
+
+/**
  * Resolve any collection handle or legacy alias to the canonical Shopify handle.
  * e.g., "bags-purses" -> "bags-pouches"
  */
@@ -179,6 +273,62 @@ export function resolveCollectionHandle(handle: string): string {
 export function getCollectionConfig(handle: string): CollectionConfig | undefined {
   const canonical = resolveCollectionHandle(handle);
   return HANDLE_MAP.get(canonical);
+}
+
+export interface MegaCategoryItem {
+  handle: string;
+  title: string;
+  shortLabel: string;
+  navEmoji: string;
+  shelfSubtitle: string;
+  href: string;
+}
+
+export interface MegaNavGroup {
+  id: SuperCategoryType;
+  slug: string;
+  title: string;
+  shortLabel: string;
+  subtitle: string;
+  href: string;
+  editorial: {
+    title: string;
+    subtitle: string;
+    image: string;
+    href: string;
+    badgeText: string;
+  };
+  children: MegaCategoryItem[];
+}
+
+/**
+ * Get the full 2-Tier Mega Navigation structure for Header.tsx
+ */
+export function getMegaNavStructure(): MegaNavGroup[] {
+  return SUPER_CATEGORIES.map((sc) => {
+    const children = sc.categoryHandles
+      .map((h) => HANDLE_MAP.get(h))
+      .filter((c): c is CollectionConfig => Boolean(c))
+      .map((c) => ({
+        handle: c.handle,
+        title: c.title,
+        shortLabel: c.shortLabel,
+        navEmoji: c.navEmoji,
+        shelfSubtitle: c.shelfSubtitle,
+        href: `/collections/${c.handle}`,
+      }));
+
+    return {
+      id: sc.id,
+      slug: sc.slug,
+      title: sc.title,
+      shortLabel: sc.shortLabel,
+      subtitle: sc.subtitle,
+      href: `/collections/${sc.slug}`,
+      editorial: sc.editorial,
+      children,
+    };
+  });
 }
 
 /**
@@ -209,7 +359,7 @@ export function getFooterLinks(): { label: string; href: string }[] {
   return [
     ...topCategories,
     { label: "Shop All Collections", href: "/collections" },
-    { label: "Verified Seoul Ateliers", href: "/artists" },
+    { label: "Verified Korean Studios", href: "/artists" },
   ];
 }
 
@@ -241,7 +391,7 @@ function mapProductToEtsyItem(sp: ShopifyProduct): EtsyCardItem {
     id: sp.id,
     title: sp.title,
     handle: sp.handle,
-    artist: sp.vendor || "Seoul Artisan",
+    artist: sp.vendor || "Korean Master Artisan",
     price: priceVal ? Number(priceVal).toFixed(2) : "0.00",
     originalPrice: compareVal ? Number(compareVal).toFixed(2) : undefined,
     image: imageUrl,

@@ -35,7 +35,7 @@ export default function HowItWorks() {
               2. Curated & Packed
             </h3>
             <p className="text-sm text-text-muted">
-              We inspect each item for quality in Seoul and wrap it securely in our premium packaging.
+              We inspect each item for quality in Korea and wrap it securely in our premium packaging.
             </p>
           </div>
 
@@ -48,7 +48,7 @@ export default function HowItWorks() {
               3. Global Delivery
             </h3>
             <p className="text-sm text-text-muted">
-              Shipped directly from Seoul with reliable international shipping. Fully tracked, arriving in 7-14 days.
+              Shipped directly from Korea with reliable international shipping. Fully tracked, arriving in 7-14 days.
             </p>
           </div>
         </div>

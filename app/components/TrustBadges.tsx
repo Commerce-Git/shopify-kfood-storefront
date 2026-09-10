@@ -1,7 +1,7 @@
 const BADGES = [
   {
     emoji: "✈️",
-    title: "Direct from Seoul",
+    title: "Direct from Korea",
     description:
       "Every piece is sourced and shipped directly from Korean artisans. No middleman, no mass production — straight from the maker's hands to yours.",
     gradient: "from-emerald-500/10 to-teal-500/10",

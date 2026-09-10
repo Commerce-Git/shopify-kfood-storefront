@@ -8,6 +8,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrdersByEmail, checkIsSubscribed } from "@/lib/shopify/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { splitOrderIntoVendorPackages } from "@/lib/shopify/order-utils";
+import { getArtistSlug } from "@/lib/artists";
 
 // Simple in-memory rate limiter (per serverless instance)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
     const shopifyIds = activeOrders.map((o) => o.id);
     const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
     let artistOrdersMap: Record<string, string[]> = {};
+    const artistStatusByOrderAndVendor: Record<string, Record<string, string>> = {};
 
     if (shopifyIds.length > 0) {
       // 1. Try querying unified order_status_view first
@@ -122,20 +125,26 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 2. Fallback to artist_orders for IDs not found in view
-      const missingIds = shopifyIds.filter((id) => !viewStatusMap[id]);
-      if (missingIds.length > 0) {
-        const { data: artistOrders, error: dbError } = await supabaseAdmin
-          .from("artist_orders")
-          .select("shopify_order_id, status")
-          .in("shopify_order_id", missingIds);
+      // 2. Query artist_orders for artist-specific crafting status
+      const { data: artistOrders, error: dbError } = await supabaseAdmin
+        .from("artist_orders")
+        .select("shopify_order_id, artist_name, status")
+        .in("shopify_order_id", shopifyIds);
 
-        if (!dbError && artistOrders) {
-          for (const row of artistOrders) {
-            if (!artistOrdersMap[row.shopify_order_id]) {
-              artistOrdersMap[row.shopify_order_id] = [];
-            }
-            artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+      if (!dbError && artistOrders) {
+        for (const row of artistOrders) {
+          const sId = row.shopify_order_id;
+          const aName = (row.artist_name || "").toLowerCase().trim();
+          const aSlug = getArtistSlug(row.artist_name || "");
+          const aStatus = (row.status || "").toLowerCase().trim();
+
+          if (!artistOrdersMap[sId]) artistOrdersMap[sId] = [];
+          artistOrdersMap[sId].push(aStatus);
+
+          if (!artistStatusByOrderAndVendor[sId]) artistStatusByOrderAndVendor[sId] = {};
+          artistStatusByOrderAndVendor[sId][aName] = aStatus;
+          if (aSlug) {
+            artistStatusByOrderAndVendor[sId][aSlug] = aStatus;
           }
         }
       }
@@ -150,7 +159,19 @@ export async function POST(request: NextRequest) {
         ? parseFloat(order.totalPrice.amount).toFixed(2)
         : "0.00";
 
+      const packages = splitOrderIntoVendorPackages({
+        orderId: order.id,
+        lineItems: order.lineItems.edges,
+        artistStatusMap: artistStatusByOrderAndVendor[order.id] || {},
+        orderFulfillmentStatus: order.fulfillmentStatus,
+        orderWmsStatus: wmsStatus,
+        orderTracking: order.tracking,
+        fulfillments: order.fulfillments,
+        deliveredAt,
+      });
+
       return {
+        id: order.id,
         name: order.name,
         date: new Date(order.processedAt).toLocaleDateString("en-US", {
           month: "short",
@@ -166,6 +187,7 @@ export async function POST(request: NextRequest) {
         lineItems: order.lineItems.edges.map(({ node }) => ({
           title: node.title,
           quantity: node.quantity,
+          vendor: node.vendor || "Blank Seoul",
           imageUrl: node.variant?.image?.url || null,
           altText: node.variant?.image?.altText || node.title,
         })),
@@ -173,8 +195,10 @@ export async function POST(request: NextRequest) {
           ? {
               number: order.tracking.number,
               carrier: order.tracking.company || "Korea Post EMS",
+              url: order.tracking.url,
             }
           : null,
+        packages,
       };
     });
 

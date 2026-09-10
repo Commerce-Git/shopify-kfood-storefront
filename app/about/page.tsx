@@ -82,7 +82,7 @@ export default function AboutPage() {
                   to find outside Korea.
                 </p>
                 <p>
-                  We visited artisan studios across Seoul and beyond — met the
+                  We visited artisan studios across Korea — met the
                   fan painters, the fabric artists, the knot-tying masters.
                   Each piece they created told a story of heritage meeting
                   modern aesthetics.
@@ -160,7 +160,7 @@ export default function AboutPage() {
             <span className="gradient-text">Korea?</span>
           </h2>
           <p className="text-white/60 mb-8">
-            Discover handcrafted Korean artisan goods — direct from Seoul
+            Discover handcrafted Korean artisan goods — direct from Korea
             to your door.
           </p>
           <Link href="/collections" className="btn-primary text-lg px-10 py-4">

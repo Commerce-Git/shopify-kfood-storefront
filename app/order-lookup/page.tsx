@@ -4,21 +4,26 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
+import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderPackageCard";
 import { getOrderStep } from "@/lib/shopify/order-utils";
+import type { OrderPackage } from "@/lib/shopify/admin";
 
 interface TrackingInfo {
   number: string;
   carrier: string;
+  url?: string | null;
 }
 
 interface TrackedLineItem {
   title: string;
   quantity: number;
+  vendor?: string;
   imageUrl: string | null;
   altText: string | null;
 }
 
 interface TrackedOrder {
+  id?: string;
   name: string;
   date: string;
   status: "preparing" | "shipped" | "delivered";
@@ -29,6 +34,7 @@ interface TrackedOrder {
   totalPrice?: string;
   lineItems?: TrackedLineItem[];
   tracking: TrackingInfo | null;
+  packages?: OrderPackage[];
 }
 
 interface TrackResult {
@@ -174,7 +180,11 @@ function OrderLookupContent() {
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">📦</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#C77B4A]/10 border border-[#C77B4A]/20 flex items-center justify-center text-[#C77B4A]">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
           <h1
             className="text-3xl font-bold mb-2"
             style={{ fontFamily: "var(--font-heading)" }}
@@ -379,14 +389,24 @@ function OrderLookupContent() {
                     >
                       {/* Order header */}
                       <div className="p-6">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3
-                              className="font-bold text-lg text-gray-900"
-                              style={{ fontFamily: "var(--font-heading)" }}
-                            >
-                              Order {order.name.startsWith("#") ? order.name : `#${order.name}`}
-                            </h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3
+                                className="font-bold text-lg text-gray-900"
+                                style={{ fontFamily: "var(--font-heading)" }}
+                              >
+                                Order {order.name.startsWith("#") ? order.name : `#${order.name}`}
+                              </h3>
+                              {order.packages && order.packages.length > 1 && (
+                                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 inline-flex items-center gap-1.5">
+                                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                  </svg>
+                                  <span>{order.packages.length} Separate Packages</span>
+                                </span>
+                              )}
+                            </div>
                             <p className="text-gray-500 text-sm mt-0.5">
                               {order.itemCount} item{order.itemCount !== 1 ? "s" : ""}
                               {order.totalPrice ? ` • $${order.totalPrice}` : ""}
@@ -397,138 +417,168 @@ function OrderLookupContent() {
                           </span>
                         </div>
 
-                        {/* Product Thumbnails Row */}
-                        {order.lineItems && order.lineItems.length > 0 && (
-                          <div className="flex items-center gap-2.5 my-4 overflow-x-auto pb-1 scrollbar-none">
-                            {order.lineItems.map((item, index) => (
-                              <div key={index} className="relative flex-shrink-0 group">
-                                {item.imageUrl ? (
-                                  <img
-                                    src={item.imageUrl}
-                                    alt={item.altText || item.title}
-                                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 bg-gray-50 group-hover:border-orange-200 transition-all"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl">
-                                    📦
-                                  </div>
-                                )}
-                                {item.quantity > 1 && (
-                                  <span className="absolute -top-1.5 -right-1.5 bg-gray-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white leading-none">
-                                    x{item.quantity}
-                                  </span>
-                                )}
-                              </div>
+                        {/* Partial Delivery Notice for Multi-Package Orders */}
+                        {order.packages && (
+                          <PartialDeliveryNotice packages={order.packages} theme="light" />
+                        )}
+
+                        {order.packages && order.packages.length > 0 ? (
+                          <div className="mt-4 space-y-4">
+                            {order.packages.map((pkg, idx) => (
+                              <OrderPackageCard
+                                key={pkg.packageId}
+                                pkg={pkg}
+                                packageIndex={idx + 1}
+                                totalPackages={order.packages!.length}
+                                theme="light"
+                              />
                             ))}
                           </div>
-                        )}
+                        ) : (
+                          <>
+                            {/* Product Thumbnails Row */}
+                            {order.lineItems && order.lineItems.length > 0 && (
+                              <div className="flex items-center gap-2.5 my-4 overflow-x-auto pb-1 scrollbar-none">
+                                {order.lineItems.map((item, index) => (
+                                  <div key={index} className="relative flex-shrink-0 group">
+                                    {item.imageUrl ? (
+                                      <img
+                                        src={item.imageUrl}
+                                        alt={item.altText || item.title}
+                                        className="w-12 h-12 rounded-xl object-cover border border-gray-100 bg-gray-50 group-hover:border-orange-200 transition-all"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                    {item.quantity > 1 && (
+                                      <span className="absolute -top-1.5 -right-1.5 bg-gray-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white leading-none">
+                                        x{item.quantity}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
 
-                        {/* Live Handcrafting Progress Stepper */}
-                        <div className="mt-6 mb-6 pt-4 pb-2 border-t border-gray-50">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-1">
-                            <span>✨</span> Live Crafting & Delivery Status
-                          </p>
-                          <OrderStatusBar step={step} />
-                        </div>
-
-                        {/* Delivered Celebration Banner */}
-                        {step === 4 && (
-                          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/80 p-4 mb-5 shadow-sm flex items-start sm:items-center gap-3 animate-fade-in">
-                            <span className="text-2xl select-none">🎉</span>
-                            <div>
-                              <h4 className="font-bold text-emerald-900 text-sm" style={{ fontFamily: "var(--font-heading)" }}>
-                                Package Delivered Successfully!
-                              </h4>
-                              <p className="text-xs text-emerald-700 mt-0.5">
-                                Your Korean artisan box has arrived safely!
+                            {/* Live Handcrafting Progress Stepper */}
+                            <div className="mt-6 mb-6 pt-4 pb-2 border-t border-gray-50">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6">
+                                Live Crafting & Delivery Status
                               </p>
-                              {order.deliveredAt && (
-                                <p className="text-[11px] font-semibold text-emerald-800 mt-1 flex items-center gap-1">
-                                  <span>📍</span>
-                                  Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                </p>
-                              )}
+                              <OrderStatusBar step={step} theme="light" />
                             </div>
-                          </div>
-                        )}
 
-                        {/* Tracking info */}
-                        {order.tracking ? (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-                              <div>
-                                <p className="text-xs text-gray-400 mb-0.5">
-                                  {order.tracking.carrier}
+                            {/* Delivered Celebration Banner */}
+                            {step === 4 && (
+                              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/80 p-4 mb-5 shadow-sm flex items-start sm:items-center gap-3 animate-fade-in">
+                                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-emerald-900 text-sm" style={{ fontFamily: "var(--font-heading)" }}>
+                                    Package Delivered Successfully!
+                                  </h4>
+                                  <p className="text-xs text-emerald-700 mt-0.5">
+                                    Your Korean artisan box has arrived safely!
+                                  </p>
+                                  {order.deliveredAt && (
+                                    <p className="text-[11px] font-semibold text-emerald-800 mt-1 flex items-center gap-1.5">
+                                      <svg className="w-3 h-3 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      </svg>
+                                      Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Tracking info */}
+                            {order.tracking ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                                  <div>
+                                    <p className="text-xs text-gray-400 mb-0.5">
+                                      {order.tracking.carrier}
+                                    </p>
+                                    <p className="text-sm font-mono font-semibold text-gray-800">
+                                      {order.tracking.number}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      setExpandedTracking(
+                                        expandedTracking === order.name
+                                          ? null
+                                          : order.name
+                                      )
+                                    }
+                                    className="text-sm font-medium text-orange-600 hover:text-orange-700 
+                                      transition-colors flex items-center gap-1"
+                                  >
+                                    {expandedTracking === order.name
+                                      ? "Hide details"
+                                      : "Track"}
+                                    <svg
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      className={`transition-transform duration-200 ${
+                                        expandedTracking === order.name
+                                          ? "rotate-180"
+                                          : ""
+                                      }`}
+                                    >
+                                      <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                {/* 17Track link */}
+                                <a
+                                  href={get17TrackUrl(order.tracking.number)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center gap-2 w-full py-2.5 
+                                    bg-blue-50 text-blue-700 text-sm font-medium rounded-xl 
+                                    hover:bg-blue-100 transition-colors border border-blue-100"
+                                >
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                                  </svg>
+                                  View Live Tracking on 17Track →
+                                </a>
+                              </div>
+                            ) : (
+                              <div className="bg-orange-50 rounded-xl px-4 py-4 text-center">
+                                <p className="text-sm text-orange-800 font-medium">
+                                  Your package is being prepared in Korea
                                 </p>
-                                <p className="text-sm font-mono font-semibold text-gray-800">
-                                  {order.tracking.number}
+                                <p className="text-xs text-orange-600 mt-1">
+                                  You&apos;ll receive a tracking number once it ships.
                                 </p>
                               </div>
-                              <button
-                                onClick={() =>
-                                  setExpandedTracking(
-                                    expandedTracking === order.name
-                                      ? null
-                                      : order.name
-                                  )
-                                }
-                                className="text-sm font-medium text-orange-600 hover:text-orange-700 
-                                  transition-colors flex items-center gap-1"
-                              >
-                                {expandedTracking === order.name
-                                  ? "Hide details"
-                                  : "Track"}
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  className={`transition-transform duration-200 ${
-                                    expandedTracking === order.name
-                                      ? "rotate-180"
-                                      : ""
-                                  }`}
-                                >
-                                  <path d="M6 9l6 6 6-6" />
-                                </svg>
-                              </button>
-                            </div>
-
-                            {/* 17Track link (always available as fallback) */}
-                            <a
-                              href={get17TrackUrl(order.tracking.number)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-2 w-full py-2.5 
-                                bg-blue-50 text-blue-700 text-sm font-medium rounded-xl 
-                                hover:bg-blue-100 transition-colors border border-blue-100"
-                            >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-                              </svg>
-                              View Live Tracking on 17Track →
-                            </a>
-                          </div>
-                        ) : (
-                          <div className="bg-orange-50 rounded-xl px-4 py-4 text-center">
-                            <p className="text-sm text-orange-800 font-medium">
-                              ✈️ Your box is being prepared in Seoul!
-                            </p>
-                            <p className="text-xs text-orange-600 mt-1">
-                              You&apos;ll receive a tracking number once it ships.
-                            </p>
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
 

@@ -281,14 +281,14 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
                 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#18181B] tracking-tight"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Curated for You: Seoul Ateliers
+                Curated for You: Korean Master Studios
               </h2>
               <span className="text-[10px] font-bold text-[#C25E38] bg-[#F4EFE6] px-2 py-0.5 rounded-md border border-[#E8E2D6]">
                 100% Handcrafted
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#6B7280] mt-1">
-              Personal creations directly from independent Bukchon and Seoul master craft studios.
+              Personal creations directly from independent master craft studios across Korea.
             </p>
           </div>
 

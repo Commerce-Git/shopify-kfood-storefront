@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
-import { getNavLinks, findMatchingShelfId } from "@/lib/config/collections";
+import { getMegaNavStructure, findMatchingShelfId, MegaNavGroup } from "@/lib/config/collections";
 
-const SUB_NAV_LINKS = getNavLinks();
+const MEGA_NAV_GROUPS: MegaNavGroup[] = getMegaNavStructure();
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [expandedMobileGroup, setExpandedMobileGroup] = useState<string | null>("wear");
+  const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { itemCount } = useCart();
   const { isLoggedIn } = useAuth();
   const pathname = usePathname();
@@ -29,6 +33,37 @@ export default function Header() {
       }
     } catch {}
   }, []);
+
+  // Close menus on route changes or ESC key
+  useEffect(() => {
+    setActiveDropdown(null);
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveDropdown(null);
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleMouseEnter = (id: string) => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    setActiveDropdown(id);
+  };
+
+  const handleMouseLeave = () => {
+    leaveTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 150);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,40 +286,221 @@ export default function Header() {
         </div>
 
         {/* =========================================================================
-            ROW 2 (Desktop ONLY): Sub-Nav Category Strip (Quiet Luxury Style)
+            ROW 2 (Desktop ONLY): 2-Tier Luxury Mega Navigation Bar (Quiet Luxury)
            ========================================================================= */}
-        <div className="border-t border-[#F2ECE1] bg-white hidden md:block">
+        <div className="border-t border-[#F2ECE1] bg-white hidden md:block relative">
           <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
-            <nav className="flex items-center justify-center gap-8 py-2.5 overflow-x-auto no-scrollbar">
-              {SUB_NAV_LINKS.map((link) => {
-                const isActive = pathname === link.href;
+            <nav className="flex items-center justify-center gap-9 py-2.5" role="navigation" aria-label="Main Navigation">
+              {/* 3 Lifestyle Super-Categories with Mega Menu */}
+              {MEGA_NAV_GROUPS.map((group) => {
+                const isCurrentGroupOpen = activeDropdown === group.id;
+                const isCurrentPathActive = pathname === group.href || pathname.startsWith(`/collections/${group.id}`);
+
                 return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`relative text-xs tracking-wide transition-colors whitespace-nowrap py-1 group ${
-                      isActive
-                        ? "text-[#C25E38] font-bold"
-                        : "text-[#4B5563] hover:text-[#18181B] font-semibold"
-                    }`}
+                  <div
+                    key={group.id}
+                    className="relative"
+                    onMouseEnter={() => handleMouseEnter(group.id)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    {link.label}
-                    {/* Active/Hover Underline Indicator */}
-                    <span
-                      className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
-                        isActive ? "w-full" : "w-0 group-hover:w-full"
+                    <Link
+                      href={group.href}
+                      className={`inline-flex items-center gap-1.5 text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
+                        isCurrentGroupOpen || isCurrentPathActive
+                          ? "text-[#C25E38]"
+                          : "text-[#374151] hover:text-[#18181B]"
                       }`}
-                    />
-                  </Link>
+                      aria-expanded={isCurrentGroupOpen}
+                      aria-haspopup="true"
+                    >
+                      <span>{group.shortLabel}</span>
+                      <svg
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          isCurrentGroupOpen ? "rotate-180 text-[#C25E38]" : "text-[#9CA3AF] group-hover:text-[#18181B]"
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+
+                      {/* Active Underline Indicator */}
+                      <span
+                        className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
+                          isCurrentGroupOpen || isCurrentPathActive ? "w-full" : "w-0 group-hover:w-full"
+                        }`}
+                      />
+                    </Link>
+                  </div>
                 );
               })}
+
+              {/* Direct Link: Ateliers */}
+              <Link
+                href="/artists"
+                className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
+                  pathname === "/artists" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
+                }`}
+              >
+                Ateliers
+                <span
+                  className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
+                    pathname === "/artists" ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
+
+              {/* Direct Link: Shop All */}
+              <Link
+                href="/collections"
+                className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
+                  pathname === "/collections" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
+                }`}
+              >
+                Shop All
+                <span
+                  className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
+                    pathname === "/collections" ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
             </nav>
           </div>
+
+          {/* =========================================================================
+              Desktop Mega Showroom Dropdown Panel (Hover Intent Protected)
+             ========================================================================= */}
+          {activeDropdown && (
+            <div
+              className="absolute left-0 right-0 top-full pt-1.5 z-40 px-4"
+              onMouseEnter={() => handleMouseEnter(activeDropdown)}
+              onMouseLeave={handleMouseLeave}
+            >
+              {(() => {
+                const currentGroup = MEGA_NAV_GROUPS.find((g) => g.id === activeDropdown);
+                if (!currentGroup) return null;
+
+                return (
+                  <div className="max-w-[1160px] mx-auto bg-white/98 backdrop-blur-md rounded-2xl border border-[#E8DFC8]/80 shadow-2xl p-6 md:p-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* Top Group Meta Header */}
+                    <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2ECE1]">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+                            {currentGroup.title}
+                          </h3>
+                          <span className="text-xs text-[#71717A] font-medium hidden sm:inline">
+                            &middot; {currentGroup.subtitle}
+                          </span>
+                        </div>
+                      </div>
+                      <Link
+                        href={currentGroup.href}
+                        className="text-xs font-bold text-[#C25E38] hover:text-[#A74B28] flex items-center gap-1 group/hub"
+                      >
+                        <span>View Entire Collection</span>
+                        <span className="group-hover/hub:translate-x-0.5 transition-transform">&rarr;</span>
+                      </Link>
+                    </div>
+
+                    {/* 2-Column Showroom Grid: 60% Child Collections + 40% Editorial Spotlight Card */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                      {/* Left: Child Categories Grid (7 cols) */}
+                      <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
+                        {currentGroup.children.map((child) => {
+                          const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
+
+                          return (
+                            <Link
+                              key={child.handle}
+                              href={child.href}
+                              className="group/item flex items-start gap-3 p-3 rounded-xl border border-[#E8DFC8]/40 hover:border-[#C25E38]/40 hover:bg-[#FAF8F5] transition-all shadow-2xs hover:shadow-xs"
+                            >
+                              <span className="text-xl p-2 rounded-lg bg-[#FAF8F5] group-hover/item:bg-white border border-[#E8DFC8]/60 shrink-0 transition-colors">
+                                {child.navEmoji}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-1 mb-0.5">
+                                  <span className="text-xs font-bold text-[#18181B] group-hover/item:text-[#C25E38] transition-colors truncate">
+                                    {child.shortLabel}
+                                  </span>
+                                  {isInStock ? (
+                                    <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
+                                      In Stock
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] font-medium text-[#8C7A6B] bg-[#F4EFEA] px-1.5 py-0.2 rounded-full border border-[#E8DFC8]/60 shrink-0">
+                                      Next Drop
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
+                                  {child.shelfSubtitle}
+                                </p>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+
+                      {/* Right: Editorial Atelier Spotlight Card (5 cols) */}
+                      <div className="lg:col-span-5">
+                        <Link
+                          href={currentGroup.editorial.href}
+                          className="group/card block h-full p-4 rounded-2xl bg-[#FAF8F5] border border-[#E8DFC8]/70 hover:border-[#C25E38]/50 transition-all overflow-hidden flex flex-col justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C25E38] bg-[#C25E38]/10 px-2.5 py-0.5 rounded-full border border-[#C25E38]/20">
+                                {currentGroup.editorial.badgeText}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#71717A] group-hover/card:text-[#C25E38] transition-colors">
+                                Atelier Spotlight &rsaquo;
+                              </span>
+                            </div>
+
+                            <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden mb-3 bg-[#E5E0D8]">
+                              <Image
+                                src={currentGroup.editorial.image}
+                                alt={currentGroup.editorial.title}
+                                fill
+                                sizes="(max-width: 1200px) 400px, 500px"
+                                className="object-cover group-hover/card:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+
+                            <h4
+                              className="text-sm font-black text-[#18181B] group-hover/card:text-[#C25E38] transition-colors mb-1"
+                              style={{ fontFamily: "var(--font-heading)" }}
+                            >
+                              {currentGroup.editorial.title}
+                            </h4>
+                            <p className="text-xs text-[#71717A] line-clamp-2 leading-relaxed">
+                              {currentGroup.editorial.subtitle}
+                            </p>
+                          </div>
+
+                          <div className="pt-3 border-t border-[#E8DFC8]/50 mt-3 flex items-center justify-between text-xs font-bold text-[#C25E38]">
+                            <span>Explore Featured Studio Work</span>
+                            <span className="group-hover/card:translate-x-1 transition-transform">&rarr;</span>
+                          </div>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </header>
 
       {/* =========================================================================
-          Mobile Drawer (Category & Studio Navigation)
+          Mobile Drawer (Category Accordions & Studio Navigation)
          ========================================================================= */}
       {mobileMenuOpen && (
         <div
@@ -292,12 +508,13 @@ export default function Header() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="fixed top-0 left-0 h-full w-72 bg-white p-6 shadow-2xl overflow-y-auto"
+            className="fixed top-0 left-0 h-full w-80 bg-white p-5 shadow-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D6]">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#E8E2D6]">
               <span
-                className="text-lg font-black tracking-tight text-[#18181B]"
+                className="text-xl font-black tracking-tight text-[#18181B]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 BLANK SEOUL<span className="text-[#C25E38]">.</span>
@@ -305,51 +522,150 @@ export default function Header() {
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-1.5 rounded-full hover:bg-[#F4EFE6] text-[#6B7280] font-bold"
+                aria-label="Close menu"
               >
                 ✕
               </button>
             </div>
 
-            <nav className="flex flex-col gap-1.5 mt-5">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-3 mb-1">
+            {/* Quick Discovery Tags */}
+            <div className="pt-3 pb-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] block mb-2">
+                Popular Crafts
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <Link
+                  href="/collections/jewelry-charms"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF8F5] border border-[#E8DFC8] text-[#C25E38]"
+                >
+                  ✨ Norigae
+                </Link>
+                <Link
+                  href="/collections/ceramics-dining"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF8F5] border border-[#E8DFC8] text-[#18181B]"
+                >
+                  🍶 Celadon
+                </Link>
+                <Link
+                  href="/collections/bags-pouches"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF8F5] border border-[#E8DFC8] text-[#18181B]"
+                >
+                  👜 Hopae
+                </Link>
+              </div>
+            </div>
+
+            {/* Main Navigation Accordions */}
+            <nav className="flex flex-col gap-1.5 mt-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-1 mb-1">
                 Shop Collections
               </span>
-              {SUB_NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 text-sm font-bold text-[#18181B] rounded-xl hover:bg-[#F4EFE6] transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
 
-              <div className="border-t border-[#F2ECE1] my-3 pt-3" />
+              {MEGA_NAV_GROUPS.map((group) => {
+                const isExpanded = expandedMobileGroup === group.id;
 
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-3 mb-1">
+                return (
+                  <div key={group.id} className="rounded-xl border border-[#E8DFC8]/60 overflow-hidden bg-[#FAF8F5]/40">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedMobileGroup(isExpanded ? null : group.id)}
+                      className="w-full flex items-center justify-between px-3.5 py-3 text-left font-bold text-sm text-[#18181B] hover:bg-[#F4EFE6] transition-colors"
+                    >
+                      <span>{group.title}</span>
+                      <svg
+                        className={`w-4 h-4 text-[#71717A] transition-transform duration-200 ${
+                          isExpanded ? "rotate-180 text-[#C25E38]" : ""
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-3 pb-3 pt-1 space-y-1 bg-white border-t border-[#F2ECE1]">
+                        {group.children.map((child) => (
+                          <Link
+                            key={child.handle}
+                            href={child.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#C25E38] hover:bg-[#FAF8F5]"
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <span>{child.navEmoji}</span>
+                              <span className="truncate">{child.title}</span>
+                            </span>
+                            {child.handle === "jewelry-charms" || child.handle === "ceramics-dining" ? (
+                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
+                                In Stock
+                              </span>
+                            ) : null}
+                          </Link>
+                        ))}
+                        <Link
+                          href={group.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-center text-xs font-bold text-[#C25E38] p-2 mt-1 rounded-lg bg-[#FAF8F5] border border-[#E8DFC8]/60 hover:bg-[#F4EFE6]"
+                        >
+                          View Entire {group.title} &rarr;
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Direct Links */}
+              <Link
+                href="/collections"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 text-sm font-bold text-[#18181B] rounded-xl hover:bg-[#F4EFE6] transition-colors flex items-center justify-between mt-1"
+              >
+                <span>Shop All Collections</span>
+                <span className="text-xs text-[#71717A]">&rsaquo;</span>
+              </Link>
+              <Link
+                href="/artists"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 text-sm font-bold text-[#18181B] rounded-xl hover:bg-[#F4EFE6] transition-colors flex items-center justify-between"
+              >
+                <span>Verified Korean Studios</span>
+                <span className="text-xs text-[#71717A]">&rsaquo;</span>
+              </Link>
+
+              <div className="border-t border-[#F2ECE1] my-2 pt-2" />
+
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] px-1 mb-1">
                 My Account & Support
               </span>
               <Link
                 href="/account"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-bold text-[#18181B] rounded-xl hover:bg-[#F4EFE6] flex items-center gap-2"
+                className="px-3.5 py-2 text-sm font-bold text-[#18181B] rounded-xl hover:bg-[#F4EFE6] flex items-center gap-2"
               >
                 <span>👤</span> {isLoggedIn ? "My Account" : "Sign In / Register"}
               </Link>
               <Link
                 href="/order-lookup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6]"
+                className="px-3.5 py-2 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6] flex items-center gap-2"
               >
-                📦 Track Order
+                <span>📦</span> Track Order
               </Link>
               <Link
                 href="/faq"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6]"
+                className="px-3.5 py-2 text-sm font-bold text-[#6B7280] rounded-xl hover:bg-[#F4EFE6] flex items-center gap-2"
               >
-                💬 FAQ & Help
+                <span>💬</span> FAQ & Help
               </Link>
             </nav>
           </div>

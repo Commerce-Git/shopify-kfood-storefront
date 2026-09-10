@@ -21,14 +21,14 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { slug } = await params;
   const artist = await getEnrichedArtistBySlug(slug);
-  const displayName = artist.nameEn || artist.name;
+  const displayName = artist.name || artist.nameEn;
 
   return {
     title: `${displayName} — Studio Works | Blank Seoul`,
-    description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Seoul.`,
+    description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,
     openGraph: {
       title: `${displayName} — Blank Seoul`,
-      description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Seoul.`,
+      description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,
       images: [artist.avatar],
     },
   };
@@ -36,18 +36,26 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { slug } = await params;
-  const artist = await getEnrichedArtistBySlug(slug);
+  const normalizedSlug = slug.toLowerCase();
 
   // Fetch all live products from Shopify
   const allProducts = await getAllProducts(100);
   const allArtists = await getEnrichedArtistsWithProducts(allProducts);
+
+  // Find exact vendor name from live Shopify products or ateliers list
+  const liveMatch = allArtists.find((a) => a.profile.slug === normalizedSlug);
+  const liveVendor = liveMatch?.profile.name;
+  const artist = await getEnrichedArtistBySlug(normalizedSlug, liveVendor);
+  if (liveVendor) {
+    artist.name = liveVendor;
+  }
 
   // Filter products by this artist
   const artistProducts = allProducts.filter((p: ShopifyProduct) => {
     const productSlug = getArtistSlug(p.vendor || "");
     return (
       productSlug === slug.toLowerCase() ||
-      (p.vendor && p.vendor.toLowerCase().includes(artist.name.toLowerCase()))
+      (p.vendor && p.vendor.trim().toLowerCase() === artist.name.trim().toLowerCase())
     );
   });
 
@@ -69,7 +77,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             Ateliers
           </Link>
           <span>/</span>
-          <span className="text-[#18181B] font-bold">{artist.nameEn || artist.name}</span>
+          <span className="text-[#18181B] font-bold">{artist.name || artist.nameEn}</span>
         </nav>
       </div>
 
@@ -81,7 +89,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             <div className="relative w-full h-full rounded-full overflow-hidden bg-[#FAF8F5]">
               <Image
                 src={artist.avatar || "/assets/blank_seoul_symbol.png"}
-                alt={artist.nameEn || artist.name}
+                alt={artist.name || artist.nameEn}
                 fill
                 sizes="(max-width: 640px) 112px, 144px"
                 className="object-cover"
@@ -90,12 +98,12 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             </div>
           </div>
 
-          {/* Artist Studio Name (English Only) */}
+          {/* Artist Studio Name (Shopify Vendor SSOT) */}
           <h1
             className="text-2xl sm:text-4xl font-extrabold text-[#18181B] tracking-tight mt-5"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            {artist.nameEn || artist.name}
+            {artist.name || artist.nameEn}
           </h1>
 
           {/* Works Count Badge */}
@@ -127,7 +135,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
               New creations are currently in progress at the studio.
             </p>
             <p className="text-xs text-[#6B7280] mt-1">
-              Please check back soon or explore our other verified Seoul ateliers.
+              Please check back soon or explore our other verified Korean studios.
             </p>
             <Link
               href="/collections"

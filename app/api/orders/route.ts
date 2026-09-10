@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrdersByEmail, getAdminToken, checkIsSubscribed } from "@/lib/shopify/admin";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { splitOrderIntoVendorPackages } from "@/lib/shopify/order-utils";
+import { getArtistSlug } from "@/lib/artists";
 
 // Helper to aggregate multiple item statuses into a single order status (fallback logic)
 function aggregateWmsStatus(
@@ -89,6 +91,7 @@ export async function GET() {
     const shopifyIds = orders.map((o) => o.id);
     const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
     let artistOrdersMap: Record<string, string[]> = {};
+    const artistStatusByOrderAndVendor: Record<string, Record<string, string>> = {};
 
     if (shopifyIds.length > 0) {
       // 1. Try querying unified order_status_view first
@@ -108,30 +111,65 @@ export async function GET() {
         }
       }
 
-      // 2. Fallback to artist_orders if some IDs were not found in view
-      const missingIds = shopifyIds.filter((id) => !viewStatusMap[id]);
-      if (missingIds.length > 0) {
-        const { data: artistOrders, error: dbError } = await supabaseAdmin
-          .from("artist_orders")
-          .select("shopify_order_id, status")
-          .in("shopify_order_id", missingIds);
+      // 2. Query artist_orders for artist-specific crafting status
+      const { data: artistOrders, error: dbError } = await supabaseAdmin
+        .from("artist_orders")
+        .select("shopify_order_id, artist_name, status")
+        .in("shopify_order_id", shopifyIds);
 
-        if (!dbError && artistOrders) {
-          for (const row of artistOrders) {
-            if (!artistOrdersMap[row.shopify_order_id]) {
-              artistOrdersMap[row.shopify_order_id] = [];
-            }
-            artistOrdersMap[row.shopify_order_id].push(row.status.toLowerCase());
+      if (!dbError && artistOrders) {
+        for (const row of artistOrders) {
+          const sId = row.shopify_order_id;
+          const aName = (row.artist_name || "").toLowerCase().trim();
+          const aSlug = getArtistSlug(row.artist_name || "");
+          const aStatus = (row.status || "").toLowerCase().trim();
+
+          if (!artistOrdersMap[sId]) artistOrdersMap[sId] = [];
+          artistOrdersMap[sId].push(aStatus);
+
+          if (!artistStatusByOrderAndVendor[sId]) artistStatusByOrderAndVendor[sId] = {};
+          artistStatusByOrderAndVendor[sId][aName] = aStatus;
+          if (aSlug) {
+            artistStatusByOrderAndVendor[sId][aSlug] = aStatus;
           }
         }
       }
     }
 
-    // Map variant images and WMS status back to order line items
+    // Map variant images, WMS status, and split packages back to orders
     const ordersWithImages = orders.map((order) => {
       const viewResult = viewStatusMap[order.id];
       const wmsStatus = viewResult?.customer_status || aggregateWmsStatus(order.fulfillmentStatus, artistOrdersMap[order.id]);
       const deliveredAt = viewResult?.delivered_at || null;
+
+      const updatedLineItemsEdges = order.lineItems.edges.map((edge) => {
+        const varId = edge.node.variantId;
+        const image = varId ? variantImageMap[varId] || null : null;
+        return {
+          ...edge,
+          node: {
+            ...edge.node,
+            variant: edge.node.variant
+              ? {
+                  ...edge.node.variant,
+                  image,
+                }
+              : null,
+          },
+        };
+      });
+
+      // Split into clean atelier-unit packages
+      const packages = splitOrderIntoVendorPackages({
+        orderId: order.id,
+        lineItems: updatedLineItemsEdges,
+        artistStatusMap: artistStatusByOrderAndVendor[order.id] || {},
+        orderFulfillmentStatus: order.fulfillmentStatus,
+        orderWmsStatus: wmsStatus,
+        orderTracking: order.tracking,
+        fulfillments: order.fulfillments,
+        deliveredAt,
+      });
 
       return {
         ...order,
@@ -139,23 +177,9 @@ export async function GET() {
         deliveredAt,
         lineItems: {
           ...order.lineItems,
-          edges: order.lineItems.edges.map((edge) => {
-            const varId = edge.node.variantId;
-            const image = varId ? variantImageMap[varId] || null : null;
-            return {
-              ...edge,
-              node: {
-                ...edge.node,
-                variant: edge.node.variant
-                  ? {
-                      ...edge.node.variant,
-                      image,
-                    }
-                  : null,
-              },
-            };
-          }),
+          edges: updatedLineItemsEdges,
         },
+        packages,
       };
     });
 

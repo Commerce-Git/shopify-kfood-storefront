@@ -5,14 +5,46 @@ import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import ProductInteractive from "@/app/components/ProductInteractive";
 import Reviews from "@/app/components/Reviews";
+import { unstable_cache } from "next/cache";
 import {
+  getAllProducts,
   getProductByHandle,
   getProductImages,
 } from "@/lib/shopify/api";
 
+export const revalidate = 60; // ISR: 60s Edge SWR Cache
+
+export async function generateStaticParams() {
+  try {
+    const products = await getAllProducts(50);
+    return products.map((product) => ({
+      handle: product.handle,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 interface PageProps {
   params: Promise<{ handle: string }>;
 }
+
+// 2026 Disk IO Protection: Cache approved reviews for 5 minutes (tag: reviews)
+// Eliminates repetitive Full Table Scans and protects Disk IO budget under viral traffic
+const getCachedReviews = unstable_cache(
+  async () => {
+    const { data: reviewData } = await supabaseAdmin
+      .from("reviews")
+      .select("id, customer_name, rating, title, body, photo_urls, submitted_at")
+      .not("rating", "is", null)
+      .eq("status", "approved")
+      .order("submitted_at", { ascending: false })
+      .limit(50);
+    return reviewData || [];
+  },
+  ["product-page-approved-reviews"],
+  { revalidate: 300, tags: ["reviews"] }
+);
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
@@ -40,16 +72,8 @@ export default async function ProductPage({ params }: PageProps) {
 
   const images = getProductImages(product);
 
-  // SEO: 리뷰 구조화 데이터 (Google Rich Snippets)
-  const { data: reviewData } = await supabaseAdmin
-    .from("reviews")
-    .select("customer_name, rating, title, body, submitted_at")
-    .not("rating", "is", null)
-    .eq("status", "approved")
-    .order("submitted_at", { ascending: false })
-    .limit(10);
-
-  const reviews = reviewData || [];
+  // SEO & Zero-Waterfall: Fetch cached reviews (protected by 300s TTL)
+  const reviews = await getCachedReviews();
   const avgRating =
     reviews.length > 0
       ? Math.round(
@@ -108,7 +132,7 @@ export default async function ProductPage({ params }: PageProps) {
         <ProductInteractive product={product} />
       </section>
 
-      <Reviews />
+      <Reviews initialReviews={reviews} initialAvgRating={avgRating} />
     </div>
   );
 }

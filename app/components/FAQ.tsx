@@ -30,7 +30,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "How long does shipping take and how much does it cost?",
     answer:
-      "We provide 100% FREE Tracked Shipping store-wide on all orders! Every piece is dispatched directly from Seoul, South Korea via Korea Post EMS / USPS Priority. Typical delivery time to the United States is 7–14 business days. You will receive an official tracking number as soon as your package leaves our Seoul facility.",
+      "We provide 100% FREE Tracked Shipping store-wide on all orders! Every piece is dispatched directly from Korea via Korea Post EMS / USPS Priority. Typical delivery time to the United States is 7–14 business days. You will receive an official tracking number as soon as your package leaves our Korea facility.",
     actionButton: {
       label: "Track Your Order Live →",
       href: "/order-lookup",
@@ -40,7 +40,11 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "Do I have to pay customs duties or import taxes?",
     answer:
-      "For US customers, NO! Under US Customs Section 321 De Minimis rules, personal import orders under $800 USD are 100% exempt from import duties and tariffs. All Blank Seoul artisan pieces are well within this duty-free threshold, so you will never encounter surprise customs fees at checkout or delivery.",
+      "For the vast majority of our orders, NO! Blank Seoul packages dispatched to the United States and Hong Kong arrive with zero surprise customs fees. Orders to Singapore (under S$400) and Australia (under A$1,000) clear destination customs duty-free under standard personal import allowances. Any regional taxes on high-value orders or other countries are assessed by local authorities under standard DDU terms.",
+    actionButton: {
+      label: "View Shipping & Customs Policy →",
+      href: "/policies/shipping",
+    },
   },
   {
     category: "shipping",
@@ -66,7 +70,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "orders",
     question: "Can I cancel or modify my order after placing it?",
     answer:
-      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate 100% automatic refund. After ${CANCEL_WINDOW_HOURS} hours, our Seoul master partner studios begin personalized packaging and international dispatch.`,
+      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate 100% automatic refund. After ${CANCEL_WINDOW_HOURS} hours, our master partner studios begin personalized packaging and international dispatch.`,
     actionButton: {
       label: "Go to My Account (/account) →",
       href: "/account",
@@ -76,9 +80,9 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "crafts",
     question: "Are the products genuinely handcrafted in Korea?",
     answer:
-      "Absolutely. We partner exclusively with verified Korean craft studios, master ateliers, and independent artisans based in Seoul (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). Each piece is created using authentic traditional Korean techniques, such as traditional embroidery, natural mother-of-pearl (Najeonchilgi) inlay, and artisanal fabric knotting.",
+      "Absolutely. We partner exclusively with verified Korean craft studios, master workshops, and independent artisans across Korea (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). Each piece is created using authentic traditional Korean techniques, such as traditional embroidery, natural mother-of-pearl (Najeonchilgi) inlay, and artisanal fabric knotting.",
     actionButton: {
-      label: "Meet Our Seoul Artisans →",
+      label: "Meet Our Korean Master Artisans →",
       href: "/artists",
     },
   },
@@ -130,7 +134,7 @@ export default function FAQ({ showAll = false }: { showAll?: boolean }) {
               Got <span className="text-[#C25E38]">Questions?</span>
             </h2>
             <p className="text-sm sm:text-base text-text-muted">
-              Everything you need to know about Seoul craft curation, 7–14 day delivery, and our 30-Day Guarantee.
+              Everything you need to know about our craft curation, 7–14 day delivery, and our 30-Day Guarantee.
             </p>
           </div>
         )}

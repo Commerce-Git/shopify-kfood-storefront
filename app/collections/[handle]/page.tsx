@@ -2,9 +2,24 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCollectionByHandle, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
+import { getCollectionByHandle, getAllProducts, formatPrice, isProductSoldOut } from "@/lib/shopify/api";
 import type { ShopifyProduct } from "@/lib/shopify/types";
-import { resolveCollectionHandle, getCollectionConfig } from "@/lib/config/collections";
+import {
+  resolveCollectionHandle,
+  getCollectionConfig,
+  isSuperCategory,
+  getSuperCategory,
+  MASTER_COLLECTIONS,
+} from "@/lib/config/collections";
+import CategoryWaitlistCard from "@/app/components/CategoryWaitlistCard";
+
+export const revalidate = 60; // ISR: 60s Edge SWR Cache
+
+export function generateStaticParams() {
+  const collectionHandles = MASTER_COLLECTIONS.map((c) => ({ handle: c.handle }));
+  const superCategories = [{ handle: "wear" }, { handle: "living" }, { handle: "ritual" }];
+  return [...collectionHandles, ...superCategories];
+}
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -14,6 +29,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
   const targetHandle = resolveCollectionHandle(decodedHandle);
+
+  // 1. Super-Category Hub Check
+  if (isSuperCategory(targetHandle)) {
+    const superCat = getSuperCategory(targetHandle);
+    if (superCat) {
+      return {
+        title: `${superCat.title} — Blank Seoul`,
+        description: `${superCat.subtitle}. Authentic artisan crafts made in Korea.`,
+      };
+    }
+  }
+
+  // 2. Individual Smart Collection Check
   const collection = await getCollectionByHandle(targetHandle);
   const config = getCollectionConfig(targetHandle);
 
@@ -71,6 +99,112 @@ export default async function CollectionPage({ params }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
   const targetHandle = resolveCollectionHandle(decodedHandle);
+
+  // =========================================================================
+  // Case A: Super-Category Parent Hub (e.g. /collections/wear-adornment)
+  // =========================================================================
+  if (isSuperCategory(targetHandle)) {
+    const superCat = getSuperCategory(targetHandle);
+    if (!superCat) notFound();
+
+    const allLive = await getAllProducts(50);
+    const childConfigs = superCat.categoryHandles
+      .map((h) => MASTER_COLLECTIONS.find((c) => c.handle === h))
+      .filter(Boolean);
+
+    const matchedProducts = allLive.filter((p) => {
+      const pType = (p.productType || "").toLowerCase().trim();
+      const pTitle = (p.title || "").toLowerCase();
+
+      return childConfigs.some((config) => {
+        const matchesType = config!.productTypeConditions.some(
+          (tc) => pType === tc.toLowerCase() || pType.startsWith(tc.toLowerCase())
+        );
+        if (matchesType) return true;
+        if (!pType || pType === "default" || pType === "general") {
+          return config!.keywords.some((kw) => pTitle.includes(kw));
+        }
+        return false;
+      });
+    });
+
+    const sortedProducts = [...matchedProducts].sort((a, b) => {
+      const availA = !isProductSoldOut(a);
+      const availB = !isProductSoldOut(b);
+      if (availA && !availB) return -1;
+      if (!availA && availB) return 1;
+      return 0;
+    });
+
+    return (
+      <div className="pt-28 sm:pt-36 pb-20 min-h-screen bg-[#FBF9F5]">
+        <section className="px-4 pt-4 sm:pt-6">
+          <div className="max-w-[1200px] mx-auto">
+            {/* Hub Header with Breadcrumb */}
+            <div className="mb-6 sm:mb-8 pb-4 border-b border-[#E8DFC8]/60">
+              <div className="flex items-center gap-2 text-xs text-[#71717A] mb-2 font-medium">
+                <Link href="/" className="hover:text-[#18181B] transition-colors">Home</Link>
+                <span>&rsaquo;</span>
+                <Link href="/collections" className="hover:text-[#18181B] transition-colors">Collections</Link>
+                <span>&rsaquo;</span>
+                <span className="text-[#18181B] font-bold">{superCat.title}</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                <div>
+                  <h1
+                    className="text-2xl sm:text-3xl font-black text-[#18181B] tracking-tight"
+                    style={{ fontFamily: "var(--font-heading)" }}
+                  >
+                    {superCat.title}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-[#71717A] mt-1">
+                    {superCat.subtitle}
+                  </p>
+                </div>
+                <span className="text-xs text-text-muted font-bold shrink-0">
+                  {sortedProducts.length > 0
+                    ? `${sortedProducts.length} ${sortedProducts.length === 1 ? "Piece Available" : "Pieces Available"}`
+                    : "Next Drop in Production"}
+                </span>
+              </div>
+
+              {/* Sub-Category Pills for Easy Filtering */}
+              <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-[#F2ECE1]">
+                {childConfigs.map((child) => (
+                  <Link
+                    key={child!.handle}
+                    href={`/collections/${child!.handle}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E8DFC8] text-xs font-semibold text-[#18181B] hover:border-[#C25E38] hover:text-[#C25E38] transition-all shadow-2xs"
+                  >
+                    <span>{child!.navEmoji}</span>
+                    <span>{child!.shortLabel}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {sortedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <CategoryWaitlistCard
+                collectionTitle={superCat.title}
+                categoryHandle={superCat.slug}
+              />
+            )}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // Case B: Individual Smart Collection (e.g. /collections/jewelry-charms)
+  // =========================================================================
   const collection = await getCollectionByHandle(targetHandle);
   const config = getCollectionConfig(targetHandle);
 
@@ -94,16 +228,31 @@ export default async function CollectionPage({ params }: PageProps) {
         <div className="max-w-[1200px] mx-auto">
           {/* Micro-Header Bar (Quiet Luxury) */}
           <div className="flex items-center justify-between border-b border-[#E8DFC8]/60 pb-3 mb-6 sm:mb-8">
-            <h1
-              className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#18181B]"
-              style={{ fontFamily: "var(--font-heading)" }}
-            >
-              {collection.title}
-            </h1>
-            <span className="text-[11px] sm:text-xs text-text-muted font-medium tracking-wider">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-[#71717A] mb-1">
+                <Link href="/" className="hover:text-[#18181B] transition-colors">Home</Link>
+                <span>&rsaquo;</span>
+                <Link href="/collections" className="hover:text-[#18181B] transition-colors">Collections</Link>
+                <span>&rsaquo;</span>
+                <span className="text-[#18181B] font-bold">{collection.title}</span>
+              </div>
+              <h1
+                className="text-lg sm:text-xl font-black text-[#18181B]"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                {collection.title}
+              </h1>
+              {config?.shelfSubtitle && (
+                <p className="text-xs text-[#71717A] mt-0.5 max-w-xl">
+                  {config.shelfSubtitle}
+                </p>
+              )}
+            </div>
+
+            <span className="text-[11px] sm:text-xs text-text-muted font-bold tracking-wider shrink-0">
               {products.length > 0
                 ? `${products.length} ${products.length === 1 ? "Piece" : "Pieces"}`
-                : "Coming Soon"}
+                : "Next Drop"}
             </span>
           </div>
 
@@ -114,29 +263,10 @@ export default async function CollectionPage({ params }: PageProps) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 sm:py-24 bg-white rounded-3xl border border-[#E8DFC8]/60 p-8 max-w-lg mx-auto shadow-2xs">
-              <span className="text-4xl mb-4 block">🏛️</span>
-              <h2 className="text-lg sm:text-xl font-bold text-[#18181B] mb-2" style={{ fontFamily: "var(--font-heading)" }}>
-                Curating New Pieces from Seoul
-              </h2>
-              <p className="text-xs sm:text-sm text-[#6B7280] leading-relaxed mb-6">
-                Our authentic Korean collections for {collection.title} are currently being prepared by verified independent studios and local workshops.
-              </p>
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <Link
-                  href="/collections"
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-semibold transition-colors shadow-sm"
-                >
-                  Explore All Collections ›
-                </Link>
-                <Link
-                  href="/artists"
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-[#D4D4D8] hover:border-[#18181B] text-[#18181B] text-xs font-semibold transition-colors bg-white shadow-2xs"
-                >
-                  Explore Ateliers ›
-                </Link>
-              </div>
-            </div>
+            <CategoryWaitlistCard
+              collectionTitle={collection.title}
+              categoryHandle={targetHandle}
+            />
           )}
         </div>
       </section>

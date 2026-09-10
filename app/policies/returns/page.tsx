@@ -70,7 +70,7 @@ export default function ReturnPolicyPage() {
 
       <h2>2. 30-Day Safe Delivery & Damage Protection</h2>
       <p>
-        Every piece sent from Seoul is packaged with rigorous protective materials. In the rare event that your item arrives damaged, defective, or incorrect, you are fully covered under our <strong>30-Day Safe Delivery Protection</strong>. Simply notify our support team within <strong>30 days of delivery</strong>.
+        Every piece sent from Korea is packaged with rigorous protective materials. In the rare event that your item arrives damaged, defective, or incorrect, you are fully covered under our <strong>30-Day Safe Delivery Protection</strong>. Simply notify our support team within <strong>30 days of delivery</strong>.
       </p>
       
       {/* 3-Step Hassle-Free Visual Flow */}
@@ -107,16 +107,19 @@ export default function ReturnPolicyPage() {
         If your tracking shows no updates for 15 business days, or if it is marked as delivered but cannot be located, please contact us within <strong>30 days of shipment</strong>. We will directly handle the courier investigation and arrange a <strong>free expedited reshipment or full refund</strong>.
       </p>
 
-      <h2>4. Non-Refundable Situations</h2>
+      <h2>4. Non-Refundable Situations & Unclaimed Returns</h2>
       <p>
-        Due to direct international dispatch from independent Seoul ateliers and international customs logistics, we cannot accept returns or issue refunds in the following scenarios:
+        Due to direct international dispatch from independent Korean studios and cross-border customs regulations, orders are not eligible for standard return or full refund in the following scenarios:
       </p>
       <ul>
-        <li>Change of mind after your order has been dispatched from Seoul</li>
-        <li>Items showing clear signs of customer misuse, modification, or intentional damage</li>
-        <li>Incorrect shipping address provided by the customer at checkout</li>
-        <li>Parcels refused or unclaimed at destination customs or local delivery offices</li>
+        <li>Change of mind after your order has been dispatched from Korea</li>
+        <li>Items showing clear signs of customer misuse, alteration, or intentional damage</li>
+        <li>Incorrect or incomplete shipping address provided by the customer at checkout</li>
+        <li>Parcels refused upon delivery or unclaimed at destination customs / local postal offices</li>
       </ul>
+      <p>
+        <em>* Important: In the event that a parcel is returned to South Korea due to customer refusal to pay destination customs/taxes or an invalid shipping address, actual incurred expenses (including round-trip international courier fees and return customs processing fees) will be deducted from any eligible refund.</em>
+      </p>
 
       <h2>5. Refund Processing Timeline</h2>
       <p>

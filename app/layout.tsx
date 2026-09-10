@@ -1,4 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAF8F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#18181B" },
+  ],
+};
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
@@ -22,19 +33,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://blankseoul.com"),
   title: {
-    default: "Blank Seoul — All Products Made in Korea 🇰🇷",
+    default: "Blank Seoul — Curated Korean Artisan Works | Made in Korea 🇰🇷",
     template: "%s | Blank Seoul",
   },
   description:
-    "Discover authentic Korean artisan goods made in Korea — traditional pouches, hair accessories, keyrings, and more. Delivered direct from Seoul with free global express.",
+    "Discover authentic Korean artisan goods made in Korea. Curated in Seoul, handcrafted across Korea, and delivered direct with free global express.",
   keywords: [
     "Korean artisan goods",
     "Made in Korea",
     "Korean traditional crafts",
+    "Korean master craft",
     "K-Culture",
     "Korean accessories",
     "Korean gift",
-    "Seoul",
     "Korean pouches",
     "Korean hair accessories",
     "hanbok accessories",
@@ -43,23 +54,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Blank Seoul",
-    title: "Blank Seoul — All Products Made in Korea 🇰🇷",
+    title: "Blank Seoul — Curated Korean Artisan Works | Made in Korea 🇰🇷",
     description:
-      "All products made in Korea — authentic pouches, accessories, and keyrings. Dispatched direct from Seoul.",
+      "Curated in Seoul, handcrafted across Korea — authentic heritage pouches, accessories, and craft treasures. Dispatched direct from Korea.",
     images: [
       {
         url: "/assets/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Blank Seoul — All Products Made in Korea",
+        alt: "Blank Seoul — Curated Korean Artisan Works | Made in Korea",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blank Seoul — All Products Made in Korea",
+    title: "Blank Seoul — Curated Korean Artisan Works | Made in Korea",
     description:
-      "All products made in Korea — direct from Seoul to your door.",
+      "All products handcrafted in Korea — direct from Korea to your door with free global express.",
   },
   robots: {
     index: true,

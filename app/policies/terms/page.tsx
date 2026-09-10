@@ -86,7 +86,7 @@ export default function TermsPage() {
 
       <h2>4. International Shipping & Customs</h2>
       <p>
-        All orders are dispatched directly from our international fulfillment hub in Seoul, South Korea via Korea Post (K-Packet & EMS).
+        All orders are dispatched directly from our international fulfillment hub in South Korea via Korea Post (K-Packet & EMS).
         Please review our dedicated <Link href="/policies/shipping">Shipping Policy</Link> for detailed transit times, tracking procedures, and customs guidelines.
       </p>
 

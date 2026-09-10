@@ -23,7 +23,7 @@ const HIGHLIGHTS = [
   },
   {
     icon: "✈️",
-    text: "Direct Seoul Dispatch · Tracked shipping (7–14 days)",
+    text: "Direct Korea Dispatch · Tracked shipping (7–14 days)",
   },
   {
     icon: "🛡️",
@@ -34,8 +34,8 @@ const HIGHLIGHTS = [
 export default function ProductInteractive({ product, isPreview = false }: ProductInteractiveProps) {
   const buyBoxRef = useRef<HTMLDivElement>(null);
   const images = getProductImages(product);
-  const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""));
-  const artistDisplayName = artistProfile.nameEn || product.vendor || "Seoul Master";
+  const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""), product.vendor);
+  const artistDisplayName = product.vendor?.trim() || artistProfile.name || "Blank Seoul";
 
   // Helper to ignore query parameters when matching URLs
   const stripQuery = (url: string) => url.split('?')[0];
@@ -228,7 +228,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDF9F3] border border-[#E8DFC8] text-[11px] font-bold text-[#C25E38] shadow-2xs">
               <span className="text-xs">🇰🇷</span>
-              <span>Made in Korea · Seoul Origin</span>
+              <span>Made in Korea</span>
             </div>
           </div>
 
@@ -329,7 +329,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
             {/* Exhibition Catalog Header */}
             <div className="text-center mb-10 sm:mb-14">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8DFC8] text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#C25E38] mb-3 shadow-2xs">
-                <span>🇰🇷</span> 100% Made in Korea · Direct from Seoul
+                <span>🇰🇷</span> 100% Made in Korea · Direct from Korea
               </span>
               <h2
                 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight"
@@ -338,7 +338,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
                 Craft & Lookbook Details
               </h2>
               <p className="text-xs sm:text-sm text-[#6B7280] max-w-lg mx-auto mt-2 leading-relaxed">
-                Crafted in Korea with uncompromising quality standards and dispatched directly from Seoul. Explore authentic textures, refined stitches, and heritage finishes.
+                Crafted in Korea with uncompromising quality standards and dispatched directly from Korea. Explore authentic textures, refined stitches, and heritage finishes.
               </p>
               <div className="h-0.5 w-12 bg-[#C25E38]/30 mx-auto mt-4" />
             </div>
@@ -378,18 +378,12 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
               />
             </div>
             <div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-[#C25E38]">
-                <span>🏛️</span> Verified Independent Atelier
-              </span>
               <h3
-                className="text-lg sm:text-xl font-bold text-[#18181B] mt-0.5"
+                className="text-lg sm:text-xl font-bold text-[#18181B]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 {artistDisplayName}
               </h3>
-              <p className="text-xs text-[#6B7280] mt-1 max-w-md line-clamp-2">
-                {artistProfile.bio}
-              </p>
             </div>
           </div>
 

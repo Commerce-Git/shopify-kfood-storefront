@@ -79,7 +79,7 @@ export default function HanjiUnboxingSection() {
                   🔍
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#18181B]">Seoul Hub 3-Stage Quality Inspection</h4>
+                  <h4 className="text-sm font-bold text-[#18181B]">Central Dispatch 3-Stage Inspection</h4>
                   <p className="text-xs text-[#6B7280] mt-0.5">
                     Each item is received directly from the maker&apos;s hands and thoroughly quality-checked before international dispatch.
                   </p>

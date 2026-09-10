@@ -13,8 +13,8 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
       id: "preview-product-id",
       handle: "preview",
       title: "Korean Traditional Artisan Craft",
-      description: "Authentic Korean Handicraft carefully created by master artisans. Ships direct from Seoul, South Korea.",
-      descriptionHtml: "<p>Authentic Korean Handicraft carefully created by master artisans. Ships direct from Seoul, South Korea.</p>",
+      description: "Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.",
+      descriptionHtml: "<p>Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.</p>",
       tags: ["preview", "artisan-craft"],
       vendor: "Master Artisan",
       productType: "Artisan Craft",
@@ -58,7 +58,7 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
   const rawDescription = payload.description_en || payload.description || "";
   let descriptionText = rawDescription.trim().length > 0
     ? rawDescription
-    : `Authentic Korean Handicraft from ${vendor}. Carefully crafted and shipped directly from Seoul, Korea. Free worldwide shipping included.`;
+    : `Authentic Korean Handicraft from ${vendor}. Carefully crafted and shipped directly from Korea. Free worldwide shipping included.`;
 
   // Append specs if available
   if (payload.weight_grams && Number(payload.weight_grams) > 0) {

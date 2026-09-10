@@ -52,7 +52,7 @@ export default function ProductViewsBadge({
 
   // 2026 Smart Threshold Social Proof Logic
   let icon = "✨";
-  let label = "Just Arrived from Seoul Atelier";
+  let label = "Just Arrived from Korean Studio";
 
   if (count >= 100) {
     const rounded = Math.floor(count / 10) * 10;

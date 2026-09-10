@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Shipping Policy",
   description:
-    "Learn about our international shipping process, direct Seoul dispatch, delivery times, and tracking for Blank Seoul craft orders.",
+    "Learn about our international shipping process, direct Korea dispatch, delivery times, and tracking for Blank Seoul craft orders.",
 };
 
 export default function ShippingPolicyPage() {
@@ -25,7 +25,7 @@ export default function ShippingPolicyPage() {
             <span className="text-base shrink-0">🇰🇷</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Origin</strong>
-              <span>Dispatched direct from Seoul, South Korea</span>
+              <span>Dispatched direct from South Korea</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -54,8 +54,7 @@ export default function ShippingPolicyPage() {
 
       <h2>1. Shipping Origin & Verified Ateliers</h2>
       <p>
-        All orders are dispatched directly from our international fulfillment hub in Seoul, South Korea.
-        We partner closely with Korea Post to provide reliable, tracked international postal and express courier services:
+        All orders are dispatched directly from our international fulfillment hub in South Korea. We partner with reputable national and international carriers, including Korea Post EMS, USPS Priority, and DHL Express, to provide end-to-end barcode tracked international postal and express courier services:
       </p>
       <ul>
         <li>
@@ -70,11 +69,11 @@ export default function ShippingPolicyPage() {
 
       <h2>2. Global Delivery Times & Regional Destinations</h2>
       <p>
-        We ship across the globe from our Seoul hub. Estimated transit times by destination region are outlined below:
+        We ship across the globe from South Korea. Estimated transit times by destination region are outlined below:
       </p>
       <ul>
         <li>
-          <strong>United States (Contiguous 48 States):</strong> 7–14 business days (Direct Seoul dispatch via Korea Post ➔ USPS Priority · 100% Free Shipping)
+          <strong>United States (Contiguous 48 States):</strong> 7–14 business days (Direct South Korea dispatch via Korea Post ➔ USPS Priority · 100% Free Shipping)
         </li>
         <li>
           <strong>United States (Alaska, Hawaii, Puerto Rico, Guam & US Territories):</strong> 10–18 business days
@@ -96,7 +95,7 @@ export default function ShippingPolicyPage() {
       <h2>3. Order Preparation & Quality Inspection</h2>
       <p>
         Each order features curated pieces from verified Korean craft studios and independent ateliers.
-        Every piece undergoes careful quality inspection and secure protective packaging in Seoul before dispatch.
+        Every piece undergoes careful quality inspection and secure protective packaging in Korea before dispatch.
         Orders are typically processed and handed over to the carrier within <strong>1–2 business days</strong>.
         Once dispatched, you will automatically receive a shipping confirmation email containing your active tracking number.
       </p>
@@ -126,11 +125,53 @@ export default function ShippingPolicyPage() {
         There are no hidden handling surcharges, unexpected delivery fees, or checkout markups calculated at payment.
       </p>
 
-      <h2>6. Customs, Import Duties & US De Minimis</h2>
+      <h2>6. Customs, Import Duties & Destination Taxes</h2>
       <p>
-        Under current United States customs regulations, personal imports valued under $800 USD are generally exempt
-        from import duties and tariffs (US De Minimis threshold). Our curated artisan pieces are well within this duty-free threshold.
-        For international destinations outside the US, standard local VAT or import regulations of the destination country may apply.
+        Every Blank Seoul order is dispatched directly from Korea with complete, compliant international postal customs documentation (CN22/CN23) and accurate HS tariff classifications.
+      </p>
+
+      {/* 2026 Key Regional Customs Fast-Facts Grid */}
+      <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-4 sm:p-5 my-5 shadow-2xs not-prose">
+        <h4
+          className="text-xs font-bold uppercase tracking-wider text-[#C25E38] mb-3 flex items-center gap-1.5"
+          style={{ fontFamily: "var(--font-heading)" }}
+        >
+          <span>🌐</span> Regional Customs & Duty Status
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-[#3F3F46]">
+          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-lg shrink-0">🇺🇸</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">United States</strong>
+              <span className="text-[#52525B]">Pre-cleared DDP express dispatch. Zero unexpected customs duties or handling fees upon delivery.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-lg shrink-0">🇭🇰</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Hong Kong</strong>
+              <span className="text-[#52525B]">100% Free Port. Zero customs tariffs and 0% VAT on all artisan craft and lifestyle goods.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-lg shrink-0">🇸🇬</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Singapore</strong>
+              <span className="text-[#52525B]">Duty-free postal import relief for personal craft orders under CIF S$400 (~$300 USD).</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
+            <span className="text-lg shrink-0">🇦🇺</span>
+            <div>
+              <strong className="block text-[#18181B] font-bold">Australia</strong>
+              <span className="text-[#52525B]">Duty-free postal import threshold for personal craft orders under AUD $1,000 (~$650 USD).</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        For destinations outside these primary regions, or for high-value wholesale consignments, shipments are dispatched on standard international DDU (Delivered Duty Unpaid) terms, where applicable local VAT, GST, or postal handling fees assessed by destination authorities remain the recipient&apos;s responsibility.
       </p>
 
       <h2>7. 30-Day Safe Delivery & Lost Package Guarantee</h2>

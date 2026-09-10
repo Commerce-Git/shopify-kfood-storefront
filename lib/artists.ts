@@ -21,6 +21,9 @@ export interface ArtistWithProducts {
 
 // Vendor to Slug mapping dictionary for common Korean vendor names
 const VENDOR_TO_SLUG_MAP: Record<string, string> = {
+  "BlankSeoul": "blankseoul",
+  "Blank Seoul": "blank-seoul",
+  "블랭크서울": "blank-seoul",
   "바늘꽃 라라비": "lalabi",
   "바늘꽃라라비": "lalabi",
   "Lalabi": "lalabi",
@@ -38,39 +41,47 @@ const VENDOR_TO_SLUG_MAP: Record<string, string> = {
 };
 
 /**
- * Get slug from vendor name with automatic fallback
+ * Get slug from vendor name with automatic fallback (Shopify-standard handleize)
  */
 export function getArtistSlug(vendor: string = ""): string {
-  const trimmed = vendor.trim();
+  const trimmed = (vendor || "").trim();
+  if (!trimmed) return "blank-seoul";
   if (VENDOR_TO_SLUG_MAP[trimmed]) {
     return VENDOR_TO_SLUG_MAP[trimmed];
   }
-  // Generic slug generator for dynamically discovered vendors
-  return trimmed
-    .toLowerCase()
-    .replace(/[^\w\s-가-힣]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "artisan";
+  // Generic slug generator: preserve word unity (CamelCase), convert spaces/symbols to hyphens
+  return (
+    trimmed
+      .toLowerCase()
+      .replace(/[^\w\s가-힣-]/g, "") // Safe Korean & alphanumeric with trailing hyphen
+      .replace(/[\s_]+/g, "-")        // Replace spaces & underscores with single hyphen
+      .replace(/^-+|-+$/g, "") || "blank-seoul"
+  );
 }
 
-/**
- * Generate a dynamic artist profile for any vendor or slug
- */
-export function getArtistBySlug(slug: string): ArtistProfile {
+export function getArtistBySlug(slug: string, rawVendor?: string): ArtistProfile {
   const normalized = slug.toLowerCase();
 
-  // Format readable name from slug
-  const readableName = slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  // Use rawVendor if available, or reverse-lookup in VENDOR_TO_SLUG_MAP, otherwise reconstruct title from slug
+  let displayName = rawVendor?.trim();
+  if (!displayName) {
+    const reverseEntry = Object.entries(VENDOR_TO_SLUG_MAP).find(([, s]) => s === normalized);
+    if (reverseEntry) {
+      displayName = reverseEntry[0];
+    } else {
+      displayName = slug
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+  }
 
   return {
     slug: normalized,
-    name: readableName,
-    nameEn: `${readableName} Studio`,
+    name: displayName,
+    nameEn: displayName,
     discipline: "Korean Heritage Craft & Goods",
-    location: "Seoul, South Korea",
+    location: "South Korea",
     bio: `Independent Korean master studio and verified workshop creating authentic pieces in Korea. Every work is crafted with traditional heritage and modern design.`,
     avatar: "/assets/blank_seoul_symbol.png",
     coverImage: "/assets/korean_artisan_crafts_hero.jpg",
@@ -87,12 +98,13 @@ export function getAllArtistsWithProducts(products: any[] = []): ArtistWithProdu
 
   // Aggregate live Shopify products
   for (const product of products) {
-    const vendor = product.vendor || "Seoul Artisan";
+    const vendor = product.vendor?.trim() || "Blank Seoul";
     const slug = getArtistSlug(vendor);
     
     if (!artistMap.has(slug)) {
-      const profile = getArtistBySlug(slug);
+      const profile = getArtistBySlug(slug, vendor);
       profile.name = vendor;
+      profile.nameEn = vendor;
       artistMap.set(slug, { profile, products: [] });
     }
 
@@ -140,7 +152,7 @@ export async function getEnrichedArtistsWithProducts(products: any[] = []): Prom
     if (dbAccounts && dbAccounts.length > 0) {
       for (const dbAcc of dbAccounts) {
         const slug = getArtistSlug(dbAcc.artist_name || dbAcc.artist_name_en || "");
-        if (!slug || slug === "artisan") continue;
+        if (!slug) continue;
 
         if (artistMap.has(slug)) {
           // Enrich existing live artist
@@ -156,9 +168,9 @@ export async function getEnrichedArtistsWithProducts(products: any[] = []): Prom
           const profile: ArtistProfile = {
             slug,
             name: dbAcc.artist_name || slug,
-            nameEn: dbAcc.artist_name_en || `${slug} Studio`,
+            nameEn: dbAcc.artist_name_en || dbAcc.artist_name || slug,
             discipline: dbAcc.discipline || "Korean Heritage Craft & Goods",
-            location: dbAcc.location || "Seoul, South Korea",
+            location: dbAcc.location || "South Korea",
             bio: dbAcc.bio || "Independent Korean artisan studio verified by Blank Seoul.",
             avatar: dbAcc.avatar_url || "/assets/blank_seoul_symbol.png",
             coverImage: "/assets/korean_artisan_crafts_hero.jpg",
@@ -183,8 +195,8 @@ export async function getEnrichedArtistsWithProducts(products: any[] = []): Prom
 /**
  * Supabase DB(artist_accounts)에서 최신 정보를 결합한 단일 작가 프로필 반환
  */
-export async function getEnrichedArtistBySlug(slug: string): Promise<ArtistProfile> {
-  const profile = getArtistBySlug(slug);
+export async function getEnrichedArtistBySlug(slug: string, rawVendor?: string): Promise<ArtistProfile> {
+  const profile = getArtistBySlug(slug, rawVendor);
 
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/admin");

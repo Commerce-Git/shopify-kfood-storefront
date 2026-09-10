@@ -68,8 +68,8 @@ export default function ProductTrustAccordions({
   const [isReturnPopoverOpen, setIsReturnPopoverOpen] = useState(false); // Floating Popover state
   const [deliveryRange, setDeliveryRange] = useState<string>("7–14 business days");
 
-  const artistProfile = product.vendor ? getArtistBySlug(getArtistSlug(product.vendor)) : null;
-  const artistDisplayName = artistProfile?.nameEn || product.vendor || "Seoul Verified Atelier";
+  const artistProfile = product.vendor ? getArtistBySlug(getArtistSlug(product.vendor), product.vendor) : null;
+  const artistDisplayName = product.vendor?.trim() || artistProfile?.name || "Blank Seoul";
   const materials = extractMaterials(product.tags);
 
   // Hydration-safe dynamic date calculation
@@ -217,20 +217,25 @@ export default function ProductTrustAccordions({
         {isShippingOpen && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs text-[#3F3F46] space-y-3.5 border-t border-[#E8DFC8]/50 animate-fade-in">
             {/* 1. Dynamic Estimated Delivery Date */}
-            <div className="p-3.5 rounded-xl bg-white border border-[#E8DFC8]/70 flex items-center gap-3 shadow-2xs">
-              <span className="text-base shrink-0">📅</span>
-              <div className="text-xs sm:text-sm font-bold text-[#18181B]">
-                Order today to get by <span className="text-[#C25E38] underline decoration-[#C25E38]/40">{deliveryRange}</span>
+            <div className="p-3.5 rounded-xl bg-white border border-[#E8DFC8]/70 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base shrink-0">📅</span>
+                <div className="text-xs sm:text-sm font-bold text-[#18181B]">
+                  Order today to get by <span className="text-[#C25E38] underline decoration-[#C25E38]/40">{deliveryRange}</span>
+                </div>
               </div>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+                Free Shipping
+              </span>
             </div>
 
-            {/* 2. Unified Clean Policies List (Etsy Signature Standard) */}
+            {/* 2. Unified Clean Policies List (2026 Quiet Luxury Standard) */}
             <div className="space-y-3 pt-1">
               <div className="flex items-start gap-2.5 text-xs">
                 <span className="text-sm shrink-0">✈️</span>
                 <div>
-                  <span className="font-bold text-[#18181B]">Tracked Express Dispatch:</span>{" "}
-                  <span className="text-[#52525B]">Real-time international tracking number provided via email upon dispatch.</span>
+                  <span className="font-bold text-[#18181B]">Pre-Cleared Express:</span>{" "}
+                  <span className="text-[#52525B]">Dispatched direct from Korea with end-to-end barcode tracking.</span>
                 </div>
               </div>
 
@@ -245,7 +250,7 @@ export default function ProductTrustAccordions({
               <div className="flex items-start gap-2.5 text-xs">
                 <span className="text-sm shrink-0">🛡️</span>
                 <div className="w-full relative">
-                  {/* Dotted Underline Popover Trigger (Etsy Standard) */}
+                  {/* Dotted Underline Popover Trigger */}
                   <div className="relative inline-block">
                     <button
                       type="button"
@@ -254,22 +259,25 @@ export default function ProductTrustAccordions({
                       onMouseLeave={() => setIsReturnPopoverOpen(false)}
                       className="font-bold text-[#18181B] underline decoration-dotted underline-offset-4 decoration-[#71717A] hover:text-[#C25E38] hover:decoration-[#C25E38] transition-colors cursor-help text-left"
                     >
-                      Returns & exchanges accepted within 30 days
+                      30-Day Safe Delivery & Protection Guarantee
                     </button>
 
-                    {/* Floating Speech-Bubble Popover Card (Pops up BELOW the trigger) */}
+                    {/* Floating Speech-Bubble Popover Card */}
                     <div
-                      className={`absolute left-0 top-full mt-2 w-64 sm:w-72 p-3 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
+                      className={`absolute left-0 top-full mt-2 w-64 sm:w-80 p-3.5 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
                         isReturnPopoverOpen
                           ? "opacity-100 visible translate-y-0 pointer-events-auto"
                           : "opacity-0 invisible -translate-y-1 pointer-events-none"
                       }`}
                     >
-                      {/* Speech Bubble Caret (Pointing UP to trigger) */}
+                      {/* Speech Bubble Caret */}
                       <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-t border-l border-[#E8DFC8] rotate-45" />
 
-                      <p className="relative z-10">
-                        Buyers are responsible for return shipping costs. If the item is not returned in its original condition, the buyer is responsible for any loss in value.
+                      <p className="relative z-10 font-medium text-[#18181B] mb-1">
+                        Zero-Hassle Protection Guarantee
+                      </p>
+                      <p className="relative z-10 text-[11px] text-[#52525B]">
+                        In the rare event your item arrives damaged, defective, or goes missing in transit, send us a quick photo within 30 days for an immediate 100% free replacement or full refund. No international return shipping required.
                       </p>
                     </div>
                   </div>

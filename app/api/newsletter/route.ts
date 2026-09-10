@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: "You're already subscribed to our newsletter! 🎉",
+        message: "You are already subscribed to our newsletter.",
         existing: true,
       });
     }
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json({
           success: true,
-          message: "You're already subscribed to our newsletter! 🎉",
+          message: "You are already subscribed to our newsletter.",
           existing: true,
         });
       }
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Welcome! You've successfully subscribed to our newsletter. 🚀",
+      message: "Welcome! You have successfully joined the Artisan Guild Journal.",
       existing: false,
     });
   } catch (error) {

@@ -111,7 +111,7 @@ export default function ArtistsDirectoryInteractive({
                   className="text-sm font-bold text-[#18181B] group-hover:text-[#C25E38] transition-colors truncate"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
-                  {profile.nameEn || profile.name}
+                  {profile.name || profile.nameEn}
                 </h3>
                 {worksCount > 0 && (
                   <span className="inline-block mt-1 text-[10px] font-bold text-[#C25E38] bg-[#FBF9F5] px-2.5 py-0.5 rounded-full border border-[#E8DFC8]">

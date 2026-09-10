@@ -106,7 +106,7 @@ export default function MobileStickyBottomBar({
           }
         `}
       >
-        <div className="bg-white/95 backdrop-blur-md border border-[#E8DFC8]/90 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_12px_35px_rgba(0,0,0,0.12)] lg:rounded-2xl flex items-center justify-between gap-3 max-w-lg lg:max-w-none mx-auto">
+        <div className="bg-white/95 backdrop-blur-md border border-[#E8DFC8]/90 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] lg:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_12px_35px_rgba(0,0,0,0.12)] lg:rounded-2xl flex items-center justify-between gap-3 max-w-lg lg:max-w-none mx-auto">
           {/* Left: Thumbnail + Option summary & price (Tapping opens Drawer) */}
           <button
             type="button"
@@ -213,7 +213,7 @@ export default function MobileStickyBottomBar({
                       {formatPrice(price, currency)}
                     </span>
                     <span className="text-[10px] text-[#C25E38] font-bold bg-[#F4EFE6] px-2 py-0.5 rounded-full border border-[#E8DFC8]">
-                      🇰🇷 Direct from Seoul
+                      🇰🇷 Direct from Korea
                     </span>
                   </div>
                 </div>

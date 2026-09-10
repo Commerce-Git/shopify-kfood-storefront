@@ -35,7 +35,7 @@ export default function NewsletterCTA() {
 
       if (res.ok) {
         setStatus("success");
-        setMessage(data.message || "Thank you for joining the Artisan Guild! 🎉");
+        setMessage(data.message || "Thank you for joining the Artisan Guild.");
         setIsSubscribed(true);
         if (typeof window !== "undefined") {
           const lowerEmail = email.trim().toLowerCase();
@@ -68,20 +68,22 @@ export default function NewsletterCTA() {
         >
           Get Private Access to{" "}
           <span className="text-[#C25E38]">
-            Limited Seoul Drops
+            Limited Studio Drops
           </span>
         </h2>
 
         <p className="text-xs sm:text-sm text-[#6B7280] max-w-md mx-auto mb-6 leading-relaxed">
-          Be the first to hear when our verified ateliers release new handcrafted collections. Receive an exclusive 10% welcome gift on your first piece.
+          Be the first to hear when our verified studios release new handcrafted collections. Receive an exclusive 10% welcome gift on your first piece.
         </p>
 
         {/* Form or Subscribed State */}
         {isSubscribed || status === "success" ? (
           <div className="bg-[#F4EFE6] border border-[#E8E2D6] rounded-2xl p-6 animate-fade-in max-w-md mx-auto">
-            <span className="text-3xl mb-2 block">🎉</span>
+            <div className="w-8 h-8 rounded-full bg-[#C25E38]/10 text-[#C25E38] flex items-center justify-center mx-auto mb-2 font-bold text-sm">
+              ✓
+            </div>
             <p className="text-[#1A2F25] font-bold text-base sm:text-lg" style={{ fontFamily: "var(--font-heading)" }}>
-              {message || "You're on the Artisan Guild List!"}
+              {message || "You are on the Artisan Guild List."}
             </p>
             <p className="text-[#6B7280] text-xs sm:text-sm mt-1">
               We&apos;ll notify you first when new limited handcrafted collections drop.

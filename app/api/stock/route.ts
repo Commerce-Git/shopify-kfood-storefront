@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
       },
       body: JSON.stringify({ query, variables: { id: variantId } }),
-      cache: "no-store", // Bypass Next.js fetch cache
+      next: { revalidate: 15 }, // 15s Micro-Cache to prevent Shopify API 429 throttling
     });
 
     if (!res.ok) {
@@ -58,11 +58,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Variant not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      quantityAvailable: variantNode.quantityAvailable, // number | null
-      currentlyNotInStock: variantNode.currentlyNotInStock, // boolean
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        quantityAvailable: variantNode.quantityAvailable, // number | null
+        currentlyNotInStock: variantNode.currentlyNotInStock, // boolean
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[Stock API Error]:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

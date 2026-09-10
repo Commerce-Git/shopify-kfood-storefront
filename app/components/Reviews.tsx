@@ -2,16 +2,9 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import type { Review, ReviewItem } from "@/lib/types/review";
 
-interface Review {
-  id: string;
-  customer_name: string;
-  rating: number;
-  title: string | null;
-  body: string;
-  photo_urls: string[];
-  submitted_at: string;
-}
+export type { ReviewItem };
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -43,14 +36,28 @@ function timeAgo(dateStr: string): string {
   return months <= 1 ? "1 month ago" : `${months} months ago`;
 }
 
-export default function Reviews() {
+interface ReviewsProps {
+  initialReviews?: ReviewItem[];
+  initialAvgRating?: number | null;
+}
+
+export default function Reviews({ initialReviews, initialAvgRating }: ReviewsProps = {}) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>((initialReviews as Review[]) || []);
+  const [averageRating, setAverageRating] = useState(initialAvgRating ?? 0);
+  const [totalCount, setTotalCount] = useState(initialReviews?.length || 0);
+  const [loaded, setLoaded] = useState(Boolean(initialReviews && initialReviews.length > 0));
 
   useEffect(() => {
+    // If initialReviews already provided by server, skip redundant client-side fetch
+    if (initialReviews && initialReviews.length > 0) {
+      setReviews(initialReviews as Review[]);
+      setAverageRating(initialAvgRating ?? 0);
+      setTotalCount(initialReviews.length);
+      setLoaded(true);
+      return;
+    }
+
     async function fetchReviews() {
       try {
         const res = await fetch("/api/review");
@@ -70,7 +77,7 @@ export default function Reviews() {
     }
 
     fetchReviews();
-  }, []);
+  }, [initialReviews, initialAvgRating]);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -186,7 +193,7 @@ export default function Reviews() {
               </p>
 
               {/* Photos */}
-              {review.photo_urls.length > 0 && (
+              {review.photo_urls && review.photo_urls.length > 0 && (
                 <div className="flex gap-2 mt-3">
                   {review.photo_urls.map((url, i) => (
                     <div

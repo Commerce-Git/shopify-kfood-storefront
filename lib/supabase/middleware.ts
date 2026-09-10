@@ -25,17 +25,17 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh the session
+  // Skip auth check if already on /account/login
+  if (request.nextUrl.pathname.startsWith("/account/login")) {
+    return supabaseResponse;
+  }
+
+  // Refresh the session and verify user for protected account routes
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect /account routes (except login)
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith("/account") &&
-    !request.nextUrl.pathname.startsWith("/account/login")
-  ) {
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/account/login";
     return NextResponse.redirect(url);

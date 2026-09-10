@@ -265,11 +265,18 @@ export async function GET(request: NextRequest) {
     const totalRating = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
     const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 
-    return NextResponse.json({
-      reviews,
-      averageRating: Math.round(averageRating * 10) / 10,
-      totalCount: reviews.length,
-    });
+    return NextResponse.json(
+      {
+        reviews,
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalCount: reviews.length,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
+        },
+      }
+    );
   } catch (err) {
     console.error("[Review API] Error:", err);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });

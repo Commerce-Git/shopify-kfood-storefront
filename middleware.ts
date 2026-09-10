@@ -8,12 +8,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets
+     * Only run middleware on /account and its subroutes.
+     * All public marketing/catalog pages (/, /product/*, /collections/*, /artists/*, etc.)
+     * completely bypass Edge middleware execution, achieving Zero-Invocation & 0ms latency.
      */
-    "/((?!_next/static|_next/image|favicon.ico|images/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/account/:path*",
   ],
 };

@@ -15,7 +15,7 @@ export default function EtsyEditorialSplitBanner() {
             {/* Left 60%: Hook & Brand Manifesto Story */}
             <div className="lg:col-span-7 flex flex-col gap-4 text-center lg:text-left">
               <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-[11px] font-extrabold uppercase tracking-widest text-[#D4A373]">
-                <span>🇰🇷</span> Dispatched Direct from Seoul
+                <span>🇰🇷</span> Dispatched Direct from Korea
               </div>
 
               <h2
@@ -26,7 +26,7 @@ export default function EtsyEditorialSplitBanner() {
               </h2>
 
               <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Every product on Blank Seoul is authentically designed and made in Korea—curated from skilled local workshops and verified studios, dispatched directly from Seoul with tracked global express.
+                Every product on Blank Seoul is authentically designed and made in Korea—curated in Seoul from skilled local workshops and verified studios across Korea, dispatched directly with tracked global express.
               </p>
 
               {/* 3 Core Authenticity Pillars (Legally Safe & Comprehensive) */}

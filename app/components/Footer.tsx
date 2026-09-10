@@ -5,13 +5,13 @@ import { getFooterLinks } from "@/lib/config/collections";
 const TRUST_PILLARS = [
   {
     icon: "🏛️",
-    title: "100% Verified Ateliers",
+    title: "100% Verified Studios",
     description: "Direct from independent Korean craft masters",
   },
   {
     icon: "✈️",
     title: "Tracked Express Dispatch",
-    description: "Sent direct from Seoul Hub with tracking",
+    description: "Sent direct from Korea with tracking",
   },
   {
     icon: "🔒",
@@ -105,7 +105,7 @@ export default function Footer() {
                 </span>
               </Link>
               <p className="text-xs sm:text-sm text-white/70 leading-relaxed max-w-sm">
-                Direct from Verified Seoul Ateliers 🇰🇷
+                Curated in Seoul · Handcrafted in Korea 🇰🇷
                 <br />
                 Connecting independent master Korean craft studios with collectors and enthusiasts worldwide.
               </p>

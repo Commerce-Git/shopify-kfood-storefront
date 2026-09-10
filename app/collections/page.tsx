@@ -7,7 +7,7 @@ import type { ShopifyProduct } from "@/lib/shopify/types";
 export const metadata: Metadata = {
   title: "Shop All — All Products Made in Korea",
   description:
-    "Browse our full collection of authentic Korean artisan goods made in Korea — pouches, accessories, keyrings, wallets, and more. Direct from Seoul.",
+    "Browse our full collection of authentic Korean artisan goods made in Korea — pouches, accessories, keyrings, wallets, and more. Direct from Korea.",
 };
 
 function ProductCard({ product }: { product: ShopifyProduct }) {
@@ -92,22 +92,26 @@ export default async function CollectionsPage() {
             </div>
           ) : (
             <div className="text-center py-16 sm:py-24 bg-white rounded-3xl border border-[#E8DFC8]/60 p-8 max-w-lg mx-auto shadow-2xs">
-              <span className="text-4xl mb-4 block">🏛️</span>
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF8F5] border border-[#E8DFC8] flex items-center justify-center mx-auto mb-4 text-[#C77B4A]">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
               <h2
                 className="text-lg sm:text-xl font-bold text-[#18181B] mb-2"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Curating New Pieces from Seoul
+                Curating Heritage Pieces from Korea
               </h2>
               <p className="text-xs sm:text-sm text-[#6B7280] leading-relaxed mb-6">
-                Our authentic Korean collections are currently being prepared by verified independent studios and local workshops.
+                Our authentic Korean collections are currently being prepared by verified independent studios and local workshops across Korea.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link
                   href="/artists"
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-semibold transition-colors shadow-sm"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C77B4A] text-white text-xs font-semibold transition-colors shadow-sm"
                 >
-                  Explore Seoul Ateliers ›
+                  Explore Korean Studios ›
                 </Link>
                 <Link
                   href="/"

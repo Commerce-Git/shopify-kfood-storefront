@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import { CANCEL_WINDOW_HOURS, isCancelable } from "@/lib/constants";
 import { cancelOrder, adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
 import {
@@ -173,9 +173,7 @@ export async function POST(request: Request) {
 
     const processedAt = orderData?.order?.processedAt;
     if (processedAt) {
-      const orderDate = new Date(processedAt);
-      const deadline = new Date(orderDate.getTime() + CANCEL_WINDOW_HOURS * 60 * 60 * 1000);
-      if (new Date() > deadline) {
+      if (!isCancelable(processedAt)) {
         return NextResponse.json(
           { error: `The ${CANCEL_WINDOW_HOURS}-hour free cancellation window has passed.` },
           { status: 403 }

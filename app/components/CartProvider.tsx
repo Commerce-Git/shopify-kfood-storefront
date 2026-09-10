@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { CartItem } from "@/lib/shopify/types";
 
-interface CheckoutBackup {
+export interface CheckoutBackup {
   timestamp: string;
   items: CartItem[];
 }

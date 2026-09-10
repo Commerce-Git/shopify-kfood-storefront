@@ -15,15 +15,15 @@ const ROW_1_TAGS: BubbleTag[] = [
   { label: "Transform Bags & Pouches", emoji: "🧵", href: "/#masterpieces" },
   { label: "Royal Silk Knot Charms", emoji: "🗝️", href: "/#masterpieces" },
   { label: "100% Mulberry Hanji Wrap", emoji: "🌿", href: "/#unboxing" },
-  { label: "Meet All 3 Ateliers", emoji: "🏛️", href: "/#ateliers" },
+  { label: "Meet Master Studios", emoji: "🏛️", href: "/#ateliers" },
 ];
 
 const ROW_2_TAGS: BubbleTag[] = [
   { label: "The 12 Masterpieces", emoji: "👑", href: "/#masterpieces" },
   { label: "Gifts Under $30", emoji: "🎁", href: "/#masterpieces" },
   { label: "Dancheong Temple Pigments", emoji: "🏮", href: "/#masterpieces" },
-  { label: "Direct Seoul Dispatch", emoji: "✈️", href: "/policies/shipping" },
-  { label: "Handcrafted in Seoul", emoji: "🇰🇷", href: "/#masterpieces" },
+  { label: "Direct Korea Dispatch", emoji: "✈️", href: "/policies/shipping" },
+  { label: "Handcrafted in Korea", emoji: "🇰🇷", href: "/#masterpieces" },
   { label: "5.0 Verified Reviews", emoji: "⭐", href: "/#masterpieces" },
 ];
 
