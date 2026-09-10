@@ -171,12 +171,12 @@ export default function AccountProfileCard({
           </div>
           <div className="flex items-baseline gap-2">
             <span
-              className="text-2xl sm:text-3xl font-extrabold text-emerald-600"
+              className="text-xl sm:text-2xl font-extrabold text-emerald-600"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              100%
+              Verified
             </span>
-            <span className="text-xs text-stone-500 font-medium">verified genuine</span>
+            <span className="text-xs text-stone-500 font-medium">domestic origin</span>
           </div>
         </div>
       </div>

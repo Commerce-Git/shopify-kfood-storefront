@@ -78,7 +78,7 @@ export default function TermsPage() {
         We do not store or have direct access to your full credit card numbers.
       </p>
       <p>
-        <strong>3-Hour Self-Cancellation:</strong> You may cancel any order for a 100% full refund within 3 hours of placement directly through your{" "}
+        <strong>3-Hour Self-Cancellation:</strong> You may cancel any order for a full refund within 3 hours of placement directly through your{" "}
         <Link href="/account" className="font-bold underline text-[#C25E38]">
           Account Dashboard
         </Link>.

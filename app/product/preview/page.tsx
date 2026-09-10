@@ -77,7 +77,7 @@ export default function StorePreviewPage() {
       {/* Live Preview Mode Floating Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white py-2.5 px-4 text-center text-xs font-semibold tracking-wide shadow-md flex items-center justify-center gap-2 sticky top-16 z-40">
         <span>📱</span>
-        <span>BLANK SEOUL Live Storefront Preview (100% Real Time Sync)</span>
+        <span>BLANK SEOUL Live Storefront Preview (Real-Time Sync)</span>
         <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-mono uppercase">Live View</span>
       </div>
 

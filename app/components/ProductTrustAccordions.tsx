@@ -277,7 +277,7 @@ export default function ProductTrustAccordions({
                         Zero-Hassle Protection Guarantee
                       </p>
                       <p className="relative z-10 text-[11px] text-[#52525B]">
-                        In the rare event your item arrives damaged, defective, or goes missing in transit, send us a quick photo within 30 days for an immediate 100% free replacement or full refund. No international return shipping required.
+                        In the rare event your item arrives damaged, defective, or goes missing in transit, send us a quick photo within 30 days for an immediate free replacement or full refund. No international return shipping required.
                       </p>
                     </div>
                   </div>

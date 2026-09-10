@@ -1,23 +1,23 @@
 const BADGES = [
   {
     emoji: "✈️",
-    title: "Direct from Korea",
+    title: "Dispatched Direct from Korea",
     description:
-      "Every piece is sourced and shipped directly from Korean artisans. No middleman, no mass production — straight from the maker's hands to yours.",
+      "Every piece is curated in Seoul and shipped directly from South Korea with end-to-end international air tracking straight to your door.",
     gradient: "from-emerald-500/10 to-teal-500/10",
   },
   {
-    emoji: "🧵",
-    title: "Handcrafted with Care",
+    emoji: "🏛️",
+    title: "Verified Domestic Quality",
     description:
-      "Each item is made by hand by independent Korean artisans. No two pieces are exactly alike — that's the beauty of handmade.",
+      "Curated from verified South Korean makers and studios. Meticulous quality inspection at our central Seoul hub before dispatch.",
     gradient: "from-amber-500/10 to-orange-500/10",
   },
   {
-    emoji: "💯",
-    title: "100% Made in Korea",
+    emoji: "🇰🇷",
+    title: "Made in Korea",
     description:
-      "We only work with artisans who craft their products entirely in Korea. Authentic Korean craftsmanship, guaranteed.",
+      "We strictly partner with domestic manufacturers and designers. Authentic South Korean manufacturing origin guaranteed.",
     gradient: "from-indigo-500/10 to-blue-500/10",
   },
 ];

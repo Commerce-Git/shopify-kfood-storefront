@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (superCat) {
       return {
         title: `${superCat.title} — Blank Seoul`,
-        description: `${superCat.subtitle}. Authentic artisan crafts made in Korea.`,
+        description: `${superCat.subtitle}. Made in Korea, dispatched direct from Seoul.`,
       };
     }
   }

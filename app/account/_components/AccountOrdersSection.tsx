@@ -33,7 +33,14 @@ export default function AccountOrdersSection({
         variantTitle: node.variant?.title || "",
         price: node.variant?.price.amount || "0",
         quantity: node.quantity,
-        image: (node.variant?.image as any) || null,
+        image: node.variant?.image
+          ? {
+              url: node.variant.image.url,
+              altText: node.variant.image.altText ?? null,
+              width: 500,
+              height: 500,
+            }
+          : null,
       });
     });
     router.push("/cart");
@@ -103,14 +110,14 @@ export default function AccountOrdersSection({
             No orders yet
           </h3>
           <p className="text-stone-500 text-sm mb-6 max-w-sm mx-auto">
-            Your collection is waiting. Explore handcrafted treasures made in master workshops across Korea.
+            Your collection is waiting. Explore authentic Made in Korea goods curated directly from Seoul.
           </p>
           <Link
-            href="/"
+            href="/collections"
             className="inline-block px-7 py-3 bg-[#C77B4A] hover:bg-[#b56b3c] text-white font-bold rounded-xl transition-all shadow-xs text-sm"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Explore Artisan Works →
+            Explore Made in Korea →
           </Link>
         </div>
       ) : (

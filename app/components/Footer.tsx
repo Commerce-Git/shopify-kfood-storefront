@@ -1,12 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getFooterLinks } from "@/lib/config/collections";
 
 const TRUST_PILLARS = [
   {
-    icon: "🏛️",
-    title: "100% Verified Studios",
-    description: "Direct from independent Korean craft masters",
+    icon: "🇰🇷",
+    title: "Made in Korea",
+    description: "Authentic domestic manufacturing guaranteed",
   },
   {
     icon: "✈️",
@@ -105,16 +104,16 @@ export default function Footer() {
                 </span>
               </Link>
               <p className="text-xs sm:text-sm text-white/70 leading-relaxed max-w-sm">
-                Curated in Seoul · Handcrafted in Korea 🇰🇷
+                Curated in Seoul · Made in Korea 🇰🇷
                 <br />
-                Connecting independent master Korean craft studios with collectors and enthusiasts worldwide.
+                Connecting authentic South Korean domestic brands and design studios with global shoppers. All products manufactured in Korea and dispatched direct from Seoul.
               </p>
             </div>
 
             {/* Social Media Links */}
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-white/40 block mb-2.5">
-                Follow Our Studios
+                Follow Blank Seoul
               </span>
               <div className="flex gap-2.5">
                 {SOCIAL_LINKS.map((social) => (

@@ -75,9 +75,9 @@ export default function PlatformHero() {
             <div className="grid grid-cols-3 gap-4 pt-6 sm:pt-8 border-t border-[#E8E2D6] mt-4">
               <div>
                 <p className="text-xl sm:text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
-                  100%
+                  Origin
                 </p>
-                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Handcrafted in Korea</p>
+                <p className="text-xs text-[#6B7280] font-medium mt-0.5">Made in Korea</p>
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>

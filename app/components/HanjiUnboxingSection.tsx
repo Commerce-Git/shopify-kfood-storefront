@@ -57,7 +57,7 @@ export default function HanjiUnboxingSection() {
             </h2>
 
             <p className="text-sm sm:text-base text-[#4B5563] leading-relaxed">
-              We believe a handcrafted piece deserves a packaging that honors its maker. Every single order from Blank Seoul is individually inspected, dressed in textured natural mulberry Hanji paper, bound with organic jute cords, and sealed with a traditional Korean crest.
+              We believe authentic Korean design deserves packaging that honors its origin. Every single order from Blank Seoul is individually inspected in Seoul, dressed in textured protective packaging, and prepared for safe international dispatch.
             </p>
 
             {/* 3 Value Pillars */}
@@ -67,7 +67,7 @@ export default function HanjiUnboxingSection() {
                   🌱
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#18181B]">100% Plastic-Free & Eco-Conscious</h4>
+                  <h4 className="text-sm font-bold text-[#18181B]">Plastic-Free & Eco-Conscious</h4>
                   <p className="text-xs text-[#6B7280] mt-0.5">
                     Biodegradable raw mulberry bark fibers and paper cards protect your gifts without synthetic plastics.
                   </p>

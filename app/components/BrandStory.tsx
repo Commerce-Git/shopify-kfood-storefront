@@ -42,7 +42,7 @@ export default function BrandStory() {
                 I discovered incredible artisans who pour their hearts into every stitch, every knot, and every carving. They are preserving centuries of Korean heritage, yet their work remains hidden from the global stage.
               </p>
               <p className="text-white font-medium">
-                That is why I created <strong>Blank Seoul</strong>. We are not a factory. Every piece you see here is <strong>100% made in Korea</strong> by independent artisans, and <strong>shipped directly from Korea</strong> to your door.
+                That is why I created <strong>Blank Seoul</strong>. We are not a factory. Every piece you see here is <strong>made in Korea</strong> by independent artisans, and <strong>shipped directly from Korea</strong> to your door.
               </p>
             </div>
 

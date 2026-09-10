@@ -71,7 +71,7 @@ export default function CategoryWaitlistCard({
 
       <p className="text-xs sm:text-sm text-[#71717A] leading-relaxed mb-6 max-w-md mx-auto">
         Each piece in our <strong className="text-[#18181B]">{collectionTitle}</strong> collection is
-        handcrafted in verified Korean studios in strictly limited runs. Join the Collector Circle to
+        produced by verified Korean makers and designers in strictly limited runs. Join the Collector Circle to
         be notified first the moment new pieces arrive.
       </p>
 

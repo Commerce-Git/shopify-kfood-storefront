@@ -14,7 +14,7 @@ const ROW_1_TAGS: BubbleTag[] = [
   { label: "Joseon Hopae Wallets", emoji: "✨", href: "/#masterpieces" },
   { label: "Transform Bags & Pouches", emoji: "🧵", href: "/#masterpieces" },
   { label: "Royal Silk Knot Charms", emoji: "🗝️", href: "/#masterpieces" },
-  { label: "100% Mulberry Hanji Wrap", emoji: "🌿", href: "/#unboxing" },
+  { label: "Mulberry Hanji Wrap", emoji: "🌿", href: "/#unboxing" },
   { label: "Meet Master Studios", emoji: "🏛️", href: "/#ateliers" },
 ];
 
@@ -23,7 +23,7 @@ const ROW_2_TAGS: BubbleTag[] = [
   { label: "Gifts Under $30", emoji: "🎁", href: "/#masterpieces" },
   { label: "Dancheong Temple Pigments", emoji: "🏮", href: "/#masterpieces" },
   { label: "Direct Korea Dispatch", emoji: "✈️", href: "/policies/shipping" },
-  { label: "Handcrafted in Korea", emoji: "🇰🇷", href: "/#masterpieces" },
+  { label: "Made in Korea", emoji: "🇰🇷", href: "/collections" },
   { label: "5.0 Verified Reviews", emoji: "⭐", href: "/#masterpieces" },
 ];
 

@@ -26,7 +26,7 @@ export default function CartUpsellShelf({
             Complete Your Blank Seoul Box
           </h2>
           <p className="text-[11px] text-[#71717A]">
-            Popular companion treasures handcrafted across Korea — 1-click addition.
+            Popular companion pieces made in Korea — 1-click addition.
           </p>
         </div>
       </div>

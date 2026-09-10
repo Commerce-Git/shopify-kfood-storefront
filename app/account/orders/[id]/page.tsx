@@ -198,7 +198,7 @@ export default function OrderDetailPage() {
                   Package Delivered Successfully!
                 </h3>
                 <p className="text-xs sm:text-sm text-emerald-700 mt-0.5 leading-relaxed">
-                  Your handcrafted Korean treasures have arrived. We hope they bring you joy and a piece of Korea&apos;s timeless beauty!
+                  Your authentic Korean treasures have arrived. We hope they bring you joy and a piece of Seoul&apos;s timeless beauty!
                 </p>
                 {order.deliveredAt && (
                   <p className="text-xs font-semibold text-emerald-800 mt-1.5 flex items-center gap-1.5">

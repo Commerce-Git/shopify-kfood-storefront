@@ -284,7 +284,7 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
                 Curated for You: Korean Master Studios
               </h2>
               <span className="text-[10px] font-bold text-[#C25E38] bg-[#F4EFE6] px-2 py-0.5 rounded-md border border-[#E8E2D6]">
-                100% Handcrafted
+                Made in Korea
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#6B7280] mt-1">

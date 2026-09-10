@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Shipping Policy",
   description:
-    "Learn about our international shipping process, direct Korea dispatch, delivery times, and tracking for Blank Seoul craft orders.",
+    "Learn about our international shipping process, direct Korea dispatch, delivery times, and tracking for Blank Seoul orders.",
 };
 
 export default function ShippingPolicyPage() {
@@ -39,7 +39,7 @@ export default function ShippingPolicyPage() {
             <span className="text-base shrink-0">🎁</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Shipping Cost</strong>
-              <span className="text-[#2E7D32] font-semibold">100% FREE Store-wide</span>
+              <span className="text-[#2E7D32] font-semibold">Free Store-wide</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -73,7 +73,7 @@ export default function ShippingPolicyPage() {
       </p>
       <ul>
         <li>
-          <strong>United States (Contiguous 48 States):</strong> 7–14 business days (Direct South Korea dispatch via Korea Post ➔ USPS Priority · 100% Free Shipping)
+          <strong>United States (Contiguous 48 States):</strong> 7–14 business days (Direct South Korea dispatch via Korea Post ➔ USPS Priority · Free Tracked Shipping)
         </li>
         <li>
           <strong>United States (Alaska, Hawaii, Puerto Rico, Guam & US Territories):</strong> 10–18 business days
@@ -102,7 +102,7 @@ export default function ShippingPolicyPage() {
 
       <h2>4. End-to-End Order Tracking</h2>
       <p>
-        Every shipment from Blank Seoul includes 100% full-journey barcode tracking. You can track your parcel in real-time through:
+        Every shipment from Blank Seoul includes full-journey barcode tracking. You can track your parcel in real-time through:
       </p>
       <ul>
         <li>
@@ -150,14 +150,14 @@ export default function ShippingPolicyPage() {
             <span className="text-lg shrink-0">🇭🇰</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Hong Kong</strong>
-              <span className="text-[#52525B]">100% Free Port. Zero customs tariffs and 0% VAT on all artisan craft and lifestyle goods.</span>
+              <span className="text-[#52525B]">Free Port. Zero customs tariffs and 0% VAT on all Korean lifestyle goods and accessories.</span>
             </div>
           </div>
           <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
             <span className="text-lg shrink-0">🇸🇬</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Singapore</strong>
-              <span className="text-[#52525B]">Duty-free postal import relief for personal craft orders under CIF S$400 (~$300 USD).</span>
+              <span className="text-[#52525B]">Duty-free postal import relief for personal orders under CIF S$400 (~$300 USD).</span>
             </div>
           </div>
           <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
@@ -183,7 +183,7 @@ export default function ShippingPolicyPage() {
       </p>
       <p>
         Under our <strong>30-Day Safe Delivery Guarantee</strong>, we will immediately investigate with Korea Post and either
-        provide a <strong>100% free expedited replacement</strong> or issue a <strong>full refund</strong> to your original payment method.
+        provide a <strong>free expedited replacement</strong> or issue a <strong>full refund</strong> to your original payment method.
       </p>
     </>
   );

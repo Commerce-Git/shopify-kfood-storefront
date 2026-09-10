@@ -1,20 +1,36 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 import { getMegaNavStructure, findMatchingShelfId, MegaNavGroup } from "@/lib/config/collections";
+
+const emptySubscribe = () => () => {};
+
+function getWishlistSnapshot(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const saved = localStorage.getItem("blank_seoul_wishlist");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.length : 0;
+    }
+  } catch {}
+  return 0;
+}
+
+function subscribeWishlist(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
 
 const MEGA_NAV_GROUPS: MegaNavGroup[] = getMegaNavStructure();
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [expandedMobileGroup, setExpandedMobileGroup] = useState<string | null>("wear");
   const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -23,33 +39,63 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const saved = localStorage.getItem("blank_seoul_wishlist");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setWishlistCount(Array.isArray(parsed) ? parsed.length : 0);
-      }
-    } catch {}
-  }, []);
+  // Modern React 19 hydration-safe mount detection
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  // Close menus on route changes or ESC key
-  useEffect(() => {
+  // Modern React 19 storage subscription for wishlist
+  const wishlistCount = useSyncExternalStore(subscribeWishlist, getWishlistSnapshot, () => 0);
+
+  // Close menus on route changes during render (React official standard: adjusting state on prop/route change)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setActiveDropdown(null);
     setMobileMenuOpen(false);
-  }, [pathname]);
+  }
+
+  // 2026 Mobile UX: Prevent background body scroll when mobile drawer is active
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const handleImmediateClose = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    setActiveDropdown(null);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setActiveDropdown(null);
+        handleImmediateClose();
         setMobileMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // 2026 Luxury Navigation: Dismiss mega menu when user scrolls > 20px
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const initialY = window.scrollY;
+    const handleScroll = () => {
+      if (Math.abs(window.scrollY - initialY) > 20) {
+        handleImmediateClose();
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [activeDropdown]);
 
   const handleMouseEnter = (id: string) => {
     if (leaveTimerRef.current) {
@@ -83,6 +129,15 @@ export default function Header() {
 
   return (
     <>
+      {/* 2026 Quiet Luxury Backdrop Scrim: Dims page background & dismisses dropdown on external click */}
+      {activeDropdown && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-30 transition-opacity duration-200 hidden md:block"
+          onClick={handleImmediateClose}
+          aria-hidden="true"
+        />
+      )}
+
       <header id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] border-b border-[#E1E3DF] shadow-2xs">
         {/* =========================================================================
             TOP ANNOUNCEMENT STRIP: Simple & Clean Quiet Luxury Free Shipping & Origin Bar
@@ -98,7 +153,10 @@ export default function Header() {
             - Desktop: [Logo] --- [Wide Search Form] --- [Account | Wishlist | Cart]
             - Mobile:  [Logo] -------------------------- [Account | Wishlist | Cart]
            ========================================================================= */}
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-2 pb-2 md:py-3">
+        <div
+          className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-2 pb-2 md:py-3"
+          onMouseEnter={handleImmediateClose}
+        >
           <div className="flex items-center justify-between gap-3 sm:gap-6">
             {/* Left: Brand Logo (2026 Luxury Artisan House Mark) */}
             <Link href="/" className="flex items-center gap-1 shrink-0 group" id="header-logo">
@@ -117,7 +175,7 @@ export default function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for Korean artisan goods, hopae wallets, silk knots..."
+                  placeholder="Search for Made in Korea goods, pouches, accessories..."
                   className="w-full pl-5 pr-14 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
                 />
                 {searchQuery && (
@@ -312,6 +370,7 @@ export default function Header() {
                       }`}
                       aria-expanded={isCurrentGroupOpen}
                       aria-haspopup="true"
+                      onFocus={() => handleMouseEnter(group.id)}
                     >
                       <span>{group.shortLabel}</span>
                       <svg
@@ -345,6 +404,8 @@ export default function Header() {
                 className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
                   pathname === "/artists" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
                 }`}
+                onMouseEnter={handleImmediateClose}
+                onFocus={handleImmediateClose}
               >
                 Ateliers
                 <span
@@ -360,6 +421,8 @@ export default function Header() {
                 className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
                   pathname === "/collections" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
                 }`}
+                onMouseEnter={handleImmediateClose}
+                onFocus={handleImmediateClose}
               >
                 Shop All
                 <span
@@ -372,22 +435,27 @@ export default function Header() {
           </div>
 
           {/* =========================================================================
-              Desktop Mega Showroom Dropdown Panel (Hover Intent Protected)
+              Desktop Mega Showroom Dropdown Panel (Hitbox Isolated & Safe-Bridge Protected)
              ========================================================================= */}
           {activeDropdown && (
-            <div
-              className="absolute left-0 right-0 top-full pt-1.5 z-40 px-4"
-              onMouseEnter={() => handleMouseEnter(activeDropdown)}
-              onMouseLeave={handleMouseLeave}
-            >
+            <div className="absolute left-0 right-0 top-full pt-1.5 z-40 px-4 pointer-events-none">
               {(() => {
                 const currentGroup = MEGA_NAV_GROUPS.find((g) => g.id === activeDropdown);
                 if (!currentGroup) return null;
 
                 return (
-                  <div className="max-w-[1160px] mx-auto bg-white/98 backdrop-blur-md rounded-2xl border border-[#E8DFC8]/80 shadow-2xl p-6 md:p-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div
+                    className="max-w-[1100px] mx-auto bg-white/98 backdrop-blur-md rounded-2xl border border-[#E8DFC8]/80 shadow-2xl p-5 md:p-6 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-auto relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
+                    onMouseEnter={() => handleMouseEnter(activeDropdown)}
+                    onMouseLeave={handleMouseLeave}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        handleImmediateClose();
+                      }
+                    }}
+                  >
                     {/* Top Group Meta Header */}
-                    <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2ECE1]">
+                    <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#F2ECE1]">
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-base font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
@@ -407,89 +475,95 @@ export default function Header() {
                       </Link>
                     </div>
 
-                    {/* 2-Column Showroom Grid: 60% Child Collections + 40% Editorial Spotlight Card */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                      {/* Left: Child Categories Grid (7 cols) */}
-                      <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
-                        {currentGroup.children.map((child) => {
-                          const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
+                    {/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                      {currentGroup.children.map((child) => {
+                        const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
 
-                          return (
-                            <Link
-                              key={child.handle}
-                              href={child.href}
-                              className="group/item flex items-start gap-3 p-3 rounded-xl border border-[#E8DFC8]/40 hover:border-[#C25E38]/40 hover:bg-[#FAF8F5] transition-all shadow-2xs hover:shadow-xs"
-                            >
-                              <span className="text-xl p-2 rounded-lg bg-[#FAF8F5] group-hover/item:bg-white border border-[#E8DFC8]/60 shrink-0 transition-colors">
-                                {child.navEmoji}
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center justify-between gap-1 mb-0.5">
-                                  <span className="text-xs font-bold text-[#18181B] group-hover/item:text-[#C25E38] transition-colors truncate">
-                                    {child.shortLabel}
+                        return (
+                          <Link
+                            key={child.handle}
+                            href={child.href}
+                            className="group/item flex items-start gap-3 p-3.5 rounded-xl border border-[#E8DFC8]/50 hover:border-[#C25E38]/50 hover:bg-[#FAF8F5] transition-all shadow-2xs hover:shadow-xs bg-white focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
+                          >
+                            <span className="text-xl p-2 rounded-lg bg-[#FAF8F5] group-hover/item:bg-white border border-[#E8DFC8]/60 shrink-0 transition-colors">
+                              {child.navEmoji}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span className="text-xs font-bold text-[#18181B] group-hover/item:text-[#C25E38] transition-colors truncate">
+                                  {child.shortLabel}
+                                </span>
+                                {isInStock ? (
+                                  <span className="text-[9px] font-bold text-[#2E5A44] bg-[#F0F6F2] px-1.5 py-0.5 rounded-full border border-[#D1E5D8] shrink-0">
+                                    In Stock
                                   </span>
-                                  {isInStock ? (
-                                    <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
-                                      In Stock
-                                    </span>
-                                  ) : (
-                                    <span className="text-[9px] font-medium text-[#8C7A6B] bg-[#F4EFEA] px-1.5 py-0.2 rounded-full border border-[#E8DFC8]/60 shrink-0">
-                                      Next Drop
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
-                                  {child.shelfSubtitle}
-                                </p>
+                                ) : (
+                                  <span className="text-[9px] font-medium text-[#8C827A] bg-[#FAF6EE] px-1.5 py-0.5 rounded-full border border-[#E8DFC8]/60 shrink-0">
+                                    Next Drop
+                                  </span>
+                                )}
                               </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
+                              <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
+                                {child.shelfSubtitle}
+                              </p>
+                            </div>
+                          </Link>
+                        );
+                      })}
 
-                      {/* Right: Editorial Atelier Spotlight Card (5 cols) */}
-                      <div className="lg:col-span-5">
+                      {/* Ritual & Mood 4th Slot: Custom Studio Commission Card (Maintains 4-Col Symmetry) */}
+                      {currentGroup.children.length === 3 && (
                         <Link
-                          href={currentGroup.editorial.href}
-                          className="group/card block h-full p-4 rounded-2xl bg-[#FAF8F5] border border-[#E8DFC8]/70 hover:border-[#C25E38]/50 transition-all overflow-hidden flex flex-col justify-between"
+                          href="/collections/ritual-mood"
+                          className="group/custom flex items-start gap-3 p-3.5 rounded-xl border border-dashed border-[#C25E38]/30 hover:border-[#C25E38] hover:bg-[#FAF8F5] transition-all bg-[#FAF8F5]/40 focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
                         >
-                          <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C25E38] bg-[#C25E38]/10 px-2.5 py-0.5 rounded-full border border-[#C25E38]/20">
-                                {currentGroup.editorial.badgeText}
+                          <span className="text-xl p-2 rounded-lg bg-white group-hover/custom:bg-[#FAF8F5] border border-[#E8DFC8]/70 shrink-0 transition-colors">
+                            🍵
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="text-xs font-bold text-[#C25E38] group-hover/custom:text-[#A74B28] transition-colors truncate">
+                                Studio Commission
                               </span>
-                              <span className="text-[11px] font-bold text-[#71717A] group-hover/card:text-[#C25E38] transition-colors">
-                                Atelier Spotlight &rsaquo;
+                              <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-1.5 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
+                                Inquire
                               </span>
                             </div>
-
-                            <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden mb-3 bg-[#E5E0D8]">
-                              <Image
-                                src={currentGroup.editorial.image}
-                                alt={currentGroup.editorial.title}
-                                fill
-                                sizes="(max-width: 1200px) 400px, 500px"
-                                className="object-cover group-hover/card:scale-105 transition-transform duration-500"
-                              />
-                            </div>
-
-                            <h4
-                              className="text-sm font-black text-[#18181B] group-hover/card:text-[#C25E38] transition-colors mb-1"
-                              style={{ fontFamily: "var(--font-heading)" }}
-                            >
-                              {currentGroup.editorial.title}
-                            </h4>
-                            <p className="text-xs text-[#71717A] line-clamp-2 leading-relaxed">
-                              {currentGroup.editorial.subtitle}
+                            <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
+                              Custom incense sets, meditation bells & bespoke master artisan requests
                             </p>
                           </div>
-
-                          <div className="pt-3 border-t border-[#E8DFC8]/50 mt-3 flex items-center justify-between text-xs font-bold text-[#C25E38]">
-                            <span>Explore Featured Studio Work</span>
-                            <span className="group-hover/card:translate-x-1 transition-transform">&rarr;</span>
-                          </div>
                         </Link>
+                      )}
+                    </div>
+
+                    {/* Ultra-Slim Heritage Trust Strip */}
+                    <div className="pt-3 mt-3.5 border-t border-[#F2ECE1] flex items-center justify-between text-[11px] text-[#71717A]">
+                      <div className="flex items-center gap-6">
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-[#C25E38] font-bold">🇰🇷</span>
+                          <span>Made in Korea</span>
+                        </span>
+                        <span className="hidden sm:inline-block text-[#E8DFC8]">&middot;</span>
+                        <span className="hidden sm:flex items-center gap-1.5">
+                          <span className="text-[#C25E38] font-bold">✈️</span>
+                          <span>Dispatched direct from Korea (Tracked 7–14 days)</span>
+                        </span>
+                        <span className="hidden md:inline-block text-[#E8DFC8]">&middot;</span>
+                        <span className="hidden md:flex items-center gap-1.5">
+                          <span className="text-[#C25E38] font-bold">🛡️</span>
+                          <span>Central Dispatch 3-Stage Inspection</span>
+                        </span>
                       </div>
+
+                      <Link
+                        href="/about"
+                        className="text-xs font-bold text-[#C25E38] hover:text-[#A74B28] transition-colors shrink-0 flex items-center gap-1 group/craft"
+                      >
+                        <span>Our Story & Origin</span>
+                        <span className="group-hover/craft:translate-x-0.5 transition-transform">&rsaquo;</span>
+                      </Link>
                     </div>
                   </div>
                 );
@@ -508,7 +582,7 @@ export default function Header() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="fixed top-0 left-0 h-full w-80 bg-white p-5 shadow-2xl overflow-y-auto"
+            className="fixed top-0 left-0 h-full w-80 bg-white p-5 shadow-2xl overflow-y-auto pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
@@ -592,24 +666,50 @@ export default function Header() {
 
                     {isExpanded && (
                       <div className="px-3 pb-3 pt-1 space-y-1 bg-white border-t border-[#F2ECE1]">
-                        {group.children.map((child) => (
+                        {group.children.map((child) => {
+                          const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
+
+                          return (
+                            <Link
+                              key={child.handle}
+                              href={child.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#C25E38] hover:bg-[#FAF8F5]"
+                            >
+                              <span className="flex items-center gap-2 truncate">
+                                <span>{child.navEmoji}</span>
+                                <span className="truncate">{child.title}</span>
+                              </span>
+                              {isInStock ? (
+                                <span className="text-[9px] font-bold text-[#2E5A44] bg-[#F0F6F2] px-1.5 py-0.5 rounded-full border border-[#D1E5D8] shrink-0">
+                                  In Stock
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-medium text-[#8C827A] bg-[#FAF6EE] px-1.5 py-0.5 rounded-full border border-[#E8DFC8]/60 shrink-0">
+                                  Next Drop
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+
+                        {/* Ritual & Mood: Studio Commission Action */}
+                        {group.id === "ritual" && (
                           <Link
-                            key={child.handle}
-                            href={child.href}
+                            href="/collections/ritual-mood"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#C25E38] hover:bg-[#FAF8F5]"
+                            className="flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-[#C25E38] hover:bg-[#FAF8F5] border border-dashed border-[#C25E38]/30 mt-1"
                           >
                             <span className="flex items-center gap-2 truncate">
-                              <span>{child.navEmoji}</span>
-                              <span className="truncate">{child.title}</span>
+                              <span>🍵</span>
+                              <span className="truncate">Studio Commission</span>
                             </span>
-                            {child.handle === "jewelry-charms" || child.handle === "ceramics-dining" ? (
-                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
-                                In Stock
-                              </span>
-                            ) : null}
+                            <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-1.5 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
+                              Inquire
+                            </span>
                           </Link>
-                        ))}
+                        )}
+
                         <Link
                           href={group.href}
                           onClick={() => setMobileMenuOpen(false)}

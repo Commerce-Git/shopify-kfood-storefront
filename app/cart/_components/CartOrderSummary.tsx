@@ -94,7 +94,7 @@ export default function CartOrderSummary({
             <div className="leading-relaxed">
               <p className="font-bold text-[#18181B]">Zero Risk, Guaranteed</p>
               <p className="text-[#71717A] text-[11px] mt-0.5">
-                Not 100% sure? Cancel yourself in 1 click within {CANCEL_WINDOW_HOURS} hours directly from your order page.
+                Changed your mind? Cancel yourself in 1 click within {CANCEL_WINDOW_HOURS} hours directly from your order page.
               </p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function CartOrderSummary({
           <div className="pt-2.5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] text-[#71717A] font-medium border-t border-[#E8DFC8]/40">
             <span className="flex items-center gap-1">🔒 256-Bit SSL</span>
             <span>•</span>
-            <span className="flex items-center gap-1">✈️ 100% Free Shipping</span>
+            <span className="flex items-center gap-1">✈️ Free Tracked Shipping</span>
             <span>•</span>
             <span className="flex items-center gap-1">✨ Pre-Cleared Customs</span>
             <span>•</span>

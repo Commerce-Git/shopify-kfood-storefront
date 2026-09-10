@@ -64,7 +64,7 @@ export default function EtsyEditorialSplitBanner() {
             <div className="lg:col-span-5 relative w-full aspect-4/3 rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-[#243E32] group">
               <Image
                 src="/assets/korean_silk_taegeukgi_luxury_texture.jpg"
-                alt="100% Made in Korea - Natural Korean Silk Woven Taegeukgi"
+                alt="Made in Korea - Natural Korean Silk Woven Taegeukgi"
                 fill
                 sizes="(max-width: 1024px) 100vw, 500px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"

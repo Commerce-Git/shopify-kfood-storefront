@@ -21,7 +21,7 @@ const CATEGORIES: { id: FAQCategory; label: string; icon: string }[] = [
   { id: "all", label: "All Questions", icon: "🌟" },
   { id: "shipping", label: "Shipping & Customs", icon: "✈️" },
   { id: "guarantee", label: "30-Day Guarantee", icon: "🛡️" },
-  { id: "crafts", label: "Crafts & Materials", icon: "🎨" },
+  { id: "crafts", label: "Products & Origin", icon: "🇰🇷" },
   { id: "orders", label: "Orders & Cancellation", icon: "⏱️" },
 ];
 
@@ -30,7 +30,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "How long does shipping take and how much does it cost?",
     answer:
-      "We provide 100% FREE Tracked Shipping store-wide on all orders! Every piece is dispatched directly from Korea via Korea Post EMS / USPS Priority. Typical delivery time to the United States is 7–14 business days. You will receive an official tracking number as soon as your package leaves our Korea facility.",
+      "We provide complimentary tracked shipping store-wide on all orders! Every piece is dispatched directly from Korea via Korea Post EMS / USPS Priority. Typical delivery time to the United States is 7–14 business days. You will receive an official tracking number as soon as your package leaves our Korea facility.",
     actionButton: {
       label: "Track Your Order Live →",
       href: "/order-lookup",
@@ -50,7 +50,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "Do you ship internationally outside the US?",
     answer:
-      "Yes! While the United States (all 50 states, US territories, and APO/FPO military addresses) is our primary 100% Free Shipping market, we also dispatch to major international destinations including Canada, the United Kingdom, the European Union, Australia, Japan, and Singapore. If your country is not listed at checkout, simply email our concierge at support@blankseoul.com for custom courier dispatch arrangements.",
+      "Yes! While the United States (all 50 states, US territories, and APO/FPO military addresses) is our primary free shipping market, we also dispatch to major international destinations including Canada, the United Kingdom, the European Union, Australia, Japan, and Singapore. If your country is not listed at checkout, simply email our concierge at support@blankseoul.com for custom courier dispatch arrangements.",
     actionButton: {
       label: "View Global Shipping Policy →",
       href: "/policies/shipping",
@@ -60,7 +60,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "guarantee",
     question: "What is your 30-Day Safe Delivery & Protection Guarantee?",
     answer:
-      "We want you to hold every artisan craft in absolute love. If your item arrives damaged, defective, or goes missing during international transit, simply email us at support@blankseoul.com with a quick photo within 30 days of delivery. We will immediately issue a 100% full refund or dispatch a free replacement. You will never be required to pay expensive international return shipping back to Korea!",
+      "We want you to love every piece you receive from Blank Seoul. If your item arrives damaged, defective, or encounters transit issues, simply email us at support@blankseoul.com with a quick photo within 30 days of delivery. We will immediately issue a full refund or dispatch a free replacement. You will never be required to pay expensive international return shipping back to Korea!",
     actionButton: {
       label: "Read Full Return Policy →",
       href: "/policies/returns",
@@ -70,7 +70,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "orders",
     question: "Can I cancel or modify my order after placing it?",
     answer:
-      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate 100% automatic refund. After ${CANCEL_WINDOW_HOURS} hours, our master partner studios begin personalized packaging and international dispatch.`,
+      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate automatic refund. After ${CANCEL_WINDOW_HOURS} hours, our master partner studios begin personalized packaging and international dispatch.`,
     actionButton: {
       label: "Go to My Account (/account) →",
       href: "/account",
@@ -78,11 +78,11 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     category: "crafts",
-    question: "Are the products genuinely handcrafted in Korea?",
+    question: "Are all products Made in Korea?",
     answer:
-      "Absolutely. We partner exclusively with verified Korean craft studios, master workshops, and independent artisans across Korea (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). Each piece is created using authentic traditional Korean techniques, such as traditional embroidery, natural mother-of-pearl (Najeonchilgi) inlay, and artisanal fabric knotting.",
+      "Absolutely. Every product on Blank Seoul is authentically designed and manufactured in South Korea. We partner exclusively with verified domestic studios, independent designers, and certified makers across Korea (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). We strictly guarantee authentic South Korean origin with physical inspection at our Seoul hub before international dispatch.",
     actionButton: {
-      label: "Meet Our Korean Master Artisans →",
+      label: "Meet Verified Korean Studios →",
       href: "/artists",
     },
   },
@@ -98,9 +98,9 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     category: "crafts",
-    question: "Do you offer atelier gift packaging?",
+    question: "Do you offer premium gift packaging?",
     answer:
-      "Yes! Most of our artisan pieces arrive in custom atelier packaging, matte protective boxes, or traditional Korean Hanji paper wraps designed by the makers themselves. They are prepared to be gifted immediately upon unboxing.",
+      "Yes! Most of our pieces arrive in custom studio packaging, matte protective boxes, or traditional Korean Hanji paper wraps designed by the makers themselves. They are prepared to be gifted immediately upon unboxing.",
   },
 ];
 
@@ -134,7 +134,7 @@ export default function FAQ({ showAll = false }: { showAll?: boolean }) {
               Got <span className="text-[#C25E38]">Questions?</span>
             </h2>
             <p className="text-sm sm:text-base text-text-muted">
-              Everything you need to know about our craft curation, 7–14 day delivery, and our 30-Day Guarantee.
+              Everything you need to know about our Made in Korea curation, 7–14 day tracked air dispatch, and our 30-Day Guarantee.
             </p>
           </div>
         )}

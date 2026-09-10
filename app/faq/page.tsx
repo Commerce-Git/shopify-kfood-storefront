@@ -4,7 +4,7 @@ import FAQ from "../components/FAQ";
 export const metadata: Metadata = {
   title: "FAQ & Help Center",
   description:
-    "Frequently asked questions about Blank Seoul — authentic Korean artisan crafts, direct Korea dispatch, 30-Day Safe Delivery Guarantee, customs, and care.",
+    "Frequently asked questions about Blank Seoul — authentic Made in Korea lifestyle goods, direct Korea air dispatch, 30-Day Safe Delivery Guarantee, customs, and care.",
 };
 
 export default function FAQPage() {
@@ -20,7 +20,7 @@ export default function FAQPage() {
             Frequently Asked <span className="text-[#C25E38]">Questions</span>
           </h1>
           <p className="text-sm sm:text-base text-text-muted leading-relaxed max-w-xl mx-auto">
-            Everything you need to know about our Korean craft curation, 100% free tracked shipping, and 30-Day Protection Guarantee.
+            Everything you need to know about our Made in Korea curation, complimentary tracked shipping, and 30-Day Protection Guarantee.
           </p>
         </div>
       </section>

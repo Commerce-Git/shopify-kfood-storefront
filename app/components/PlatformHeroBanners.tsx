@@ -58,7 +58,7 @@ const BANNERS: BannerCard[] = [
     id: "banner-3",
     badge: "Gift Packaging Event",
     badgeColor: "bg-[#B45309] text-white",
-    title: "100% Free Hanji Wrap",
+    title: "Complimentary Hanji Wrap",
     titleHighlight: "Seoul Box",
     subtitle: "Pick any 3 items across 12 masterpieces + expedited dispatch.",
     link: "/#unboxing",

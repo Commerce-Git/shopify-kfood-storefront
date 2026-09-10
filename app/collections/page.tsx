@@ -7,7 +7,7 @@ import type { ShopifyProduct } from "@/lib/shopify/types";
 export const metadata: Metadata = {
   title: "Shop All — All Products Made in Korea",
   description:
-    "Browse our full collection of authentic Korean artisan goods made in Korea — pouches, accessories, keyrings, wallets, and more. Direct from Korea.",
+    "Browse our full collection of authentic Made in Korea goods — pouches, accessories, keyrings, wallets, and more. Dispatched direct from Korea.",
 };
 
 function ProductCard({ product }: { product: ShopifyProduct }) {

@@ -329,7 +329,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
             {/* Exhibition Catalog Header */}
             <div className="text-center mb-10 sm:mb-14">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8DFC8] text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#C25E38] mb-3 shadow-2xs">
-                <span>🇰🇷</span> 100% Made in Korea · Direct from Korea
+                <span>🇰🇷</span> Made in Korea · Direct from Korea
               </span>
               <h2
                 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight"

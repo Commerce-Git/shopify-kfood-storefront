@@ -27,7 +27,7 @@ export default function ReturnPolicyPage() {
             <span className="text-base shrink-0">⚡</span>
             <div>
               <strong className="block text-[#18181B] font-bold">1-Click Cancellation</strong>
-              <span>100% full refund within {CANCEL_WINDOW_HOURS} hours of order</span>
+              <span>Full refund within {CANCEL_WINDOW_HOURS} hours of order</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -41,7 +41,7 @@ export default function ReturnPolicyPage() {
             <span className="text-base shrink-0">📦</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Damaged / Defective</strong>
-              <span className="text-[#2E7D32] font-semibold">100% Free Reshipment or Full Refund</span>
+              <span className="text-[#2E7D32] font-semibold">Free Reshipment or Full Refund</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -56,7 +56,7 @@ export default function ReturnPolicyPage() {
 
       <h2>1. 3-Hour Zero-Risk Cancellation (Before Dispatch)</h2>
       <p>
-        We want you to shop with complete peace of mind. You may cancel your order for a <strong>100% full refund</strong> within{" "}
+        We want you to shop with complete peace of mind. You may cancel your order for a <strong>full refund</strong> within{" "}
         <strong>{CANCEL_WINDOW_HOURS} hours</strong> of placing your order — no questions asked.
       </p>
       <p>
@@ -92,7 +92,7 @@ export default function ReturnPolicyPage() {
           <div className="bg-white p-3 rounded-xl border border-[#E8DFC8]/60 space-y-1">
             <span className="w-5 h-5 rounded-full bg-[#2E7D32] text-white flex items-center justify-center text-[10px] font-bold">3</span>
             <strong className="block text-[#18181B] font-bold pt-1">24h Resolution</strong>
-            <p className="text-[11px] text-[#71717A]">Receive 100% free expedited replacement or full refund. No return shipping hassle.</p>
+            <p className="text-[11px] text-[#71717A]">Receive free expedited replacement or full refund. No return shipping hassle.</p>
           </div>
         </div>
       </div>
