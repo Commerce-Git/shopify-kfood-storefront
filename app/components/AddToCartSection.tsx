@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import QuantitySelector from "./QuantitySelector";
 import BuyButton from "./BuyButton";
+import { isWishlisted, toggleWishlist, subscribeWishlist } from "@/lib/wishlist";
 
 interface AddToCartSectionProps {
+  productId?: string;
   variantId: string;
   price: string;
   currency: string;
@@ -17,13 +19,13 @@ interface AddToCartSectionProps {
 }
 
 export default function AddToCartSection({
+  productId,
   variantId,
   price,
   currency,
   productTitle,
   productHandle,
   availableForSale,
-  productTags = [],
   variantTitle = "",
   image = null,
 }: AddToCartSectionProps) {
@@ -32,10 +34,18 @@ export default function AddToCartSection({
   const [currentlyNotInStock, setCurrentlyNotInStock] = useState(!availableForSale);
   const [loading, setLoading] = useState(true);
 
+  // Modern React 19 storage subscription for wishlist
+  const isSaved = useSyncExternalStore(
+    subscribeWishlist,
+    () => isWishlisted(productId, productHandle),
+    () => false
+  );
+
   useEffect(() => {
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    
+
     fetch(`/api/stock?variantId=${encodeURIComponent(variantId)}`)
       .then((res) => res.json())
       .then((data) => {
@@ -64,7 +74,6 @@ export default function AddToCartSection({
   }).format(parseFloat(price));
 
   const isSoldOut = currentlyNotInStock || (stockCount !== null && stockCount <= 0);
-  const isLimited = productTags.includes("limited");
 
   // Determine stock badge display
   let stockBadge = null;
@@ -106,14 +115,25 @@ export default function AddToCartSection({
     );
   }
 
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(productId, productHandle);
+  };
+
   return (
     <div className="mt-2 space-y-4">
       {/* Real-time Stock Badge */}
       <div className="min-h-7 flex items-center">{stockBadge}</div>
 
-      <div className="flex items-center gap-4">
-        <QuantitySelector quantity={quantity} onChange={setQuantity} min={1} max={stockCount !== null ? stockCount : 99} />
-        <div className="flex-1">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <QuantitySelector
+          quantity={quantity}
+          onChange={setQuantity}
+          min={1}
+          max={stockCount !== null ? stockCount : 99}
+        />
+        <div className="flex-1 min-w-0">
           <BuyButton
             variantId={variantId}
             productTitle={productTitle}
@@ -130,6 +150,33 @@ export default function AddToCartSection({
             showSecureBadge={false}
           />
         </div>
+
+        {/* Quiet Luxury Wishlist Heart Button */}
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          className={`h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center border transition-all duration-200 shrink-0 shadow-2xs active:scale-95 cursor-pointer ${
+            isSaved
+              ? "bg-[#FBF6F0] border-[#C25E38] text-[#C25E38]"
+              : "bg-white border-[#E8DFC8] text-[#18181B]/70 hover:text-[#C25E38] hover:border-[#C25E38]/60"
+          }`}
+          aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+          title={isSaved ? "Saved to Wishlist" : "Save to Wishlist"}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill={isSaved ? "#C25E38" : "none"}
+            stroke={isSaved ? "#C25E38" : "currentColor"}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`transition-transform duration-200 ${isSaved ? "scale-110" : ""}`}
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
       </div>
     </div>
   );

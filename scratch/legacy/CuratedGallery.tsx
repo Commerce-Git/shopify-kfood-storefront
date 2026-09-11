@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import { formatPrice, isProductSoldOut } from "@/lib/shopify/api";
+import {
+  getWishlist,
+  getServerWishlistSnapshot,
+  toggleWishlist as sharedToggleWishlist,
+  subscribeWishlist,
+} from "@/lib/wishlist";
 
 interface MasterpieceItem {
   id: string;
@@ -203,27 +209,18 @@ interface CuratedGalleryProps {
 
 export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | "wallets" | "bags" | "charms">("all");
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [recentlyToggledId, setRecentlyToggledId] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("blank_seoul_wishlist");
-      if (saved) {
-        setWishlist(JSON.parse(saved));
-      }
-    } catch {}
-  }, []);
+  const wishlist = useSyncExternalStore(subscribeWishlist, getWishlist, getServerWishlistSnapshot);
 
   const toggleWishlist = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const updated = wishlist.includes(id)
-      ? wishlist.filter((item) => item !== id)
-      : [...wishlist, id];
-    setWishlist(updated);
-    try {
-      localStorage.setItem("blank_seoul_wishlist", JSON.stringify(updated));
-    } catch {}
+    setRecentlyToggledId(id);
+    sharedToggleWishlist(id);
+    setTimeout(() => {
+      setRecentlyToggledId((prev) => (prev === id ? null : prev));
+    }, 350);
   };
 
   // Merge live Shopify products if present
@@ -302,7 +299,7 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setSelectedCategory(tab.key as any)}
+                onClick={() => setSelectedCategory(tab.key as "all" | "wallets" | "bags" | "charms")}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   selectedCategory === tab.key
                     ? "bg-[#18181B] text-white"
@@ -326,15 +323,25 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
               >
                 <div>
                   {/* Image with Heart Wishlist Icon */}
-                  <Link href={`/product/${item.handle}`} className="relative block aspect-square overflow-hidden bg-[#F4EFE6]">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-106"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors" />
+                  <div className="relative block aspect-square overflow-hidden bg-[#F4EFE6]">
+                    <Link href={`/product/${item.handle}`} className="block w-full h-full">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-106"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors" />
+
+                      {!item.available && (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-2xs flex items-center justify-center">
+                          <span className="bg-red-600 text-white text-[11px] font-bold uppercase px-2.5 py-1 rounded-md">
+                            Sold Out
+                          </span>
+                        </div>
+                      )}
+                    </Link>
 
                     {/* Top Left Badge */}
                     {item.badge && (
@@ -343,11 +350,17 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
                       </div>
                     )}
 
-                    {/* Top Right Heart Wishlist Icon (Idus Style) */}
+                    {/* Top Right Heart Wishlist Icon (Quiet Luxury / Modern Hover & Touch Responsive) */}
                     <button
+                      type="button"
                       onClick={(e) => toggleWishlist(item.id, e)}
-                      className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#18181B] hover:text-[#C25E38] shadow-xs transition-transform active:scale-90"
-                      aria-label="Wishlist"
+                      className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-[#18181B] hover:text-[#C25E38] shadow-xs border border-black/5 hover:border-black/10 transition-all duration-200 active:scale-90 z-10 cursor-pointer before:absolute before:-inset-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none focus-visible:opacity-100 focus-visible:pointer-events-auto ${
+                        isSaved
+                          ? "opacity-100 text-[#C25E38]"
+                          : "opacity-100 md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto"
+                      } ${recentlyToggledId === item.id ? "animate-heart-pop" : ""}`}
+                      aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+                      title={isSaved ? "Remove from wishlist" : "Save to wishlist"}
                     >
                       <svg
                         width="16"
@@ -356,19 +369,12 @@ export default function CuratedGallery({ products = [] }: CuratedGalleryProps) {
                         fill={isSaved ? "#C25E38" : "none"}
                         stroke={isSaved ? "#C25E38" : "currentColor"}
                         strokeWidth="2.5"
+                        className="transition-colors duration-200"
                       >
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                       </svg>
                     </button>
-
-                    {!item.available && (
-                      <div className="absolute inset-0 bg-black/60 backdrop-blur-2xs flex items-center justify-center">
-                        <span className="bg-red-600 text-white text-[11px] font-bold uppercase px-2.5 py-1 rounded-md">
-                          Sold Out
-                        </span>
-                      </div>
-                    )}
-                  </Link>
+                  </div>
 
                   {/* Idus Card Content: [공방명 >] -> [작품명] -> [가격 & 평점] */}
                   <div className="p-3.5 sm:p-4">

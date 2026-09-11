@@ -132,6 +132,7 @@ export default function AccountPage() {
     if (!isLoading && user) {
       fetchOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, user]);
 
   // Fetch coupons
@@ -184,16 +185,19 @@ export default function AccountPage() {
 
   const avatarUrl = user?.user_metadata?.avatar_url;
   const rawName =
-    customer?.first_name || user?.user_metadata?.full_name || user?.email || "";
-  const displayName = rawName
-    .split(" ")
-    .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
+    customer?.first_name ||
+    user?.user_metadata?.full_name ||
+    (user?.email ? user.email.split("@")[0] : "Collector");
+  const displayName =
+    rawName
+      .split(" ")
+      .filter(Boolean)
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ") || "Collector";
 
   const activeOrdersCount = orders.filter(
     (o) => o.fulfillmentStatus !== "FULFILLED" && !o.cancelledAt
   ).length;
-  const activeCouponsCount = coupons.filter((c) => c.status === "active").length;
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -204,15 +208,26 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-32 sm:pt-36 md:pt-40 pb-24 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
+        {/* 1. Profile Card: Customer Details + Inline Shipment Status + Sign Out */}
         <AccountProfileCard
           displayName={displayName}
           email={user?.email}
           avatarUrl={avatarUrl}
           activeOrdersCount={activeOrdersCount}
-          activeCouponsCount={activeCouponsCount}
           onSignOut={signOut}
         />
 
+        {/* 2. Collector Circle: 1-Click VIP Allocation Banner (Auto-hidden for subscribers) */}
+        <AccountCollectorCircle
+          isLocallySubscribed={isLocallySubscribed}
+          newsletterEmail={newsletterEmail}
+          onEmailChange={setNewsletterEmail}
+          newsletterStatus={newsletterStatus}
+          newsletterMessage={newsletterMessage}
+          onSubmit={handleNewsletterSubmit}
+        />
+
+        {/* 3. Review Reward Coupon Vault (Rendered only when active vouchers exist) */}
         {!couponsLoading && coupons.length > 0 && (
           <AccountCouponVault
             coupons={coupons}
@@ -221,19 +236,11 @@ export default function AccountPage() {
           />
         )}
 
+        {/* 4. My Orders: Full Parcel & Split Shipment Tracking, Status Bar, Reorder */}
         <AccountOrdersSection
           orders={orders}
           ordersLoading={ordersLoading}
           ordersError={ordersError}
-        />
-
-        <AccountCollectorCircle
-          isLocallySubscribed={isLocallySubscribed}
-          newsletterEmail={newsletterEmail}
-          onEmailChange={setNewsletterEmail}
-          newsletterStatus={newsletterStatus}
-          newsletterMessage={newsletterMessage}
-          onSubmit={handleNewsletterSubmit}
         />
       </div>
     </div>

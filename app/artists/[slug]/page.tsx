@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { getAllProducts } from "@/lib/shopify/api";
 import { getEnrichedArtistBySlug, getEnrichedArtistsWithProducts, getArtistSlug } from "@/lib/artists";
 import type { ShopifyProduct } from "@/lib/shopify/types";
+import WishlistHeartOverlay from "@/app/components/WishlistHeartOverlay";
 
 interface ArtistPageProps {
   params: Promise<{ slug: string }>;
@@ -157,19 +157,22 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
                   className="group flex flex-col cursor-pointer"
                 >
                   {/* Square Product Image */}
-                  <Link
-                    href={`/product/${product.handle}`}
-                    className="relative block aspect-square rounded-2xl overflow-hidden bg-[#F5F0E6] border border-[#E8DFC8] shadow-2xs group-hover:shadow-md transition-all"
-                  >
-                    <Image
-                      src={image}
-                      alt={product.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-106"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/6 transition-colors" />
-                  </Link>
+                  <div className="relative aspect-square rounded-2xl overflow-hidden bg-[#F5F0E6] border border-[#E8DFC8] shadow-2xs group-hover:shadow-md transition-all">
+                    <Link
+                      href={`/product/${product.handle}`}
+                      className="block w-full h-full"
+                    >
+                      <Image
+                        src={image}
+                        alt={product.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-106"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/6 transition-colors" />
+                    </Link>
+                    <WishlistHeartOverlay productId={product.id} productHandle={product.handle} />
+                  </div>
 
                   {/* Clean Product Info */}
                   <div className="mt-2.5 px-0.5">

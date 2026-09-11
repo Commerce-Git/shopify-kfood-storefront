@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import { formatPrice } from "@/lib/shopify/api";
 import { useCart } from "./CartProvider";
+import { isWishlisted, toggleWishlist, subscribeWishlist } from "@/lib/wishlist";
 
 interface MobileStickyBottomBarProps {
   product: ShopifyProduct;
   selectedOptions: Record<string, string>;
   setSelectedOptions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   allOptions: { name: string; values: string[] }[];
-  selectedVariant: any;
+  selectedVariant: ShopifyProduct["variants"]["edges"][number]["node"] | null;
   price: string;
   currency: string;
   targetRef: React.RefObject<HTMLDivElement | null>;
@@ -34,6 +35,13 @@ export default function MobileStickyBottomBar({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const { addToCart } = useCart();
+
+  // Modern React 19 storage subscription for wishlist
+  const isSaved = useSyncExternalStore(
+    subscribeWishlist,
+    () => isWishlisted(product.id, product.handle),
+    () => false
+  );
 
   // 1. IntersectionObserver for high-performance scroll detection
   useEffect(() => {
@@ -83,7 +91,14 @@ export default function MobileStickyBottomBar({
       variantTitle: selectedVariant.title || selectedOptionsSummary,
       price: price,
       quantity: quantity,
-      image: activeImage as any,
+      image: activeImage
+        ? {
+            url: activeImage.url,
+            altText: activeImage.altText || null,
+            width: activeImage.width || 500,
+            height: activeImage.height || 500,
+          }
+        : null,
     });
 
     setTimeout(() => {
@@ -152,30 +167,62 @@ export default function MobileStickyBottomBar({
             </div>
           </button>
 
-          {/* Right: Add to Cart CTA */}
-          <button
-            type="button"
-            onClick={allOptions.length > 0 && !selectedOptionsSummary ? () => setIsDrawerOpen(true) : handleDirectAddToCart}
-            disabled={isSoldOut || isAdding}
-            className={`
-              px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 shadow-sm cursor-pointer
-              ${isSoldOut
-                ? "bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300"
-                : "bg-[#18181B] hover:bg-[#C25E38] active:scale-95 text-white"
-              }
-            `}
-          >
-            {isAdding ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Adding...
-              </span>
-            ) : isSoldOut ? (
-              "Sold Out"
-            ) : (
-              "Add to Cart"
-            )}
-          </button>
+          {/* Right: Wishlist Heart + Add to Cart CTA */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(product.id, product.handle);
+              }}
+              className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-200 active:scale-90 cursor-pointer shadow-2xs ${
+                isSaved
+                  ? "bg-[#FBF6F0] border-[#C25E38] text-[#C25E38]"
+                  : "bg-white border-[#E8DFC8] text-[#18181B]/70 hover:text-[#C25E38]"
+              }`}
+              aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+              title={isSaved ? "Saved to Wishlist" : "Save to Wishlist"}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill={isSaved ? "#C25E38" : "none"}
+                stroke={isSaved ? "#C25E38" : "currentColor"}
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-200 ${isSaved ? "scale-110" : ""}`}
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={allOptions.length > 0 && !selectedOptionsSummary ? () => setIsDrawerOpen(true) : handleDirectAddToCart}
+              disabled={isSoldOut || isAdding}
+              className={`
+                px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 shadow-sm cursor-pointer
+                ${isSoldOut
+                  ? "bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300"
+                  : "bg-[#18181B] hover:bg-[#C25E38] active:scale-95 text-white"
+                }
+              `}
+            >
+              {isAdding ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Adding...
+                </span>
+              ) : isSoldOut ? (
+                "Sold Out"
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -306,30 +353,61 @@ export default function MobileStickyBottomBar({
                 </div>
               </div>
 
-              {/* Final Confirm Add to Cart CTA */}
-              <button
-                type="button"
-                onClick={handleDirectAddToCart}
-                disabled={isSoldOut || isAdding}
-                className={`
-                  w-full py-4 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md text-center
-                  ${isSoldOut
-                    ? "bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300"
-                    : "bg-[#18181B] hover:bg-[#C25E38] active:scale-[0.99] text-white"
-                  }
-                `}
-              >
-                {isAdding ? (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Adding to Bag...
-                  </span>
-                ) : isSoldOut ? (
-                  "Currently Sold Out"
-                ) : (
-                  `Add to Cart · ${formatPrice(String(parseFloat(price) * quantity), currency)}`
-                )}
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist(product.id, product.handle);
+                  }}
+                  className={`h-13 w-13 rounded-full flex items-center justify-center border transition-all duration-200 active:scale-90 cursor-pointer shrink-0 shadow-2xs ${
+                    isSaved
+                      ? "bg-[#FBF6F0] border-[#C25E38] text-[#C25E38]"
+                      : "bg-white border-[#E8DFC8] text-[#18181B]/70 hover:text-[#C25E38]"
+                  }`}
+                  aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+                  title={isSaved ? "Saved to Wishlist" : "Save to Wishlist"}
+                >
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill={isSaved ? "#C25E38" : "none"}
+                    stroke={isSaved ? "#C25E38" : "currentColor"}
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
+
+                {/* Final Confirm Add to Cart CTA */}
+                <button
+                  type="button"
+                  onClick={handleDirectAddToCart}
+                  disabled={isSoldOut || isAdding}
+                  className={`
+                    flex-1 py-4 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md text-center
+                    ${isSoldOut
+                      ? "bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300"
+                      : "bg-[#18181B] hover:bg-[#C25E38] active:scale-[0.99] text-white"
+                    }
+                  `}
+                >
+                  {isAdding ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Adding to Bag...
+                    </span>
+                  ) : isSoldOut ? (
+                    "Currently Sold Out"
+                  ) : (
+                    `Add to Cart · ${formatPrice(String(parseFloat(price) * quantity), currency)}`
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

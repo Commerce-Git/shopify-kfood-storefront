@@ -6,25 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 import { getMegaNavStructure, findMatchingShelfId, MegaNavGroup } from "@/lib/config/collections";
+import {
+  subscribeWishlist,
+  getWishlistCountSnapshot,
+  getServerWishlistCountSnapshot,
+} from "@/lib/wishlist";
 
 const emptySubscribe = () => () => {};
-
-function getWishlistSnapshot(): number {
-  if (typeof window === "undefined") return 0;
-  try {
-    const saved = localStorage.getItem("blank_seoul_wishlist");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed.length : 0;
-    }
-  } catch {}
-  return 0;
-}
-
-function subscribeWishlist(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
 
 const MEGA_NAV_GROUPS: MegaNavGroup[] = getMegaNavStructure();
 
@@ -43,7 +31,11 @@ export default function Header() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // Modern React 19 storage subscription for wishlist
-  const wishlistCount = useSyncExternalStore(subscribeWishlist, getWishlistSnapshot, () => 0);
+  const wishlistCount = useSyncExternalStore(
+    subscribeWishlist,
+    getWishlistCountSnapshot,
+    getServerWishlistCountSnapshot
+  );
 
   // Close menus on route changes during render (React official standard: adjusting state on prop/route change)
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -108,7 +100,7 @@ export default function Header() {
   const handleMouseLeave = () => {
     leaveTimerRef.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 150);
+    }, 90);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -132,7 +124,7 @@ export default function Header() {
       {/* 2026 Quiet Luxury Backdrop Scrim: Dims page background & dismisses dropdown on external click */}
       {activeDropdown && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-30 transition-opacity duration-200 hidden md:block"
+          className="fixed inset-0 bg-black/15 z-30 transition-opacity duration-150 hidden md:block"
           onClick={handleImmediateClose}
           aria-hidden="true"
         />
@@ -346,9 +338,12 @@ export default function Header() {
         {/* =========================================================================
             ROW 2 (Desktop ONLY): 2-Tier Luxury Mega Navigation Bar (Quiet Luxury)
            ========================================================================= */}
-        <div className="border-t border-[#F2ECE1] bg-white hidden md:block relative">
+        <div
+          className="border-t border-[#F2ECE1] bg-white hidden md:block relative"
+          onMouseLeave={handleMouseLeave}
+        >
           <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
-            <nav className="flex items-center justify-center gap-9 py-2.5" role="navigation" aria-label="Main Navigation">
+            <nav className="flex items-center justify-center py-2" role="navigation" aria-label="Main Navigation">
               {/* 3 Lifestyle Super-Categories with Mega Menu */}
               {MEGA_NAV_GROUPS.map((group) => {
                 const isCurrentGroupOpen = activeDropdown === group.id;
@@ -357,13 +352,12 @@ export default function Header() {
                 return (
                   <div
                     key={group.id}
-                    className="relative"
+                    className="relative px-4.5 py-1"
                     onMouseEnter={() => handleMouseEnter(group.id)}
-                    onMouseLeave={handleMouseLeave}
                   >
                     <Link
                       href={group.href}
-                      className={`inline-flex items-center gap-1.5 text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
+                      className={`relative inline-flex items-center gap-1.5 text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
                         isCurrentGroupOpen || isCurrentPathActive
                           ? "text-[#C25E38]"
                           : "text-[#374151] hover:text-[#18181B]"
@@ -387,9 +381,9 @@ export default function Header() {
                         />
                       </svg>
 
-                      {/* Active Underline Indicator */}
+                      {/* Active Underline Indicator (Accurately fits text bounds) */}
                       <span
-                        className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
+                        className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-200 ${
                           isCurrentGroupOpen || isCurrentPathActive ? "w-full" : "w-0 group-hover:w-full"
                         }`}
                       />
@@ -399,38 +393,42 @@ export default function Header() {
               })}
 
               {/* Direct Link: Ateliers */}
-              <Link
-                href="/artists"
-                className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
-                  pathname === "/artists" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
-                }`}
-                onMouseEnter={handleImmediateClose}
-                onFocus={handleImmediateClose}
-              >
-                Ateliers
-                <span
-                  className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
-                    pathname === "/artists" ? "w-full" : "w-0 group-hover:w-full"
+              <div className="relative px-4.5 py-1">
+                <Link
+                  href="/artists"
+                  className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold inline-block ${
+                    pathname === "/artists" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
                   }`}
-                />
-              </Link>
+                  onMouseEnter={handleImmediateClose}
+                  onFocus={handleImmediateClose}
+                >
+                  Ateliers
+                  <span
+                    className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-200 ${
+                      pathname === "/artists" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </div>
 
               {/* Direct Link: Shop All */}
-              <Link
-                href="/collections"
-                className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold ${
-                  pathname === "/collections" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
-                }`}
-                onMouseEnter={handleImmediateClose}
-                onFocus={handleImmediateClose}
-              >
-                Shop All
-                <span
-                  className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-300 ${
-                    pathname === "/collections" ? "w-full" : "w-0 group-hover:w-full"
+              <div className="relative px-4.5 py-1">
+                <Link
+                  href="/collections"
+                  className={`relative text-xs tracking-wider uppercase transition-colors py-1 group font-bold inline-block ${
+                    pathname === "/collections" ? "text-[#C25E38]" : "text-[#374151] hover:text-[#18181B]"
                   }`}
-                />
-              </Link>
+                  onMouseEnter={handleImmediateClose}
+                  onFocus={handleImmediateClose}
+                >
+                  Shop All
+                  <span
+                    className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-200 ${
+                      pathname === "/collections" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </div>
             </nav>
           </div>
 
@@ -445,9 +443,8 @@ export default function Header() {
 
                 return (
                   <div
-                    className="max-w-[1100px] mx-auto bg-white/98 backdrop-blur-md rounded-2xl border border-[#E8DFC8]/80 shadow-2xl p-5 md:p-6 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-auto relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
+                    className="max-w-[1100px] mx-auto bg-white rounded-2xl border border-[#E8DFC8]/80 shadow-2xl p-5 md:p-6 animate-in fade-in duration-100 pointer-events-auto relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
                     onMouseEnter={() => handleMouseEnter(activeDropdown)}
-                    onMouseLeave={handleMouseLeave}
                     onBlur={(e) => {
                       if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                         handleImmediateClose();
@@ -536,34 +533,6 @@ export default function Header() {
                           </div>
                         </Link>
                       )}
-                    </div>
-
-                    {/* Ultra-Slim Heritage Trust Strip */}
-                    <div className="pt-3 mt-3.5 border-t border-[#F2ECE1] flex items-center justify-between text-[11px] text-[#71717A]">
-                      <div className="flex items-center gap-6">
-                        <span className="flex items-center gap-1.5">
-                          <span className="text-[#C25E38] font-bold">🇰🇷</span>
-                          <span>Made in Korea</span>
-                        </span>
-                        <span className="hidden sm:inline-block text-[#E8DFC8]">&middot;</span>
-                        <span className="hidden sm:flex items-center gap-1.5">
-                          <span className="text-[#C25E38] font-bold">✈️</span>
-                          <span>Dispatched direct from Korea (Tracked 7–14 days)</span>
-                        </span>
-                        <span className="hidden md:inline-block text-[#E8DFC8]">&middot;</span>
-                        <span className="hidden md:flex items-center gap-1.5">
-                          <span className="text-[#C25E38] font-bold">🛡️</span>
-                          <span>Central Dispatch 3-Stage Inspection</span>
-                        </span>
-                      </div>
-
-                      <Link
-                        href="/about"
-                        className="text-xs font-bold text-[#C25E38] hover:text-[#A74B28] transition-colors shrink-0 flex items-center gap-1 group/craft"
-                      >
-                        <span>Our Story & Origin</span>
-                        <span className="group-hover/craft:translate-x-0.5 transition-transform">&rsaquo;</span>
-                      </Link>
                     </div>
                   </div>
                 );

@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getArtistSlug } from "@/lib/artists";
+import WishlistHeartOverlay from "./WishlistHeartOverlay";
 
 export interface EtsyCardItem {
   id: string;
@@ -36,16 +36,6 @@ export default function EtsyHorizontalShelf({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const [wishlist, setWishlist] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("blank_seoul_wishlist");
-      if (saved) {
-        setWishlist(JSON.parse(saved));
-      }
-    } catch {}
-  }, []);
 
   const checkScrollPosition = () => {
     const el = scrollContainerRef.current;
@@ -74,18 +64,6 @@ export default function EtsyHorizontalShelf({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
-  };
-
-  const toggleWishlist = (itemId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const updated = wishlist.includes(itemId)
-      ? wishlist.filter((i) => i !== itemId)
-      : [...wishlist, itemId];
-    setWishlist(updated);
-    try {
-      localStorage.setItem("blank_seoul_wishlist", JSON.stringify(updated));
-    } catch {}
   };
 
   return (
@@ -155,17 +133,18 @@ export default function EtsyHorizontalShelf({
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             className="flex items-start gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2"
           >
-            {items.map((item) => {
-              const isSaved = wishlist.includes(item.id);
-              return (
-                <div
-                  key={item.id}
-                  className="w-[170px] sm:w-[210px] lg:w-[225px] shrink-0 snap-start flex flex-col group cursor-pointer"
-                >
-                  {/* Square Image Card with Smooth Rounded Corners & Heart Button */}
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="w-[170px] sm:w-[210px] lg:w-[225px] shrink-0 snap-start flex flex-col group cursor-pointer"
+              >
+                {/* Square Image Card with Smooth Rounded Corners & Heart Button */}
+                <div className="relative block aspect-square rounded-2xl overflow-hidden bg-[#F5F0E6] border border-[#E8DFC8] shadow-2xs group-hover:shadow-md transition-all">
                   <Link
                     href={`/product/${item.handle}`}
-                    className="relative block aspect-square rounded-2xl overflow-hidden bg-[#F5F0E6] border border-[#E8DFC8] shadow-2xs group-hover:shadow-md transition-all"
+                    className="block w-full h-full"
+                    tabIndex={-1}
+                    aria-hidden="true"
                   >
                     <Image
                       src={item.image}
@@ -175,25 +154,15 @@ export default function EtsyHorizontalShelf({
                       className="object-cover transition-transform duration-500 group-hover:scale-106"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/6 transition-colors" />
-
-                    {/* Wishlist Heart Icon (Etsy Style) */}
-                    <button
-                      onClick={(e) => toggleWishlist(item.id, e)}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#18181B] hover:text-[#C25E38] shadow-xs transition-transform active:scale-90"
-                      aria-label="Wishlist"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill={isSaved ? "#C25E38" : "none"}
-                        stroke={isSaved ? "#C25E38" : "currentColor"}
-                        strokeWidth="2.5"
-                      >
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    </button>
                   </Link>
+
+                  {/* Standard Wishlist Heart Button */}
+                  <WishlistHeartOverlay
+                    productId={item.id}
+                    productHandle={item.handle}
+                    size="sm"
+                  />
+                </div>
 
                   {/* Etsy Info: 1-line Truncated Title & Green USD Price */}
                   <div className="mt-2.5 px-0.5">
@@ -219,8 +188,7 @@ export default function EtsyHorizontalShelf({
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              ))}
           </div>
         </div>
       </div>

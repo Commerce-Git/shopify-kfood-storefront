@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getArtistSlug } from "@/lib/artists";
+import {
+  getWishlist,
+  getServerWishlistSnapshot,
+  toggleWishlist as sharedToggleWishlist,
+  subscribeWishlist,
+} from "@/lib/wishlist";
 import type { EtsyCardItem } from "./EtsyHorizontalShelf";
 
 interface CategoryProductGridProps {
@@ -25,27 +30,18 @@ export default function CategoryProductGrid({
   viewAllHref,
   viewAllLabel,
 }: CategoryProductGridProps) {
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [recentlyToggledId, setRecentlyToggledId] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("blank_seoul_wishlist");
-      if (saved) {
-        setWishlist(JSON.parse(saved));
-      }
-    } catch {}
-  }, []);
+  const wishlist = useSyncExternalStore(subscribeWishlist, getWishlist, getServerWishlistSnapshot);
 
   const toggleWishlist = (itemId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const updated = wishlist.includes(itemId)
-      ? wishlist.filter((i) => i !== itemId)
-      : [...wishlist, itemId];
-    setWishlist(updated);
-    try {
-      localStorage.setItem("blank_seoul_wishlist", JSON.stringify(updated));
-    } catch {}
+    setRecentlyToggledId(itemId);
+    sharedToggleWishlist(itemId);
+    setTimeout(() => {
+      setRecentlyToggledId((prev) => (prev === itemId ? null : prev));
+    }, 350);
   };
 
   if (!items || items.length === 0) return null;
@@ -87,7 +83,6 @@ export default function CategoryProductGrid({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {items.map((item) => {
             const isWishlisted = wishlist.includes(item.id);
-            const artistSlug = getArtistSlug(item.artist);
 
             return (
               <div
@@ -107,17 +102,18 @@ export default function CategoryProductGrid({
                       />
                     </Link>
 
-                    {/* 1-Click Wishlist Heart Button */}
+                    {/* 1-Click Wishlist Heart Button (Quiet Luxury / Modern Hover & Touch Responsive) */}
                     <button
                       onClick={(e) => toggleWishlist(item.id, e)}
-                      className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md z-10 cursor-pointer ${
+                      className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 shadow-md z-10 cursor-pointer before:absolute before:-inset-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none focus-visible:opacity-100 focus-visible:pointer-events-auto ${
                         isWishlisted
-                          ? "bg-[#C25E38] text-white scale-110"
-                          : "bg-white/90 hover:bg-white text-[#18181B]/70 hover:text-[#C25E38]"
-                      }`}
-                      aria-label="Save to favorites"
+                          ? "opacity-100 bg-[#C25E38] text-white scale-110"
+                          : "opacity-100 md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto bg-white/95 backdrop-blur-md hover:bg-white text-[#18181B]/70 hover:text-[#C25E38] border border-black/5 hover:border-black/10"
+                      } ${recentlyToggledId === item.id ? "animate-heart-pop" : ""}`}
+                      aria-label={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
+                      title={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" className="transition-colors duration-200">
                         <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
                       </svg>
                     </button>

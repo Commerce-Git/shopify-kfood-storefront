@@ -285,6 +285,7 @@ export default function ProductInteractive({ product, isPreview = false }: Produ
           {selectedVariant?.id && (
             <div className="pt-2 space-y-3">
               <AddToCartSection
+                productId={product.id}
                 variantId={selectedVariant.id}
                 price={price}
                 currency={currency}

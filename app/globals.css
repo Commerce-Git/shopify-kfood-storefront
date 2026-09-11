@@ -343,3 +343,15 @@ body {
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
+
+
+/* Tactile Heart Pop Animation on Save (WCAG 2.2 / HIG 300ms spring physics) */
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.25); }
+  80% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.animate-heart-pop {
+  animation: heart-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

@@ -34,6 +34,7 @@ const FOOTER_LEGAL = [
 ];
 
 const FOOTER_SUPPORT = [
+  { label: "About Blank Seoul", href: "/about" },
   { label: "Track Your Order", href: "/order-lookup" },
   { label: "FAQ & Help Center", href: "/faq" },
   { label: "Contact Support", href: "/faq#contact" },

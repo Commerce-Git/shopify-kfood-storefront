@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
 import { getOrderStep } from "@/lib/shopify/order-utils";
 import type { MappedOrder } from "@/lib/shopify/admin";
+import type { ShopifyImage } from "@/lib/shopify/types";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderPackageCard";
 import CancelButton from "@/app/components/CancelButton";
@@ -349,7 +350,7 @@ function ReorderButton({ order }: { order: MappedOrder }) {
         variantTitle: node.variant?.title || "",
         price: node.variant?.price.amount || "0",
         quantity: node.quantity,
-        image: (node.variant?.image as any) || null,
+        image: (node.variant?.image as ShopifyImage) || null,
       });
     });
     router.push("/cart");
