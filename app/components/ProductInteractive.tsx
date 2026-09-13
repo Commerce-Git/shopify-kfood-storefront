@@ -8,7 +8,6 @@ import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
 import ProductGallery from "./ProductGallery";
 import AddToCartSection from "./AddToCartSection";
 import MobileStickyBottomBar from "./MobileStickyBottomBar";
-import ProductViewsBadge from "./ProductViewsBadge";
 import ProductTrustAccordions from "./ProductTrustAccordions";
 
 interface ProductInteractiveProps {
@@ -16,22 +15,7 @@ interface ProductInteractiveProps {
   isPreview?: boolean;
 }
 
-const HIGHLIGHTS = [
-  {
-    icon: "🇰🇷",
-    text: "Made in Korea",
-  },
-  {
-    icon: "✈️",
-    text: "Direct Korea Dispatch · Tracked shipping (7–14 days)",
-  },
-  {
-    icon: "🛡️",
-    text: "Delivery Protection · Damage & loss covered",
-  },
-];
-
-export default function ProductInteractive({ product, isPreview = false }: ProductInteractiveProps) {
+export default function ProductInteractive({ product }: ProductInteractiveProps) {
   const buyBoxRef = useRef<HTMLDivElement>(null);
   const images = getProductImages(product);
   const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""), product.vendor);

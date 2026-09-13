@@ -1,13 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
+import { getCategoryCareStandards, type CareBadgeVariant } from "@/lib/config/categoryMaster";
 
 interface ProductTrustAccordionsProps {
   product: ShopifyProduct;
   className?: string;
+}
+
+const emptySubscribe = () => () => {};
+
+const BADGE_STYLES: Record<CareBadgeVariant, string> = {
+  emerald: "bg-emerald-50/90 text-emerald-800 border-emerald-200/80",
+  amber: "bg-amber-50/90 text-amber-900 border-amber-200/80",
+  indigo: "bg-[#F3EFEA] text-[#18181B] border-[#E8DFC8]",
+  stone: "bg-[#FAF8F5] text-[#27272A] border-[#E8DFC8]",
+};
+
+function getDynamicDeliveryRange(): string {
+  try {
+    const now = new Date();
+    const startDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const endDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    const startMonth = startDate.toLocaleDateString("en-US", { month: "short" });
+    const startDay = startDate.getDate();
+    const endMonth = endDate.toLocaleDateString("en-US", { month: "short" });
+    const endDay = endDate.getDate();
+
+    if (startMonth === endMonth) {
+      return `${startMonth} ${startDay}–${endDay}`;
+    }
+    return `${startMonth} ${startDay} – ${endMonth} ${endDay}`;
+  } catch {
+    return "7–14 business days";
+  }
 }
 
 function extractMaterials(tags: string[] = []): string[] {
@@ -66,33 +96,34 @@ export default function ProductTrustAccordions({
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isShippingOpen, setIsShippingOpen] = useState(true); // Etsy standard: Default Open
   const [isReturnPopoverOpen, setIsReturnPopoverOpen] = useState(false); // Floating Popover state
-  const [deliveryRange, setDeliveryRange] = useState<string>("7–14 business days");
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const deliveryRange = isClient ? getDynamicDeliveryRange() : "7–14 business days";
 
+  // Support post-purchase unboxing QR care card deep linking (#craft-care)
+  const isCareHash = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("hashchange", onStoreChange);
+      return () => window.removeEventListener("hashchange", onStoreChange);
+    },
+    () => window.location.hash === "#craft-care",
+    () => false
+  );
+  const [isCareManualOpen, setIsCareManualOpen] = useState<boolean | null>(null);
+  const isCareOpen = isCareManualOpen !== null ? isCareManualOpen : isCareHash;
+
+  useEffect(() => {
+    if (isCareHash) {
+      const el = document.getElementById("craft-care");
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+      }
+    }
+  }, [isCareHash]);
+
+  const careData = getCategoryCareStandards(product);
   const artistProfile = product.vendor ? getArtistBySlug(getArtistSlug(product.vendor), product.vendor) : null;
   const artistDisplayName = product.vendor?.trim() || artistProfile?.name || "Blank Seoul";
   const materials = extractMaterials(product.tags);
-
-  // Hydration-safe dynamic date calculation
-  useEffect(() => {
-    try {
-      const now = new Date();
-      const startDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const endDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-
-      const startMonth = startDate.toLocaleDateString("en-US", { month: "short" });
-      const startDay = startDate.getDate();
-      const endMonth = endDate.toLocaleDateString("en-US", { month: "short" });
-      const endDay = endDate.getDate();
-
-      if (startMonth === endMonth) {
-        setDeliveryRange(`${startMonth} ${startDay}–${endDay}`);
-      } else {
-        setDeliveryRange(`${startMonth} ${startDay} – ${endMonth} ${endDay}`);
-      }
-    } catch {
-      setDeliveryRange("7–14 business days");
-    }
-  }, []);
 
   return (
     <div className={`space-y-3 pt-6 border-t border-border-light ${className}`}>
@@ -100,9 +131,11 @@ export default function ProductTrustAccordions({
       <div className="rounded-2xl border border-[#E8DFC8]/80 bg-[#FDF9F3]/60 overflow-hidden shadow-2xs transition-all duration-200">
         <button
           type="button"
+          id="item-details-header"
+          aria-controls="item-details-content"
           onClick={() => setIsDetailsOpen(!isDetailsOpen)}
           aria-expanded={isDetailsOpen}
-          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-colors hover:bg-[#F8F3EA]/70 focus:outline-hidden min-h-[48px]"
+          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-all duration-150 select-none touch-manipulation [-webkit-tap-highlight-color:transparent] hover:bg-[#F8F3EA]/70 active:bg-[#F2ECE0]/90 active:scale-[0.995] focus:outline-hidden min-h-[48px]"
         >
           <div className="flex items-center gap-2.5">
             <span className="text-base shrink-0">🌿</span>
@@ -123,7 +156,12 @@ export default function ProductTrustAccordions({
         </button>
 
         {isDetailsOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs text-[#3F3F46] space-y-3 border-t border-[#E8DFC8]/50 animate-fade-in">
+          <div
+            id="item-details-content"
+            role="region"
+            aria-labelledby="item-details-header"
+            className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs text-[#3F3F46] space-y-3 border-t border-[#E8DFC8]/50 animate-fade-in"
+          >
             {/* Origin & Studio Badges (Top 2-Column Row) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
               <div className="p-2.5 rounded-xl bg-white/80 border border-[#E8DFC8]/60 flex items-center gap-2 shadow-2xs">
@@ -192,9 +230,11 @@ export default function ProductTrustAccordions({
       <div className="rounded-2xl border border-[#E8DFC8]/80 bg-[#FDF9F3]/60 shadow-2xs transition-all duration-200">
         <button
           type="button"
+          id="shipping-policies-header"
+          aria-controls="shipping-policies-content"
           onClick={() => setIsShippingOpen(!isShippingOpen)}
           aria-expanded={isShippingOpen}
-          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-colors hover:bg-[#F8F3EA]/70 focus:outline-hidden min-h-[48px] rounded-2xl"
+          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-all duration-150 select-none touch-manipulation [-webkit-tap-highlight-color:transparent] hover:bg-[#F8F3EA]/70 active:bg-[#F2ECE0]/90 active:scale-[0.995] focus:outline-hidden min-h-[48px] rounded-2xl"
         >
           <div className="flex items-center gap-2.5">
             <span className="text-base shrink-0">📦</span>
@@ -215,7 +255,12 @@ export default function ProductTrustAccordions({
         </button>
 
         {isShippingOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs text-[#3F3F46] space-y-3.5 border-t border-[#E8DFC8]/50 animate-fade-in">
+          <div
+            id="shipping-policies-content"
+            role="region"
+            aria-labelledby="shipping-policies-header"
+            className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs text-[#3F3F46] space-y-3.5 border-t border-[#E8DFC8]/50 animate-fade-in"
+          >
             {/* 1. Dynamic Estimated Delivery Date */}
             <div className="p-3.5 rounded-xl bg-white border border-[#E8DFC8]/70 flex items-center justify-between gap-3 shadow-2xs">
               <div className="flex items-center gap-2.5">
@@ -283,6 +328,112 @@ export default function ProductTrustAccordions({
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── ACCORDION 3: Care & Safety Standards (Safe-by-Default SSOT) ── */}
+      <div id="craft-care" className="rounded-2xl border border-[#E8DFC8]/80 bg-[#FDF9F3]/60 overflow-hidden shadow-2xs transition-all duration-200 scroll-mt-24">
+        <button
+          type="button"
+          id="craft-care-header"
+          aria-controls="craft-care-content"
+          onClick={() => setIsCareManualOpen(!isCareOpen)}
+          aria-expanded={isCareOpen}
+          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-all duration-150 select-none touch-manipulation [-webkit-tap-highlight-color:transparent] hover:bg-[#F8F3EA]/70 active:bg-[#F2ECE0]/90 active:scale-[0.995] focus:outline-hidden min-h-[48px]"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="text-base shrink-0">🍵</span>
+            <span className="text-xs sm:text-sm font-bold text-[#18181B] tracking-tight">
+              Care & Safety Standards
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block max-w-[130px] sm:max-w-none truncate text-[9px] sm:text-[10px] uppercase font-semibold text-[#71717A] tracking-wider bg-white/80 border border-[#E8DFC8]/60 px-2 py-0.5 rounded-md">
+              {careData.categoryTitle}
+            </span>
+            <svg
+              className={`w-4 h-4 text-[#71717A] transition-transform duration-300 shrink-0 ${
+                isCareOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        {isCareOpen && (
+          <div
+            id="craft-care-content"
+            role="region"
+            aria-labelledby="craft-care-header"
+            className="px-4 sm:px-5 pb-4 sm:pb-5 pt-2 text-xs text-[#3F3F46] space-y-3.5 border-t border-[#E8DFC8]/50 animate-fade-in"
+          >
+            {/* Dynamic Care Badges Row (Quiet Luxury Certificate Header) */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {careData.badges.map((badge) => (
+                <span
+                  key={badge.id}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border shadow-2xs transition-colors ${
+                    BADGE_STYLES[badge.variant] || BADGE_STYLES.stone
+                  }`}
+                >
+                  <span className="text-xs shrink-0" aria-hidden="true">{badge.icon}</span>
+                  <span className="font-semibold">{badge.label}</span>
+                  {badge.subtitle && (
+                    <span className="opacity-70 text-[10px] font-normal">
+                      · {badge.subtitle}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+
+            {/* 1. Purity & Regulatory Standards */}
+            <div className="p-3 rounded-xl bg-white/80 border border-[#E8DFC8]/60 space-y-1 shadow-2xs">
+              <span className="text-[10px] text-[#71717A] font-semibold block uppercase tracking-wider">
+                🌿 Purity & Regulatory Standards
+              </span>
+              <p className="text-xs text-[#52525B] leading-relaxed">
+                {careData.purityStatement}
+              </p>
+            </div>
+
+            {/* 2. Connoisseur Care & Preservation */}
+            <div className="p-3 rounded-xl bg-white/80 border border-[#E8DFC8]/60 space-y-1.5 shadow-2xs">
+              <span className="text-[10px] text-[#71717A] font-semibold block uppercase tracking-wider">
+                🧼 Connoisseur Care & Preservation
+              </span>
+              <ul className="space-y-1.5 pt-0.5">
+                {careData.connoisseurCare.map((rule, idx) => (
+                  <li key={idx} className="text-xs text-[#52525B] leading-relaxed flex items-start gap-1.5">
+                    <span className="text-[#C25E38] shrink-0 font-bold">•</span>
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 3. The Welcoming Ritual */}
+            {careData.firstUseRitual && (
+              <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E8DFC8] space-y-1 shadow-2xs">
+                <span className="text-[10px] text-[#C25E38] font-bold block uppercase tracking-wider">
+                  🎁 {careData.firstUseRitual.title}
+                </span>
+                <p className="text-xs text-[#52525B] leading-relaxed italic">
+                  &ldquo;{careData.firstUseRitual.description}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* 4. Regulatory Trust Footer */}
+            <div className="pt-1 text-[11px] text-[#71717A] flex items-center gap-1.5 border-t border-[#E8DFC8]/40">
+              <span className="shrink-0">⚖️</span>
+              <span className="leading-tight">{careData.regulatoryFooter}</span>
             </div>
           </div>
         )}
