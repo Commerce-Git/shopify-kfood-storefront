@@ -13,18 +13,19 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
-import { COUPON_CONFIG } from "@/lib/coupon-config";
+import { COUPON_CONFIG } from "../../lib/coupon-config";
+import { DevInspectorRibbon } from "./components/DevInspectorRibbon";
 
-interface ReviewRequestEmailProps {
-  customerName: string;
-  reviewToken: string;
-  unsubscribeUrl: string;
+export interface ReviewRequestEmailProps {
+  customerName?: string;
+  reviewToken?: string;
+  unsubscribeUrl?: string;
 }
 
 export const ReviewRequestEmail = ({
-  customerName,
-  reviewToken,
-  unsubscribeUrl,
+  customerName = "Valued Customer",
+  reviewToken = "sample-token-123",
+  unsubscribeUrl = "https://blank-seoul-storefront.vercel.app/unsubscribe?token=sample",
 }: ReviewRequestEmailProps) => {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -44,7 +45,8 @@ export const ReviewRequestEmail = ({
       <Tailwind>
         <Body className="bg-gray-50 my-auto mx-auto font-sans px-2">
           <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px] bg-white">
-            <Section className="mt-[32px] text-center">
+            <DevInspectorRibbon emailId="review_request" />
+            <Section className="mt-[16px] text-center">
               <Text className="text-4xl m-0">🇰🇷 📦</Text>
             </Section>
             <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
@@ -95,5 +97,11 @@ export const ReviewRequestEmail = ({
     </Html>
   );
 };
+
+ReviewRequestEmail.PreviewProps = {
+  customerName: "Alex Morgan",
+  reviewToken: "sample-token-uuid-12345",
+  unsubscribeUrl: "https://blank-seoul-storefront.vercel.app/unsubscribe?token=sample",
+} satisfies ReviewRequestEmailProps;
 
 export default ReviewRequestEmail;

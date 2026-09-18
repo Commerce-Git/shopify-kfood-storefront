@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { adminGraphQL, isMarketingSubscribed } from "@/lib/shopify/admin";
-import { sendCouponReminderEmail } from "@/emails";
+import { sendCouponReminderEmail, IS_MARKETING_EMAIL_ENABLED } from "@/emails";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 /**
- * Vercel Cron Job #2 — 매일 02:00 UTC 실행
+ * Coupon Expiration Reminder Cron Job (cron-job.org / Vercel Cron)
  *
- * 쿠폰 만료 7일 전에 미사용 쿠폰에 대해 리마인더 이메일을 발송합니다.
- * - Shopify API로 쿠폰 사용 여부를 확인
- * - 이미 사용된 쿠폰은 리마인더를 보내지 않음
+ * 1. 마케팅 메일 비활성화 상태 시 즉시 안전 조기 종료 (Zero-Cost Short-Circuit)
+ * 2. 활성화 상태 시: 만료 7일 전 미사용 쿠폰에 대해 리마인더 이메일 발송
  */
 
 async function isDiscountUsed(code: string): Promise<boolean> {
@@ -38,12 +40,33 @@ async function isDiscountUsed(code: string): Promise<boolean> {
 }
 
 export async function GET(request: Request) {
+  // 1. 보안 인증 (cron-job.org 헤더 및 ?key= 쿼리 파라미터 지원)
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret && process.env.NODE_ENV === "production") {
+    return new Response("Server configuration error: CRON_SECRET is not configured.", { status: 500 });
+  }
+
   const authHeader = request.headers.get("authorization");
-  if (
-    process.env.NODE_ENV === "production" &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  const { searchParams } = new URL(request.url);
+  const queryKey = searchParams.get("key");
+  const tokenFromHeader = authHeader ? authHeader.replace(/^Bearer\s+/i, "") : null;
+
+  const isAuthorized =
+    process.env.NODE_ENV !== "production" ||
+    tokenFromHeader === cronSecret ||
+    queryKey === cronSecret;
+
+  if (!isAuthorized) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // 2. [Zero-Cost Short-Circuit] 마케팅 메일 비활성화 시 DB 및 Shopify 쿼리 전 즉시 안전 탈출
+  if (!IS_MARKETING_EMAIL_ENABLED) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      message: "Marketing email automation is currently suspended. Zero queries consumed.",
+    });
   }
 
   try {

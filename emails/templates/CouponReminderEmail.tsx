@@ -13,25 +13,26 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
+import { DevInspectorRibbon } from "./components/DevInspectorRibbon";
 
-interface CouponReminderEmailProps {
-  customerName: string;
-  couponCode: string;
-  discountLabel: string;
-  expiresAt: string;
+export interface CouponReminderEmailProps {
+  customerName?: string;
+  couponCode?: string;
+  discountLabel?: string;
+  expiresAt?: string;
   daysRemaining?: number;
   daysLeft?: number;
-  unsubscribeUrl: string;
+  unsubscribeUrl?: string;
 }
 
 export const CouponReminderEmail = ({
-  customerName,
-  couponCode,
-  discountLabel,
-  expiresAt,
-  daysRemaining,
-  daysLeft = daysRemaining || 7,
-  unsubscribeUrl,
+  customerName = "Valued Customer",
+  couponCode = "BLANK-10OFF-SAMPLE",
+  discountLabel = "10% OFF",
+  expiresAt = new Date(Date.now() + 3 * 86400000).toISOString(),
+  daysRemaining = 3,
+  daysLeft = daysRemaining || 3,
+  unsubscribeUrl = "https://blank-seoul-storefront.vercel.app/unsubscribe?token=sample",
 }: CouponReminderEmailProps) => {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
     "https://blank-seoul-storefront.vercel.app";
@@ -50,7 +51,8 @@ export const CouponReminderEmail = ({
       <Tailwind>
         <Body className="bg-gray-50 my-auto mx-auto font-sans px-2">
           <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px] bg-white">
-            <Section className="mt-[32px] text-center">
+            <DevInspectorRibbon emailId="coupon_reminder" />
+            <Section className="mt-[16px] text-center">
               <Text className="text-4xl m-0">⏰</Text>
             </Section>
             <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
@@ -109,5 +111,15 @@ export const CouponReminderEmail = ({
     </Html>
   );
 };
+
+CouponReminderEmail.PreviewProps = {
+  customerName: "Alex Morgan",
+  couponCode: "BLANK-10OFF-ABC123",
+  discountLabel: "10% OFF",
+  expiresAt: new Date(Date.now() + 3 * 86400000).toISOString(),
+  daysRemaining: 3,
+  daysLeft: 3,
+  unsubscribeUrl: "https://blank-seoul-storefront.vercel.app/unsubscribe?token=sample",
+} satisfies CouponReminderEmailProps;
 
 export default CouponReminderEmail;

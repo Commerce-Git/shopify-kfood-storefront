@@ -53,7 +53,13 @@ export default function CartPage() {
   });
 
   // Hook 2: Contextual upsells & live stock checking
-  const { availableUpsells, addedUpsellId, handleAddUpsell } = useCartUpsells({
+  const {
+    companions,
+    artistsToFollow,
+    isLoading: isUpsellLoading,
+    addedUpsellId,
+    handleAddUpsell,
+  } = useCartUpsells({
     items,
     addToCart,
   });
@@ -275,7 +281,9 @@ export default function CartPage() {
             />
 
             <CartUpsellShelf
-              availableUpsells={availableUpsells}
+              companions={companions}
+              artistsToFollow={artistsToFollow}
+              isLoading={isUpsellLoading}
               addedUpsellId={addedUpsellId}
               onAddUpsell={handleAddUpsell}
             />

@@ -1,58 +1,65 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UPSELL_CANDIDATES, getContextualUpsells, type UpsellCandidate } from "@/lib/config/cart-upsells";
 import type { CartItem } from "@/lib/shopify/types";
+import type { CompanionProduct, ArtistToFollow } from "@/app/api/cart-companions/route";
 
 interface UseCartUpsellsProps {
   items: CartItem[];
   addToCart: (item: CartItem) => void;
 }
 
+// Module-level in-memory cache to prevent redundant fetches when quantity changes
+const companionCache = new Map<string, { companions: CompanionProduct[]; artistsToFollow: ArtistToFollow[] }>();
+
 export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
+  const [companions, setCompanions] = useState<CompanionProduct[]>([]);
+  const [artistsToFollow, setArtistsToFollow] = useState<ArtistToFollow[]>([]);
+  const [fetchedKey, setFetchedKey] = useState<string>("");
   const [addedUpsellId, setAddedUpsellId] = useState<string | null>(null);
-  const [upsellStockMap, setUpsellStockMap] = useState<
-    Record<string, { quantity: number | null; outOfStock: boolean }>
-  >({});
 
-  // Live stock guard for upsell candidates (protected by 15s SWR cache on /api/stock)
+  // Derive unique sorted handles key so quantity updates (1 -> 2) don't trigger refetch
+  const handlesKey = Array.from(new Set(items.map((i) => i.productHandle.toLowerCase())))
+    .sort()
+    .join(",");
+
   useEffect(() => {
-    UPSELL_CANDIDATES.forEach((candidate) => {
-      fetch(`/api/stock?variantId=${encodeURIComponent(candidate.variantId)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            const outOfStock = data.currentlyNotInStock === true || data.quantityAvailable === 0;
-            setUpsellStockMap((prev) => ({
-              ...prev,
-              [candidate.variantId]: {
-                quantity: data.quantityAvailable ?? null,
-                outOfStock,
-              },
-            }));
-          }
-        })
-        .catch(() => {});
-    });
-  }, []);
+    // If no items in cart or already cached, skip effect (derived state handles render directly)
+    if (!handlesKey || companionCache.has(handlesKey)) return;
 
-  // Contextual matching: sorted based on active cart categories
-  const contextualCandidates = getContextualUpsells(items);
+    let isMounted = true;
 
-  // Filter out items already in cart or verified out-of-stock
-  const availableUpsells = contextualCandidates.filter(
-    (candidate) =>
-      !items.some(
-        (item) =>
-          item.variantId === candidate.variantId ||
-          item.productHandle === candidate.productHandle
-      ) &&
-      upsellStockMap[candidate.variantId]?.outOfStock !== true
-  );
+    fetch(`/api/cart-companions?handles=${encodeURIComponent(handlesKey)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.success) {
+          const comp = data.companions || [];
+          const artists = data.artistsToFollow || [];
+          companionCache.set(handlesKey, { companions: comp, artistsToFollow: artists });
+          setCompanions(comp);
+          setArtistsToFollow(artists);
+        } else {
+          setCompanions([]);
+          setArtistsToFollow([]);
+        }
+        setFetchedKey(handlesKey);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error("[useCartUpsells Error]:", err);
+        setCompanions([]);
+        setArtistsToFollow([]);
+        setFetchedKey(handlesKey);
+      });
 
-  const handleAddUpsell = (upsell: UpsellCandidate) => {
+    return () => {
+      isMounted = false;
+    };
+  }, [handlesKey]);
+
+  const handleAddUpsell = (upsell: CompanionProduct) => {
     setAddedUpsellId(upsell.variantId);
-    const liveStockLimit = upsellStockMap[upsell.variantId]?.quantity ?? undefined;
 
     addToCart({
       variantId: upsell.variantId,
@@ -62,7 +69,6 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
       price: upsell.price,
       quantity: 1,
       image: upsell.image,
-      stockLimit: liveStockLimit,
     });
 
     setTimeout(() => {
@@ -70,8 +76,16 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
     }, 800);
   };
 
+  // React 19 Derived State: calculate during render to avoid cascading renders in useEffect
+  const cachedData = handlesKey ? companionCache.get(handlesKey) : null;
+  const activeCompanions = handlesKey ? (cachedData?.companions ?? companions) : [];
+  const activeArtistsToFollow = handlesKey ? (cachedData?.artistsToFollow ?? artistsToFollow) : [];
+  const activeIsLoading = Boolean(handlesKey && !cachedData && fetchedKey !== handlesKey);
+
   return {
-    availableUpsells,
+    companions: activeCompanions,
+    artistsToFollow: activeArtistsToFollow,
+    isLoading: activeIsLoading,
     addedUpsellId,
     handleAddUpsell,
   };

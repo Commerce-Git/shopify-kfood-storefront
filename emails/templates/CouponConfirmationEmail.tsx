@@ -13,22 +13,23 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
+import { DevInspectorRibbon } from "./components/DevInspectorRibbon";
 
-interface CouponConfirmationEmailProps {
-  customerName: string;
-  couponCode: string;
-  discountLabel: string;
-  expiresAt: string;
-  reviewToken: string;
+export interface CouponConfirmationEmailProps {
+  customerName?: string;
+  couponCode?: string;
+  discountLabel?: string;
+  expiresAt?: string;
+  reviewToken?: string;
   unsubscribeUrl?: string;
 }
 
 export const CouponConfirmationEmail = ({
-  customerName,
-  couponCode,
-  discountLabel,
-  expiresAt,
-  reviewToken,
+  customerName = "Valued Customer",
+  couponCode = "BLANK-10OFF-SAMPLE",
+  discountLabel = "10% OFF",
+  expiresAt = new Date(Date.now() + 30 * 86400000).toISOString(),
+  reviewToken = "sample-token",
   unsubscribeUrl = "https://blank-seoul-storefront.vercel.app",
 }: CouponConfirmationEmailProps) => {
   const siteUrl =
@@ -50,7 +51,8 @@ export const CouponConfirmationEmail = ({
       <Tailwind>
         <Body className="bg-gray-50 my-auto mx-auto font-sans px-2">
           <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px] bg-white">
-            <Section className="mt-[32px] text-center">
+            <DevInspectorRibbon emailId="coupon_confirmation" />
+            <Section className="mt-[16px] text-center">
               <Text className="text-4xl m-0">🎉</Text>
             </Section>
             <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
@@ -116,5 +118,14 @@ export const CouponConfirmationEmail = ({
     </Html>
   );
 };
+
+CouponConfirmationEmail.PreviewProps = {
+  customerName: "Alex Morgan",
+  couponCode: "BLANK-10OFF-ABC123",
+  discountLabel: "10% OFF",
+  expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+  reviewToken: "sample-token-uuid",
+  unsubscribeUrl: "https://blank-seoul-storefront.vercel.app/unsubscribe?token=sample",
+} satisfies CouponConfirmationEmailProps;
 
 export default CouponConfirmationEmail;

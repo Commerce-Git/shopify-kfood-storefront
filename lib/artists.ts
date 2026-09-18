@@ -1,3 +1,5 @@
+import type { ShopifyProduct } from "@/lib/shopify/types";
+
 export interface ArtistProfile {
   slug: string;
   name: string;
@@ -15,15 +17,20 @@ export interface ArtistProfile {
 export interface ArtistWithProducts {
   profile: ArtistProfile;
   worksCount: number;
-  products: any[];
+  products: ShopifyProduct[];
   highlightImage: string;
 }
 
 // Vendor to Slug mapping dictionary for common Korean vendor names
 const VENDOR_TO_SLUG_MAP: Record<string, string> = {
-  "BlankSeoul": "blankseoul",
+  "BlankSeoul": "blank-seoul",
   "Blank Seoul": "blank-seoul",
   "블랭크서울": "blank-seoul",
+  "Soyo Studio": "soyo-studio",
+  "Soyo": "soyo-studio",
+  "소요": "soyo-studio",
+  "소요 스튜디오": "soyo-studio",
+  "소요스튜디오": "soyo-studio",
   "바늘꽃 라라비": "lalabi",
   "바늘꽃라라비": "lalabi",
   "Lalabi": "lalabi",
@@ -39,6 +46,42 @@ const VENDOR_TO_SLUG_MAP: Record<string, string> = {
   "소심한 곰손": "sosimhan-gomson",
   "Sosimhan Gomson": "sosimhan-gomson",
 };
+
+/**
+ * Extract consistent artist info (slug, name, nameKo) from product vendor and tags
+ */
+export function extractArtistFromProduct(product: {
+  vendor?: string;
+  tags?: string[];
+}): { slug: string; name: string; nameKo?: string } {
+  const vendor = (product.vendor || "").trim();
+  const tags = Array.isArray(product.tags) ? product.tags : [];
+
+  let nameEn = "";
+  let nameKo = "";
+
+  for (const tag of tags) {
+    const trimmed = tag.trim();
+    if (trimmed.toLowerCase().startsWith("artist:")) {
+      nameEn = trimmed.replace(/^artist:\s*/i, "").trim();
+    } else if (trimmed.toLowerCase().startsWith("artist-ko:")) {
+      nameKo = trimmed.replace(/^artist-ko:\s*/i, "").trim();
+    }
+  }
+
+  let primaryName = nameEn || vendor || "Blank Seoul";
+  if (primaryName.toLowerCase() === "soyo") {
+    primaryName = "Soyo Studio";
+  }
+  const slug = getArtistSlug(nameEn || vendor);
+
+  return {
+    slug,
+    name: primaryName,
+    nameKo: nameKo || undefined,
+  };
+}
+
 
 /**
  * Get slug from vendor name with automatic fallback (Shopify-standard handleize)
@@ -93,8 +136,8 @@ export function getArtistBySlug(slug: string, rawVendor?: string): ArtistProfile
  * Aggregate live Shopify products into unique artist studios
  * Only returns artists that actually have live products
  */
-export function getAllArtistsWithProducts(products: any[] = []): ArtistWithProducts[] {
-  const artistMap = new Map<string, { profile: ArtistProfile; products: any[] }>();
+export function getAllArtistsWithProducts(products: ShopifyProduct[] = []): ArtistWithProducts[] {
+  const artistMap = new Map<string, { profile: ArtistProfile; products: ShopifyProduct[] }>();
 
   // Aggregate live Shopify products
   for (const product of products) {
@@ -133,7 +176,7 @@ export function getAllArtistsWithProducts(products: any[] = []): ArtistWithProdu
 /**
  * Supabase DB(artist_accounts) 및 Shopify 실시간 상품을 결합한 100% 동적 작가 목록 반환
  */
-export async function getEnrichedArtistsWithProducts(products: any[] = []): Promise<ArtistWithProducts[]> {
+export async function getEnrichedArtistsWithProducts(products: ShopifyProduct[] = []): Promise<ArtistWithProducts[]> {
   const artistMap = new Map<string, ArtistWithProducts>();
 
   // 1. Group live Shopify products

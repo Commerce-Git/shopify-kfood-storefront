@@ -1,30 +1,50 @@
 import { NextResponse } from "next/server";
 import { adminGraphQL } from "@/lib/shopify/admin";
-import { sendReviewRequestEmail } from "@/emails";
+import { sendReviewRequestEmail, IS_MARKETING_EMAIL_ENABLED } from "@/emails";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 /**
- * Vercel Cron Job — 매일 01:00 UTC 실행
+ * Review Request Cron Job (cron-job.org / Vercel Cron)
  *
- * 1. Shopify Admin API로 21일 이상 전에 배송 완료된 주문을 조회
- * 2. 'review_requested' 태그가 없는 주문만 필터링
- * 3. Supabase에 리뷰 토큰(빈 껍데기) 생성
- * 4. Resend로 리뷰 요청 이메일 발송 (쿠폰 코드는 숨김)
- * 5. 발송 완료된 주문에 'review_requested' 태그 추가 (중복 방지)
+ * 1. 마케팅 메일 비활성화 상태 시 즉시 안전 조기 종료 (Zero-Cost Short-Circuit)
+ * 2. 활성화 상태 시: Shopify 배송 21일 경과 주문 조회 → Supabase 리뷰 토큰 생성 → 메일 발송 → 태그 추가
  */
 
 // ---- Cron Job 핸들러 ----
 
 export async function GET(request: Request) {
-  // 보안: Vercel Cron 스케줄러의 정상 요청인지 확인
+  // 1. 보안 인증 (cron-job.org 헤더 및 ?key= 쿼리 파라미터 지원)
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret && process.env.NODE_ENV === "production") {
+    return new Response("Server configuration error: CRON_SECRET is not configured.", { status: 500 });
+  }
+
   const authHeader = request.headers.get("authorization");
-  if (
-    process.env.NODE_ENV === "production" &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  const { searchParams } = new URL(request.url);
+  const queryKey = searchParams.get("key");
+  const tokenFromHeader = authHeader ? authHeader.replace(/^Bearer\s+/i, "") : null;
+
+  const isAuthorized =
+    process.env.NODE_ENV !== "production" ||
+    tokenFromHeader === cronSecret ||
+    queryKey === cronSecret;
+
+  if (!isAuthorized) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // 2. [Zero-Cost Short-Circuit] 마케팅 메일 비활성화 시 Shopify API 쿼리 전 즉시 안전 탈출
+  if (!IS_MARKETING_EMAIL_ENABLED) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      message: "Marketing email automation is currently suspended. Zero Shopify queries consumed.",
+    });
   }
 
   try {
