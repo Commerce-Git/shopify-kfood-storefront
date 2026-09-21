@@ -91,7 +91,7 @@ const VALUE_PILLARS = [
 
 export default function AboutPage() {
   return (
-    <main className="pt-24 sm:pt-32 bg-[#FAF8F5] min-h-screen text-[#18181B] overflow-x-hidden">
+    <div className="flex-1 bg-[#FAF8F5] text-[#18181B] overflow-x-hidden">
       {/* Schema.org JSON-LD Structured Data for AboutPage */}
       <script
         type="application/ld+json"
@@ -421,6 +421,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

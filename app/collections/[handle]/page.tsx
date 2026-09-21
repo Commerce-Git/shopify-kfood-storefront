@@ -98,7 +98,7 @@ export default async function CollectionPage({ params }: PageProps) {
     });
 
     return (
-      <div className="pt-page-offset pb-20 min-h-screen bg-[#FBF9F5]">
+      <div className="flex-1 pb-20 bg-[#FBF9F5]">
         <section className="px-4 pt-4 sm:pt-6">
           <div className="max-w-[1200px] mx-auto">
             {/* Hub Header with Breadcrumb (Quiet Luxury Exhibition Spacing) */}
@@ -170,7 +170,7 @@ export default async function CollectionPage({ params }: PageProps) {
   });
 
   return (
-    <div className="pt-page-offset pb-20 min-h-screen bg-[#FBF9F5]">
+    <div className="flex-1 pb-20 bg-[#FBF9F5]">
       {/* Pure Product Grid with Quiet Luxury Micro-Header */}
       <section className="px-4 pt-4 sm:pt-6">
         <div className="max-w-[1200px] mx-auto">

@@ -206,7 +206,7 @@ function WishlistContent() {
   const inStockCount = products.filter((p) => p.availableForSale).length;
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] pt-page-offset pb-20">
+    <div className="flex-1 bg-[#FAF8F5] pb-20">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-[#71717A] mb-4">
@@ -650,7 +650,7 @@ export default function WishlistPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FAF8F5] pt-36 md:pt-44 flex items-center justify-center">
+        <div className="flex-1 bg-[#FAF8F5] flex items-center justify-center py-24">
           <div className="w-8 h-8 border-3 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
         </div>
       }

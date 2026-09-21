@@ -176,7 +176,7 @@ export default function CartPage() {
   // Empty cart state
   if (itemCount === 0) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-[#FAF9F6]">
+      <div className="flex-1 flex items-center justify-center bg-[#FAF9F6] py-16">
         <div className="text-center px-4 max-w-md mx-auto">
           <div className="w-16 h-16 rounded-full bg-white border border-[#E8DFC8] flex items-center justify-center mx-auto mb-6 text-[#C25E38] shadow-xs">
             <svg className="w-8 h-8 text-[#C25E38]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -225,7 +225,7 @@ export default function CartPage() {
   const finalTotal = subtotal - discountAmount;
 
   return (
-    <div className="pt-24 sm:pt-28 pb-32 lg:pb-24 min-h-screen bg-[#FAF9F6]">
+    <div className="flex-1 pb-32 lg:pb-24 bg-[#FAF9F6]">
       {/* 1. Header Bar */}
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mb-4 sm:mb-6">
         <div className="grid grid-cols-3 items-center py-2">

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { verifyUnsubscribeToken } from "@/lib/unsubscribe";
 import { updateMarketingConsent, updateArtistFollowStatus } from "@/lib/shopify/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * POST /api/unsubscribe
- * 이메일 수신 거부 처리 — Shopify Single Source of Truth
+ * 이메일 수신 거부 처리 — Omni-SSOT (Shopify + Supabase 양방향 동기화)
  *
  * 지원 형식:
  * 1. Web UI JSON POST: { email, token, artist? }
@@ -54,8 +55,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Granular Unfollow for specific artist (SSOT)
+    // 3. Granular Unfollow for specific artist (Omni-SSOT)
     if (cleanArtist) {
+      // 3.1. Shopify Tag Update
       const { success, error } = await updateArtistFollowStatus(
         cleanEmail,
         cleanArtist,
@@ -63,25 +65,69 @@ export async function POST(request: Request) {
       );
 
       if (!success) {
-        console.error("[Unsubscribe Artist] Error:", error);
-        return NextResponse.json(
-          { error: error || "Failed to unfollow artist. Please try again." },
-          { status: 500 }
-        );
+        console.error("[Unsubscribe Artist] Shopify error:", error);
+      }
+
+      // 3.2. Supabase Soft Churn Update
+      try {
+        const { data: customer } = await supabaseAdmin
+          .from("storefront_customers")
+          .select("id")
+          .eq("email", cleanEmail)
+          .single();
+
+        if (customer?.id) {
+          await supabaseAdmin
+            .from("customer_followed_artists")
+            .update({
+              status: "unsubscribed",
+              unfollowed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", customer.id)
+            .eq("artist_slug", cleanArtist);
+        }
+      } catch (sbErr) {
+        console.warn("[Unsubscribe Artist] Supabase sync notice:", sbErr);
       }
 
       return NextResponse.json({ success: true, artist: cleanArtist });
     }
 
-    // 4. Global: Shopify에서 직접 마케팅 동의 상태를 UNSUBSCRIBED로 변경
+    // 4. Global Unsubscribe: Shopify + Supabase 마케팅 동의 취소
     const { success, error } = await updateMarketingConsent(cleanEmail, "UNSUBSCRIBED");
 
     if (!success) {
-      console.error("[Unsubscribe] Shopify update failed:", error);
-      return NextResponse.json(
-        { error: "Something went wrong. Please try again." },
-        { status: 500 }
-      );
+      console.error("[Unsubscribe Global] Shopify update failed:", error);
+    }
+
+    // 4.2. Supabase 마케팅 동의 및 드롭 알림 일괄 해제
+    try {
+      const { data: customer } = await supabaseAdmin
+        .from("storefront_customers")
+        .select("id")
+        .eq("email", cleanEmail)
+        .single();
+
+      await supabaseAdmin
+        .from("storefront_customers")
+        .update({
+          marketing_consent: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("email", cleanEmail);
+
+      if (customer?.id) {
+        await supabaseAdmin
+          .from("customer_followed_artists")
+          .update({
+            notify_drops: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", customer.id);
+      }
+    } catch (sbErr) {
+      console.warn("[Unsubscribe Global] Supabase sync notice:", sbErr);
     }
 
     return NextResponse.json({ success: true });

@@ -39,7 +39,19 @@ export interface CustomerFollowedArtist {
   artist_slug: string;
   artist_name: string;
   notify_drops: boolean;
+  status: "active" | "unsubscribed";
+  unfollowed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ActiveArtistDropSubscriber {
+  artist_slug: string;
+  artist_name: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  user_id: string;
+  followed_at: string;
 }
 

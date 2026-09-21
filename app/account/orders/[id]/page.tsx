@@ -84,7 +84,7 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="max-w-2xl mx-auto px-4 pt-28 pb-12 text-center">
+      <div className="flex-1 max-w-2xl mx-auto px-4 pb-12 text-center">
         <div className="text-4xl mb-4">😕</div>
         <p className="text-gray-600 mb-4">{error || "Order not found"}</p>
         <Link
@@ -100,7 +100,7 @@ export default function OrderDetailPage() {
   const { step } = getOrderStep(order.fulfillmentStatus, order.wmsStatus);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-28 pb-12">
+    <div className="flex-1 max-w-2xl mx-auto px-4 pb-12">
       {/* Back link */}
       <Link
         href="/account"

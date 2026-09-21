@@ -92,7 +92,7 @@ export default function Hero({ products = [] }: HeroProps) {
 
   return (
     <section
-      className="relative w-full min-h-[100svh] flex flex-col justify-center py-16 pt-28 sm:pt-32 md:pt-36 bg-transparent"
+      className="relative w-full min-h-[85svh] flex flex-col justify-center py-16 bg-transparent"
       id="hero-section"
     >
       {/* Hero Top Hook Title */}

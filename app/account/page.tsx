@@ -163,7 +163,7 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-40 flex items-center justify-center">
+      <div className="flex-1 bg-[#FAF8F5] text-[#18181B] flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C77B4A] mx-auto" />
           <p className="mt-4 text-stone-500 text-sm">Loading your profile...</p>
@@ -174,7 +174,7 @@ export default function AccountPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-40 flex items-center justify-center">
+      <div className="flex-1 bg-[#FAF8F5] text-[#18181B] flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C77B4A] mx-auto" />
           <p className="mt-4 text-stone-500 text-sm">Redirecting to login...</p>
@@ -206,7 +206,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-page-offset pb-24 px-4 sm:px-6">
+    <div className="flex-1 bg-[#FAF8F5] text-[#18181B] pb-24 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
         {/* 1. Profile Card: Customer Details + Inline Shipment Status + Sign Out */}
         <AccountProfileCard

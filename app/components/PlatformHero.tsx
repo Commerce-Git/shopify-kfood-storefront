@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function PlatformHero() {
   return (
-    <section className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden bg-[#FBF9F5]">
+    <section className="relative py-12 sm:py-16 overflow-hidden bg-[#FBF9F5]">
       {/* Background Subtle Hanji Fiber Watermark Pattern */}
       <div
         className="absolute inset-0 opacity-[0.035] pointer-events-none"

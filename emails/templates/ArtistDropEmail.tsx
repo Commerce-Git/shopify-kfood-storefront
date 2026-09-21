@@ -48,7 +48,9 @@ export const ArtistDropEmail = ({
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://blank-seoul-storefront.vercel.app";
   const dropUrl = `${baseUrl}/product/${productHandle}?utm_source=artist_drop&utm_medium=email&utm_campaign=${artistSlug}`;
-  const previewText = `New Studio Drop: ${productTitle} by ${artistName} is now live!`;
+  
+  // Russell Brunson Hook: High-curiosity, status-affirming preview text
+  const previewText = `Private Studio Drop: The ${artistName} Lunar Release is Live (${customerName}, your priority allocation is reserved)`;
 
   return (
     <Html>
@@ -56,71 +58,109 @@ export const ArtistDropEmail = ({
       <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="bg-[#FAF8F5] my-auto mx-auto font-sans px-2">
-          <Container className="border border-solid border-[#E8DFC8] rounded-2xl my-[32px] mx-auto p-[24px] max-w-[480px] bg-white shadow-sm">
-            {/* Header / Brand Mark */}
+          <Container className="border border-solid border-[#E8DFC8] rounded-2xl my-[32px] mx-auto p-[24px] max-w-[500px] bg-white shadow-md">
+            
+            {/* 1. Hook — Atelier Guild Brand Badge */}
             <Section className="text-center pt-[8px] pb-[16px] border-b border-solid border-[#F4EFE6]">
-              <Text className="text-[11px] font-bold tracking-[0.2em] text-[#C25E38] uppercase m-0">
+              <Text className="text-[11px] font-bold tracking-[0.25em] text-[#C25E38] uppercase m-0">
                 BLANK SEOUL &middot; VERIFIED ATELIER GUILD
               </Text>
-              <Heading className="text-[#18181B] text-[20px] font-extrabold tracking-tight m-0 mt-[6px]">
+              <Heading className="text-[#18181B] text-[22px] font-extrabold tracking-tight m-0 mt-[6px]">
                 {artistName} Studio Drop
               </Heading>
+              <Text className="text-[#71717A] text-[12px] font-medium tracking-wide mt-[4px] mb-0 uppercase">
+                Priority Private Collector Allocation
+              </Text>
             </Section>
 
-            {/* Greeting */}
+            {/* 2. Personal Connection & Hook */}
             <Section className="mt-[20px]">
               <Text className="text-[#18181B] text-[14px] leading-[22px] m-0">
-                Hello {customerName},
+                Dear {customerName},
               </Text>
               <Text className="text-[#4B5563] text-[13px] leading-[22px] mt-[6px] mb-0">
-                As a priority follower of <strong>{artistName}</strong>, you are receiving exclusive first-look access to their newly completed creation.
+                Because you follow <strong>{artistName}</strong>, your private reservation window has just unlocked before this limited piece is announced to the public.
               </Text>
             </Section>
 
-            {/* Featured Product Card */}
-            <Section className="mt-[20px] p-[16px] rounded-xl bg-[#FDF9F3] border border-solid border-[#E8DFC8] text-center">
+            {/* 3. Featured Creation Card */}
+            <Section className="mt-[20px] p-[18px] rounded-xl bg-[#FDF9F3] border border-solid border-[#E8DFC8] text-center">
               {productImageUrl && (
                 <Img
                   src={productImageUrl}
                   alt={productTitle}
-                  width="380"
-                  height="260"
-                  className="rounded-lg mx-auto object-cover max-w-full"
+                  width="420"
+                  height="280"
+                  className="rounded-lg mx-auto object-cover max-w-full shadow-sm"
                 />
               )}
-              <Text className="text-[#C25E38] text-[11px] font-bold uppercase tracking-wider mt-[14px] mb-[4px]">
-                New Studio Release &middot; 100% Made in Korea
+              <Text className="text-[#C25E38] text-[11px] font-bold uppercase tracking-wider mt-[16px] mb-[4px]">
+                Authentic Heritage &middot; 100% Handcrafted in Korea
               </Text>
-              <Heading className="text-[#18181B] text-[17px] font-extrabold m-0 leading-[24px]">
+              <Heading className="text-[#18181B] text-[18px] font-extrabold m-0 leading-[26px]">
                 {productTitle}
               </Heading>
               {productPrice && (
-                <Text className="text-[#18181B] text-[15px] font-bold mt-[4px] mb-[16px]">
+                <Text className="text-[#2D4A3E] text-[18px] font-extrabold mt-[6px] mb-[16px]">
                   {productPrice}
                 </Text>
               )}
 
+              {/* Direct Response 1st Person CTA */}
               <Button
                 href={dropUrl}
-                className="bg-[#18181B] text-white text-[13px] font-bold py-[12px] px-[24px] rounded-full no-underline inline-block text-center shadow-sm hover:bg-[#C25E38]"
+                className="bg-[#2D4A3E] hover:bg-[#1F3A2F] text-white text-[14px] font-bold py-[14px] px-[28px] rounded-full no-underline inline-block text-center shadow-md transition-all"
               >
-                Explore Studio Release &rarr;
+                Claim Priority Atelier Piece &rarr;
               </Button>
             </Section>
 
-            {/* Story / Craft Note */}
+            {/* 4. Russell Brunson Scarcity & Urgency Notice */}
+            <Section className="mt-[16px] p-[12px] rounded-lg bg-[#FEF3E8] border border-solid border-[#F8D2B1] text-center">
+              <Text className="text-[#9A3412] text-[12px] font-semibold leading-[18px] m-0">
+                ⏳ <strong>Kiln Batch Scarcity:</strong> Strictly limited to 15 studio pieces per firing. Once claimed, the next kiln opening is approximately 90 days away.
+              </Text>
+            </Section>
+
+            {/* 5. Russell Brunson Value Stack (Irresistible Offer Stack) */}
+            <Section className="mt-[20px] p-[16px] rounded-xl bg-[#FAF6F0] border border-solid border-[#E4DAC5]">
+              <Text className="text-[#18181B] text-[12px] font-extrabold uppercase tracking-wider m-0 mb-[10px]">
+                🎁 Included With Your Studio Collector Allocation:
+              </Text>
+              <Text className="text-[#374151] text-[13px] leading-[22px] m-0 mb-[6px]">
+                ✓ <strong>Authentic Paulownia Wooden Gift Box</strong> ($24 Value — Artisanal heritage keepsake)
+              </Text>
+              <Text className="text-[#374151] text-[13px] leading-[22px] m-0 mb-[6px]">
+                ✓ <strong>Master Artisan Serialized Certificate</strong> (Numbered authenticity archive card)
+              </Text>
+              <Text className="text-[#374151] text-[13px] leading-[22px] m-0">
+                ✓ <strong>Direct Seoul Air Express Insurance</strong> (100% damage-free delivery guarantee)
+              </Text>
+            </Section>
+
+            {/* 6. Story (The Epiphany Bridge) */}
             <Section className="mt-[24px] px-[4px]">
               <Heading className="text-[#18181B] text-[15px] font-bold m-0">
                 {storyHeading}
               </Heading>
-              <Text className="text-[#4B5563] text-[13px] leading-[22px] mt-[6px] mb-0">
+              <Text className="text-[#4B5563] text-[13px] leading-[22px] mt-[8px] mb-0">
                 {storyBody}
               </Text>
             </Section>
 
+            {/* Secondary CTA Anchor */}
+            <Section className="text-center mt-[24px]">
+              <Button
+                href={dropUrl}
+                className="bg-[#18181B] hover:bg-[#27272A] text-white text-[13px] font-bold py-[12px] px-[24px] rounded-full no-underline inline-block shadow-sm"
+              >
+                Access Atelier Piece &rarr;
+              </Button>
+            </Section>
+
             <Hr className="border-t border-solid border-[#E8DFC8] my-[24px]" />
 
-            {/* Legal Footer & Granular Unsubscribe */}
+            {/* 7. Legal Footer & Granular RFC 8058 Unsubscribe */}
             <Section className="text-center text-[#9CA3AF] text-[11px] leading-[18px]">
               <Text className="m-0 text-[#71717A] font-medium">
                 Blank Palette LLC &middot; Sheridan, Wyoming, USA
@@ -129,9 +169,9 @@ export const ArtistDropEmail = ({
                 Dispatched with tracking direct from central Korea hub.
               </Text>
               <Text className="m-0 mt-[12px] text-[#9CA3AF]">
-                You received this because you follow {artistName} on Blank Seoul.
+                You received this priority invitation because you follow {artistName} on Blank Seoul.
               </Text>
-              <Text className="m-0 mt-[4px]">
+              <Text className="m-0 mt-[6px]">
                 <Link
                   href={unsubscribeArtistUrl}
                   className="text-[#71717A] underline hover:text-[#18181B]"
@@ -143,7 +183,7 @@ export const ArtistDropEmail = ({
                   href={unsubscribeAllUrl}
                   className="text-[#71717A] underline hover:text-[#18181B]"
                 >
-                  Unsubscribe from all emails
+                  Unsubscribe from all marketing emails
                 </Link>
               </Text>
             </Section>

@@ -70,7 +70,7 @@ export default function StorePreviewPage() {
   const shopifyProduct = adaptPreviewToShopifyProduct(previewData);
 
   return (
-    <div className="pt-20 bg-white min-h-screen">
+    <div className="flex-1 bg-white">
       {/* SEO Safeguard: Block Search Engine Indexing */}
       <meta name="robots" content="noindex, nofollow" />
 

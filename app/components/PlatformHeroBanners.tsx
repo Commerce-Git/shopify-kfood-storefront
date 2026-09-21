@@ -83,7 +83,7 @@ export default function PlatformHeroBanners() {
   };
 
   return (
-    <section className="pt-32 sm:pt-36 pb-6 bg-[#FBF9F5]">
+    <section className="py-6 bg-[#FBF9F5]">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative">
         {/* Multi-Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">

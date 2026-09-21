@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function EtsyHeroBanner() {
   return (
-    <section className="pt-28 sm:pt-36 pb-8 sm:pb-12 bg-[#FBF9F5]">
+    <section className="py-8 sm:py-12 bg-[#FBF9F5]">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
         <div className="bg-[#F5F0E6] rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#E8DFC8] relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">

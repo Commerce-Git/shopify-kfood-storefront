@@ -66,7 +66,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
     .map((a) => a.profile);
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] text-[#18181B] pt-page-offset pb-20">
+    <div className="flex-1 bg-[#FBF9F5] text-[#18181B] pb-20">
       {/* 1. Breadcrumb */}
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 py-3 text-xs text-[#6B7280]">
         <nav className="flex items-center gap-2">

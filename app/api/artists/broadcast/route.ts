@@ -5,6 +5,8 @@ import { adminGraphQL } from "@/lib/shopify/admin";
 import { getArtistBySlug } from "@/lib/artists";
 import { ArtistDropEmail } from "@/emails/templates/ArtistDropEmail";
 import { render } from "@react-email/components";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { ActiveArtistDropSubscriber } from "@/lib/supabase/types";
 
 interface BroadcastBody {
   artistSlug: string;
@@ -24,6 +26,12 @@ interface ShopifyCustomerNode {
   displayName: string;
   firstName: string | null;
   tags: string[];
+}
+
+interface MergedFollower {
+  email: string;
+  name: string;
+  source: "supabase" | "shopify" | "both";
 }
 
 export async function POST(request: Request) {
@@ -69,8 +77,31 @@ export async function POST(request: Request) {
       getArtistBySlug(normalizedSlug).name ||
       "Artisan Studio";
 
-    // 1. Query Shopify Admin GraphQL for followers of this artist
-    let followers: ShopifyCustomerNode[] = [];
+    // ========================================================
+    // 1. Supabase First-Party SSOT Query (Primary Source)
+    // Query active_artist_drop_subscribers view
+    // (guarantees status = 'active' AND notify_drops = true AND marketing_consent = true)
+    // ========================================================
+    let supabaseSubscribers: ActiveArtistDropSubscriber[] = [];
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("active_artist_drop_subscribers")
+        .select("artist_slug, artist_name, email, first_name, last_name, user_id, followed_at")
+        .eq("artist_slug", normalizedSlug);
+
+      if (error) {
+        console.warn("[Broadcast] Supabase active subscribers view query notice:", error.message);
+      } else if (data) {
+        supabaseSubscribers = data;
+      }
+    } catch (sbErr) {
+      console.warn("[Broadcast] Supabase query exception:", sbErr);
+    }
+
+    // ========================================================
+    // 2. Shopify Admin GraphQL Query (Secondary / Legacy Source)
+    // ========================================================
+    let shopifyFollowers: ShopifyCustomerNode[] = [];
     try {
       const searchResult = await adminGraphQL(
         `query GetArtistFollowers($query: String!) {
@@ -92,23 +123,65 @@ export async function POST(request: Request) {
       );
 
       const edges = searchResult?.data?.customers?.edges || [];
-      followers = edges
+      shopifyFollowers = edges
         .map((e: { node: ShopifyCustomerNode }) => e.node)
         .filter((c: ShopifyCustomerNode) => c?.email && c.email.includes("@"));
     } catch (queryErr) {
       console.warn("[Broadcast] Shopify customer query error:", queryErr);
     }
 
-    // 2. Dry Run Mode: Return preview and counts without sending emails
+    // ========================================================
+    // 3. Lossless Omni-SSOT Merge & Deduplication
+    // Keyed by normalized lowercase email
+    // ========================================================
+    const followersMap = new Map<string, MergedFollower>();
+
+    // 3.1. Insert Supabase subscribers first
+    for (const sub of supabaseSubscribers) {
+      if (!sub.email || !sub.email.includes("@")) continue;
+      const cleanEmail = sub.email.trim().toLowerCase();
+      const fullName = [sub.first_name, sub.last_name].filter(Boolean).join(" ");
+      followersMap.set(cleanEmail, {
+        email: cleanEmail,
+        name: sub.first_name?.trim() || fullName.trim() || "Valued Collector",
+        source: "supabase",
+      });
+    }
+
+    // 3.2. Merge Shopify customers
+    for (const sc of shopifyFollowers) {
+      if (!sc.email || !sc.email.includes("@")) continue;
+      const cleanEmail = sc.email.trim().toLowerCase();
+      const existing = followersMap.get(cleanEmail);
+      if (existing) {
+        existing.source = "both";
+        if (existing.name === "Valued Collector" && (sc.firstName || sc.displayName)) {
+          existing.name = sc.firstName?.trim() || sc.displayName?.trim() || "Valued Collector";
+        }
+      } else {
+        followersMap.set(cleanEmail, {
+          email: cleanEmail,
+          name: sc.firstName?.trim() || sc.displayName?.trim() || "Valued Collector",
+          source: "shopify",
+        });
+      }
+    }
+
+    const followers = Array.from(followersMap.values());
+
+    // ========================================================
+    // 4. Dry Run Mode: Return preview and counts without sending
+    // ========================================================
     if (dryRun) {
       const sampleEmail = followers[0]?.email || "collector-preview@blankseoul.com";
+      const sampleName = followers[0]?.name || "Valued Collector";
       const unsubscribeArtistUrl = generateUnsubscribeUrl(sampleEmail, normalizedSlug);
       const unsubscribeAllUrl = generateUnsubscribeUrl(sampleEmail);
       const oneClickApiUrl = generateOneClickUnsubscribeApiUrl(sampleEmail, normalizedSlug);
 
       const previewHtml = await render(
         ArtistDropEmail({
-          customerName: followers[0]?.firstName || "Valued Collector",
+          customerName: sampleName,
           artistName,
           artistSlug: normalizedSlug,
           productTitle,
@@ -127,11 +200,12 @@ export async function POST(request: Request) {
         dryRun: true,
         artistSlug: normalizedSlug,
         artistName,
-        totalFollowersFound: followers.length,
-        recipientSample: followers.slice(0, 5).map((f) => ({
-          email: f.email,
-          name: f.firstName || f.displayName,
-        })),
+        metrics: {
+          supabaseSubscribersCount: supabaseSubscribers.length,
+          shopifySubscribersCount: shopifyFollowers.length,
+          totalUniqueRecipients: followers.length,
+        },
+        recipientSample: followers.slice(0, 5),
         previewHeaders: {
           "List-Unsubscribe": `<${oneClickApiUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -140,11 +214,13 @@ export async function POST(request: Request) {
       });
     }
 
-    // 3. Live Batch Dispatch using Resend
+    // ========================================================
+    // 5. Live Batch Dispatch using Resend Batch API
+    // ========================================================
     if (followers.length === 0) {
       return NextResponse.json({
         success: true,
-        message: `No active followers found with tag ${targetTag}.`,
+        message: `No active subscribers found in Supabase or Shopify for artist ${normalizedSlug}.`,
         dispatchedCount: 0,
       });
     }
@@ -181,7 +257,7 @@ export async function POST(request: Request) {
           to: recipient.email,
           subject: `New Studio Release: ${productTitle} by ${artistName}`,
           react: ArtistDropEmail({
-            customerName: recipient.firstName || recipient.displayName || "Valued Collector",
+            customerName: recipient.name,
             artistName,
             artistSlug: normalizedSlug,
             productTitle,
@@ -219,7 +295,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: errors.length === 0,
-      totalFollowers: followers.length,
+      metrics: {
+        supabaseSubscribersCount: supabaseSubscribers.length,
+        shopifySubscribersCount: shopifyFollowers.length,
+        totalUniqueRecipients: followers.length,
+      },
       totalSent,
       batches: Math.ceil(followers.length / CHUNK_SIZE),
       errors: errors.length > 0 ? errors : undefined,

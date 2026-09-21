@@ -61,10 +61,10 @@ export async function syncFollowedArtistsWithSupabase(userId: string): Promise<s
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
 
-    // 1. Fetch remote items from Supabase
+    // 1. Fetch remote items from Supabase (only active followers)
     const { data: remoteRows, error } = await supabase
       .from("customer_followed_artists")
-      .select("artist_slug")
+      .select("artist_slug, status")
       .eq("user_id", userId);
 
     if (error) {
@@ -73,7 +73,9 @@ export async function syncFollowedArtistsWithSupabase(userId: string): Promise<s
       return getFollowedArtists();
     }
 
-    const remoteSlugs: string[] = (remoteRows || []).map((r) => r.artist_slug.toLowerCase());
+    const remoteSlugs: string[] = (remoteRows || [])
+      .filter((r) => r.status !== "unsubscribed")
+      .map((r) => r.artist_slug.toLowerCase());
 
     // 2. Current local items
     const localList = getFollowedArtists().map((s) => s.toLowerCase());
@@ -84,13 +86,19 @@ export async function syncFollowedArtistsWithSupabase(userId: string): Promise<s
     // 4. If there were local items missing in remote, upsert them
     const missingInRemote = localList.filter((s) => !remoteSlugs.includes(s));
     if (missingInRemote.length > 0) {
-      const rowsToInsert = missingInRemote.map((slug) => ({
-        user_id: userId,
-        artist_slug: slug,
-        artist_name: slug,
-        notify_drops: true,
-        updated_at: new Date().toISOString(),
-      }));
+      const { getArtistBySlug } = await import("@/lib/artists");
+      const rowsToInsert = missingInRemote.map((slug) => {
+        const profile = getArtistBySlug(slug);
+        return {
+          user_id: userId,
+          artist_slug: slug,
+          artist_name: profile?.name || slug,
+          notify_drops: true,
+          status: "active" as const,
+          unfollowed_at: null,
+          updated_at: new Date().toISOString(),
+        };
+      });
       await supabase.from("customer_followed_artists").upsert(rowsToInsert, {
         onConflict: "user_id,artist_slug",
       });
@@ -122,14 +130,22 @@ export async function addFollowedArtistSupabase(
 ): Promise<void> {
   if (!userId || !artistSlug) return;
   try {
+    const cleanSlug = artistSlug.toLowerCase().trim();
+    let cleanName = artistName.trim();
+    if (!cleanName) {
+      const { getArtistBySlug } = await import("@/lib/artists");
+      cleanName = getArtistBySlug(cleanSlug)?.name || cleanSlug;
+    }
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     await supabase.from("customer_followed_artists").upsert(
       {
         user_id: userId,
-        artist_slug: artistSlug.toLowerCase().trim(),
-        artist_name: artistName,
+        artist_slug: cleanSlug,
+        artist_name: cleanName,
         notify_drops: true,
+        status: "active",
+        unfollowed_at: null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,artist_slug" }
@@ -139,6 +155,10 @@ export async function addFollowedArtistSupabase(
   }
 }
 
+/**
+ * Soft Unfollow: updates status to 'unsubscribed' with timestamp
+ * preserves audit trail for CAN-SPAM compliance while instantly removing from UI
+ */
 export async function removeFollowedArtistSupabase(
   userId: string,
   artistSlug: string
@@ -149,10 +169,14 @@ export async function removeFollowedArtistSupabase(
     const supabase = createClient();
     await supabase
       .from("customer_followed_artists")
-      .delete()
+      .update({
+        status: "unsubscribed",
+        unfollowed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("user_id", userId)
       .eq("artist_slug", artistSlug.toLowerCase().trim());
   } catch (err) {
-    console.warn("[Followed Artists] Failed to delete from Supabase:", err);
+    console.warn("[Followed Artists] Failed to soft-unfollow in Supabase:", err);
   }
 }

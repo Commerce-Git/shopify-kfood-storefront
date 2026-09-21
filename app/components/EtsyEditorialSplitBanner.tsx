@@ -3,11 +3,15 @@
 import Image from "next/image";
 import { isStoreLive } from "@/lib/constants";
 
-export default function EtsyEditorialSplitBanner() {
+export interface EtsyEditorialSplitBannerProps {
+  isHero?: boolean;
+}
+
+export default function EtsyEditorialSplitBanner({ isHero = false }: EtsyEditorialSplitBannerProps = {}) {
   const live = isStoreLive();
 
   return (
-    <section className="py-8 sm:py-12 bg-[#FBF9F5]">
+    <section className={`${isHero ? "pt-2 sm:pt-4 pb-8 sm:pb-12" : "py-8 sm:py-12"} bg-[#FBF9F5]`}>
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
         <div className="rounded-3xl p-8 sm:p-12 lg:p-14 bg-[#1A2F25] text-white relative overflow-hidden border border-[#2D4A3E] shadow-lg">
           {/* Background Ambient Glow */}
@@ -33,19 +37,35 @@ export default function EtsyEditorialSplitBanner() {
               </div>
 
               {/* Main Headline: Prominent 2-Tier Opening Soon + Origin Guarantee */}
-              <h2
-                className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-bold leading-tight"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
-                {!live ? (
-                  <>
-                    <span className="text-[#D4A373] block mb-1">Opening Soon.</span>
+              {isHero ? (
+                <h1
+                  className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-bold leading-tight"
+                  style={{ fontFamily: "Georgia, serif" }}
+                >
+                  {!live ? (
+                    <>
+                      <span className="text-[#D4A373] block mb-1">Opening Soon.</span>
+                      <span className="text-white">All Products Made in Korea.</span>
+                    </>
+                  ) : (
                     <span className="text-white">All Products Made in Korea.</span>
-                  </>
-                ) : (
-                  <span className="text-white">All Products Made in Korea.</span>
-                )}
-              </h2>
+                  )}
+                </h1>
+              ) : (
+                <h2
+                  className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-bold leading-tight"
+                  style={{ fontFamily: "Georgia, serif" }}
+                >
+                  {!live ? (
+                    <>
+                      <span className="text-[#D4A373] block mb-1">Opening Soon.</span>
+                      <span className="text-white">All Products Made in Korea.</span>
+                    </>
+                  ) : (
+                    <span className="text-white">All Products Made in Korea.</span>
+                  )}
+                </h2>
+              )}
 
               {/* Refined Single-Sentence Narrative (Zero Repetition, Pure Transparency) */}
               <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">

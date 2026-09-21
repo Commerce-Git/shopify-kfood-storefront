@@ -52,7 +52,7 @@
 
 /* --- Global Header & Page Top Offset System (SSOT) --- */
 :root {
-  --header-height: 154px; /* Mobile fallback baseline: Announcement (29px) + Brand Nav (60px) + Mobile Search (56px) + Borders */
+  --header-height: 140px; /* Mobile fallback baseline: Announcement (32px) + Brand Nav (48px) + Mobile Search (54px) + Borders (6px) */
   --page-top-offset: calc(var(--header-height) + 1.25rem); /* +20px Editorial breathing margin */
 }
 
@@ -70,6 +70,7 @@
 /* --- Global Resets & Base --- */
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: var(--page-top-offset);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

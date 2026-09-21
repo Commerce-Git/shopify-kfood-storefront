@@ -76,7 +76,7 @@ function UnsubscribeContent() {
   }
 
   return (
-    <div className="pt-20 min-h-screen flex items-center justify-center">
+    <div className="flex-1 flex items-center justify-center py-16">
       <div className="max-w-md mx-auto text-center px-6">
         {/* Invalid link */}
         {status === "invalid" && (
@@ -236,7 +236,7 @@ export default function UnsubscribePage() {
   return (
     <Suspense
       fallback={
-        <div className="pt-20 min-h-screen flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center py-16">
           <div className="w-8 h-8 border-3 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
         </div>
       }

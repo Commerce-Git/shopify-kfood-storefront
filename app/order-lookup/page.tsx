@@ -177,7 +177,7 @@ function OrderLookupContent() {
     `https://t.17track.net/en#nums=${trackingNumber}`;
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 pt-page-offset pb-16">
+    <div className="flex-1 flex items-center justify-center px-4 py-16">
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">

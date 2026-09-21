@@ -127,7 +127,7 @@ function ReviewForm() {
   // ---- Error Screen (invalid/expired token) ----
   if (tokenError) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24 pb-16">
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-6">😔</div>
           <h1 className="text-2xl font-bold mb-3" style={{ fontFamily: "var(--font-heading)" }}>
@@ -165,7 +165,7 @@ function ReviewForm() {
       : "";
 
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24 pb-16">
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-6 animate-bounce">🎉</div>
           <h1 className="text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-heading)" }}>
@@ -217,7 +217,7 @@ function ReviewForm() {
 
   // ---- Main Form (2 steps) ----
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24 pb-16">
+    <div className="flex-1 flex items-center justify-center px-4 py-16">
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
