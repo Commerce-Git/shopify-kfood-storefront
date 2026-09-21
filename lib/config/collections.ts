@@ -27,7 +27,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Bags & Pouches",
     navEmoji: "👜",
     shelfSubtitle:
-      "Traditional Joseon patterns, Hangul embroidery, and authentic leather Hopae daily carry",
+      "Artisan handcrafted pouches, daily totes & heritage Korean textiles",
     aliases: ["bags-purses", "bags-wallets", "bags", "pouches", "wallets"],
     keywords: ["bag", "purse", "pouch", "wallet", "tote", "hopae", "drawstring"],
     productTypeConditions: ["Bags & Pouches", "Bag", "Pouch", "Wallet", "Tote"],
@@ -188,7 +188,7 @@ export const SUPER_CATEGORIES: SuperCategoryConfig[] = [
     slug: "wear-adornment",
     title: "Wear & Adornment",
     shortLabel: "Wear & Adornment",
-    subtitle: "Korean fashion accents, royal Joseon daily carry, and wearable heritage crafts",
+    subtitle: "Korean fashion accents, handcrafted daily carry & wearable heritage crafts",
     editorial: {
       title: "Palace Dancheong Jade Norigae",
       subtitle: "Hand-knotted silk Daenggi cords & natural jade charms",

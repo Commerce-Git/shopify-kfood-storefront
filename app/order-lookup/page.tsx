@@ -7,6 +7,7 @@ import OrderStatusBar from "@/app/components/OrderStatusBar";
 import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderPackageCard";
 import { getOrderStep } from "@/lib/shopify/order-utils";
 import type { OrderPackage } from "@/lib/shopify/admin";
+import EmailConsentNotice from "@/app/components/EmailConsentNotice";
 
 interface TrackingInfo {
   number: string;
@@ -176,7 +177,7 @@ function OrderLookupContent() {
     `https://t.17track.net/en#nums=${trackingNumber}`;
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 pt-24 pb-16">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 pt-page-offset pb-16">
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -368,13 +369,7 @@ function OrderLookupContent() {
                       <p className="text-red-600 text-[11px] mt-2 font-medium">{newsletterMessage}</p>
                     )}
 
-                    <p className="text-xs text-gray-400 mt-4 leading-none">
-                      * No spam. Unsubscribe at any time. View our{" "}
-                      <Link href="/policies/privacy" className="underline hover:text-gray-600 transition-colors">
-                        Privacy Policy
-                      </Link>
-                      .
-                    </p>
+                    <EmailConsentNotice align="left" compact className="mt-4 text-gray-400" />
                   </div>
                 )}
 

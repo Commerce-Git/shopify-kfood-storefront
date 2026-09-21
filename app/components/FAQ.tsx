@@ -80,7 +80,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "crafts",
     question: "Are all products Made in Korea?",
     answer:
-      "Absolutely. Every product on Blank Seoul is authentically designed and manufactured in South Korea. We partner exclusively with verified domestic studios, independent designers, and certified makers across Korea (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). We strictly guarantee authentic South Korean origin with physical inspection at our Seoul hub before international dispatch.",
+      "Absolutely. Every product on Blank Seoul is authentically designed and manufactured in South Korea. We partner exclusively with verified domestic studios, independent designers, and certified makers across Korea (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson). We strictly guarantee authentic South Korean origin with physical inspection at our central Korea hub before international dispatch.",
     actionButton: {
       label: "Meet Verified Korean Studios →",
       href: "/artists",

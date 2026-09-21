@@ -48,6 +48,7 @@ export interface ShopifyProduct {
   vendor: string;
   productType: string;
   availableForSale: boolean;
+  createdAt?: string;
   images: {
     edges: {
       node: ShopifyImage;

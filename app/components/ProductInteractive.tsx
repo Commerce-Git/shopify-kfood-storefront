@@ -9,6 +9,7 @@ import ProductGallery from "./ProductGallery";
 import AddToCartSection from "./AddToCartSection";
 import MobileStickyBottomBar from "./MobileStickyBottomBar";
 import ProductTrustAccordions from "./ProductTrustAccordions";
+import ArtistFollowButton from "./ArtistFollowButton";
 
 interface ProductInteractiveProps {
   product: ShopifyProduct;
@@ -372,12 +373,19 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
             </div>
           </div>
 
-          <Link
-            href={`/artists/${getArtistSlug(product.vendor)}`}
-            className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-bold uppercase tracking-wider transition-colors text-center shrink-0 shadow-xs"
-          >
-            Explore Studio Works →
-          </Link>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <ArtistFollowButton
+              artistSlug={getArtistSlug(product.vendor)}
+              artistName={artistDisplayName}
+              variant="compact"
+            />
+            <Link
+              href={`/artists/${getArtistSlug(product.vendor)}`}
+              className="px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-bold uppercase tracking-wider transition-colors text-center shrink-0 shadow-xs flex items-center justify-center"
+            >
+              Explore Studio Works →
+            </Link>
+          </div>
         </div>
       )}
 

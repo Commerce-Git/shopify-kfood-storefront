@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import EmailConsentNotice from "@/app/components/EmailConsentNotice";
 
 interface CategoryWaitlistCardProps {
   collectionTitle: string;
@@ -110,13 +111,7 @@ export default function CategoryWaitlistCard({
             <p className="text-xs text-red-600 font-medium">{message}</p>
           )}
 
-          <p className="text-[11px] text-stone-400 mt-2.5 text-center leading-normal">
-            No spam. Unsubscribe anytime. View our{" "}
-            <Link href="/policies/privacy" className="underline hover:text-stone-700 transition-colors">
-              Privacy Policy
-            </Link>
-            .
-          </p>
+          <EmailConsentNotice align="center" compact className="mt-2.5 text-stone-400" />
         </form>
       )}
 

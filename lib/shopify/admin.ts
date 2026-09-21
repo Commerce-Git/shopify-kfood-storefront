@@ -136,29 +136,54 @@ async function adminFetch(
  */
 export async function adminGraphQL(
   query: string,
-  variables?: Record<string, unknown>
+  variables?: Record<string, unknown>,
+  maxRetries = 3
 ) {
-  const token = await getAdminToken();
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const token = await getAdminToken();
 
-  const response = await adminFetch(
-    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": token,
-      },
-      body: JSON.stringify({ query, variables }),
+    const response = await adminFetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": token,
+        },
+        body: JSON.stringify({ query, variables }),
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`[Admin GraphQL] HTTP ${response.status}: ${text}`);
     }
-  );
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`[Admin GraphQL] HTTP ${response.status}: ${text}`);
+    const data = await response.json();
+
+    // Handle Shopify GraphQL cost limit throttling (10K CCU resilience)
+    const isThrottled = data.errors?.some(
+      (e: any) =>
+        e.extensions?.code === "THROTTLED" ||
+        e.message?.toLowerCase().includes("throttled")
+    );
+
+    if (isThrottled && attempt < maxRetries - 1) {
+      const jitter = Math.floor(Math.random() * 200);
+      const waitMs = (attempt + 1) * 300 + jitter;
+      console.warn(
+        `[Admin GraphQL] Throttled by Shopify. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${maxRetries})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      continue;
+    }
+
+    return data;
   }
 
-  return response.json();
+  throw new Error("[Admin GraphQL] Max retries exceeded due to throttling");
 }
+
 
 // ---- Types (Admin REST API format) ----
 
@@ -655,5 +680,138 @@ export async function checkIsSubscribed(email: string): Promise<boolean> {
   } catch (err) {
     console.error("[Admin API] checkIsSubscribed error:", err);
     return false;
+  }
+}
+
+/**
+ * Unified SSOT helper to add or remove artist follow tags on Shopify customers.
+ * Handles customer search, tag mutation, artist-drop-subscriber rollup,
+ * and customer creation for new follow signups.
+ */
+export async function updateArtistFollowStatus(
+  email: string,
+  artistSlug: string,
+  action: "follow" | "unfollow",
+  artistName: string = "Artisan"
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  const normalizedSlug = artistSlug.trim().toLowerCase();
+  const followTag = `follow-artist:${normalizedSlug}`;
+  const subscriberTag = "artist-drop-subscriber";
+
+  try {
+    // 1. Search customer by email
+    const searchResult = await adminGraphQL(
+      `query FindCustomerForArtistFollow($query: String!) {
+        customers(first: 1, query: $query) {
+          edges {
+            node {
+              id
+              tags
+            }
+          }
+        }
+      }`,
+      { query: `email:${cleanEmail}` }
+    );
+
+    const customerNode = searchResult?.data?.customers?.edges?.[0]?.node;
+    const customerId = customerNode?.id;
+    const existingTags: string[] = Array.isArray(customerNode?.tags) ? customerNode.tags : [];
+
+    // 2. Action: UNFOLLOW
+    if (action === "unfollow") {
+      if (customerId) {
+        const remainingTags = existingTags.filter((t: string) => t !== followTag);
+        const hasOtherFollows = remainingTags.some((t: string) => t.startsWith("follow-artist:"));
+        const finalTags = hasOtherFollows
+          ? remainingTags
+          : remainingTags.filter((t: string) => t !== subscriberTag);
+
+        await adminGraphQL(
+          `mutation RemoveArtistFollowTag($input: CustomerInput!) {
+            customerUpdate(input: $input) {
+              customer { id tags }
+              userErrors { field message }
+            }
+          }`,
+          {
+            input: {
+              id: customerId,
+              tags: finalTags,
+            },
+          }
+        );
+      }
+      return {
+        success: true,
+        message: `You have unfollowed ${artistName}.`,
+      };
+    }
+
+    // 3. Action: FOLLOW (Existing Customer)
+    if (customerId) {
+      const tagsToAdd: string[] = [];
+      if (!existingTags.includes(followTag)) tagsToAdd.push(followTag);
+      if (!existingTags.includes(subscriberTag)) tagsToAdd.push(subscriberTag);
+
+      if (tagsToAdd.length > 0) {
+        await adminGraphQL(
+          `mutation AddArtistFollowTags($input: CustomerInput!) {
+            customerUpdate(input: $input) {
+              customer { id tags }
+              userErrors { field message }
+            }
+          }`,
+          {
+            input: {
+              id: customerId,
+              tags: Array.from(new Set([...existingTags, ...tagsToAdd])),
+            },
+          }
+        );
+      }
+
+      // Ensure Shopify email marketing consent is synchronized to SUBSCRIBED
+      await updateMarketingConsent(cleanEmail, "SUBSCRIBED").catch((e) => {
+        console.warn("[Admin API] Failed to update marketing consent on follow:", e);
+      });
+
+      return {
+        success: true,
+        message: `You are now on the VIP priority list for ${artistName}'s upcoming studio releases.`,
+      };
+    }
+
+    // 4. Action: FOLLOW (New Customer)
+    await adminGraphQL(
+      `mutation CreateArtistFollowCustomer($input: CustomerInput!) {
+        customerCreate(input: $input) {
+          customer { id tags }
+          userErrors { field message }
+        }
+      }`,
+      {
+        input: {
+          email: cleanEmail,
+          tags: [followTag, subscriberTag],
+          emailMarketingConsent: {
+            marketingState: "SUBSCRIBED",
+            marketingOptInLevel: "SINGLE_OPT_IN",
+          },
+        },
+      }
+    );
+
+    return {
+      success: true,
+      message: `You are now on the VIP priority list for ${artistName}'s upcoming studio releases.`,
+    };
+  } catch (err: any) {
+    console.error("[Admin API] updateArtistFollowStatus error:", err);
+    return {
+      success: false,
+      error: err.message || "Failed to update artist follow status.",
+    };
   }
 }

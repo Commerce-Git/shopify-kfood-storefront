@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { StorefrontCustomer } from "@/lib/supabase/types";
 import dynamic from "next/dynamic";
+import { syncWishlistWithSupabase } from "@/lib/wishlist";
+import { syncFollowedArtistsWithSupabase } from "@/lib/followed-artists";
 
 const CrispChat = dynamic(() => import("./CrispChat"), { ssr: false });
 
@@ -67,6 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user);
         if (user) {
           await fetchCustomer(user.id);
+          syncWishlistWithSupabase(user.id).catch(() => {});
+          syncFollowedArtistsWithSupabase(user.id).catch(() => {});
         }
       } catch (error) {
         console.error("Auth session error:", error);
@@ -89,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (prevUser?.id !== currentUser?.id) {
             if (currentUser) {
               fetchCustomer(currentUser.id);
+              syncWishlistWithSupabase(currentUser.id).catch(() => {});
+              syncFollowedArtistsWithSupabase(currentUser.id).catch(() => {});
             } else {
               setCustomer(null);
             }

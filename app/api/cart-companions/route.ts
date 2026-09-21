@@ -98,12 +98,10 @@ export async function GET(request: Request) {
 
         const firstImage =
           product.images?.edges?.[0]?.node ||
-          firstVariant.image || {
-            url: "/assets/blank_seoul_symbol.png",
-            altText: product.title,
-            width: 500,
-            height: 500,
-          };
+          firstVariant.image;
+
+        // Quality Gate: Only recommend products that have verified real images
+        if (!firstImage || !firstImage.url) continue;
 
         const productTags = Array.isArray(product.tags) ? product.tags : [];
         // Craft tailored pitch

@@ -57,7 +57,7 @@ export default function HanjiUnboxingSection() {
             </h2>
 
             <p className="text-sm sm:text-base text-[#4B5563] leading-relaxed">
-              We believe authentic Korean design deserves packaging that honors its origin. Every single order from Blank Seoul is individually inspected in Seoul, dressed in textured protective packaging, and prepared for safe international dispatch.
+              We believe authentic Korean design deserves packaging that honors its origin. Every single order from Blank Seoul is individually inspected in Korea, dressed in textured protective packaging, and prepared for safe international dispatch.
             </p>
 
             {/* 3 Value Pillars */}

@@ -190,7 +190,7 @@ export default function ProductTrustAccordions({
                   <span className="text-sm shrink-0">🏛️</span>
                   <div>
                     <span className="text-[10px] text-[#71717A] font-medium block uppercase tracking-wider">Studio</span>
-                    <span className="text-xs font-bold text-[#18181B]">Seoul Verified Atelier</span>
+                    <span className="text-xs font-bold text-[#18181B]">Verified Korean Atelier</span>
                   </div>
                 </div>
               )}

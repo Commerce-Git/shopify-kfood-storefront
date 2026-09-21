@@ -107,7 +107,7 @@ export default function Footer() {
               <p className="text-xs sm:text-sm text-white/70 leading-relaxed max-w-sm">
                 Curated in Seoul · Made in Korea 🇰🇷
                 <br />
-                Connecting authentic South Korean domestic brands and design studios with global shoppers. All products manufactured in Korea and dispatched direct from Seoul.
+                Connecting authentic South Korean domestic brands and design studios with global shoppers. All products manufactured in Korea &middot; Direct dispatch with tracking.
               </p>
             </div>
 

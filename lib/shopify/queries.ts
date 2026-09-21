@@ -67,12 +67,13 @@ export const GET_PRODUCT_BY_HANDLE = `
 /** Fetch all products (for catalog / landing page) */
 export const GET_ALL_PRODUCTS = `
   query GetAllProducts($first: Int = 250) {
-    products(first: $first) {
+    products(first: $first, sortKey: CREATED_AT, reverse: true) {
       edges {
         node {
           id
           handle
           title
+          createdAt
           description
           vendor
           productType

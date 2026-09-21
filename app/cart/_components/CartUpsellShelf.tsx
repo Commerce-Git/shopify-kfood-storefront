@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import type { CompanionProduct, ArtistToFollow } from "@/app/api/cart-companions/route";
 import CartArtistFollowCard from "./CartArtistFollowCard";
+import { useArtistFollow } from "@/lib/hooks/useArtistFollow";
 
 interface CartUpsellShelfProps {
   companions: CompanionProduct[];
@@ -20,6 +21,13 @@ export default function CartUpsellShelf({
   addedUpsellId,
   onAddUpsell,
 }: CartUpsellShelfProps) {
+  const { isFollowed } = useArtistFollow();
+
+  // "추가 상품이 없을 때, 이미 팔로잉 중이면 아무것도 표시하지 않는다" (100% 완전 차단)
+  const unFollowedArtists = artistsToFollow.filter(
+    (artist) => !isFollowed(artist.slug)
+  );
+
   // 1. Loading Skeleton State (Prevents Layout Shift)
   if (isLoading) {
     return (
@@ -40,15 +48,15 @@ export default function CartUpsellShelf({
   }
 
   // 2. Empty state: Nothing to recommend or follow
-  if (companions.length === 0 && artistsToFollow.length === 0) {
+  if (companions.length === 0 && unFollowedArtists.length === 0) {
     return null;
   }
 
   // 3. Follow Card Only (When all products of in-cart artists are already collected / 0 remaining)
-  if (companions.length === 0 && artistsToFollow.length > 0) {
+  if (companions.length === 0 && unFollowedArtists.length > 0) {
     return (
       <div className="space-y-3">
-        {artistsToFollow.map((artist) => (
+        {unFollowedArtists.map((artist) => (
           <CartArtistFollowCard key={artist.slug} artist={artist} />
         ))}
       </div>
@@ -61,7 +69,7 @@ export default function CartUpsellShelf({
   return (
     <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 shadow-2xs">
       <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-[#E8DFC8]/50">
-        <span className="text-base">✨</span>
+        <svg className="w-4 h-4 text-[#C25E38] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
         <div>
           <h2 className="text-xs sm:text-sm font-bold text-[#18181B] uppercase tracking-wider">
             Complete Your {primaryArtistName} Collection
@@ -84,6 +92,7 @@ export default function CartUpsellShelf({
                   src={upsell.image.url}
                   alt={upsell.image.altText || upsell.title}
                   fill
+                  unoptimized={upsell.image.url.includes("cdn.shopify.com")}
                   className="object-cover"
                   sizes="56px"
                 />
@@ -118,9 +127,9 @@ export default function CartUpsellShelf({
       </div>
 
       {/* Multi-Artist Sub-Slot: If an artist in the cart has no other products, offer compact follow */}
-      {artistsToFollow.length > 0 && (
+      {unFollowedArtists.length > 0 && (
         <div className="mt-4 pt-3 border-t border-[#E8DFC8]/50 space-y-2">
-          {artistsToFollow.map((artist) => (
+          {unFollowedArtists.map((artist) => (
             <CartArtistFollowCard key={artist.slug} artist={artist} compact />
           ))}
         </div>

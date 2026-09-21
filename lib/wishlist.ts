@@ -1,6 +1,7 @@
 /**
  * Shared Wishlist (Like / Favorite) SSOT Utility
- * Manages localStorage synchronization and cross-component reactive events.
+ * Manages localStorage synchronization, Supabase cloud sync on login (Lossless Auto-Merge),
+ * and cross-component reactive events.
  */
 
 const WISHLIST_STORAGE_KEY = "blank_seoul_wishlist";
@@ -45,7 +46,11 @@ export function isWishlisted(productId?: string, productHandle?: string): boolea
   return false;
 }
 
-export function toggleWishlist(productId?: string, productHandle?: string): boolean {
+export function toggleWishlist(
+  productId?: string,
+  productHandle?: string,
+  userId?: string | null
+): boolean {
   if (typeof window === "undefined") return false;
   const primaryId = productId || productHandle;
   if (!primaryId) return false;
@@ -72,11 +77,97 @@ export function toggleWishlist(productId?: string, productHandle?: string): bool
     // Trigger native storage event so useSyncExternalStore subscribers in Header & Account update instantly
     window.dispatchEvent(new Event("storage"));
     window.dispatchEvent(new CustomEvent("wishlist-change", { detail: updated }));
+
+    // Asynchronous background sync to Supabase if logged in
+    if (userId) {
+      const cleanHandle = productHandle || productId;
+      if (cleanHandle) {
+        import("@/lib/supabase/client")
+          .then(({ createClient }) => {
+            const supabase = createClient();
+            if (currentlySaved) {
+              supabase
+                .from("customer_wishlist")
+                .delete()
+                .eq("user_id", userId)
+                .eq("product_handle", cleanHandle)
+                .then(() => {});
+            } else {
+              supabase
+                .from("customer_wishlist")
+                .upsert(
+                  { user_id: userId, product_handle: cleanHandle },
+                  { onConflict: "user_id,product_handle" }
+                )
+                .then(() => {});
+            }
+          })
+          .catch(() => {});
+      }
+    }
   } catch (err) {
     console.error("[Wishlist] Failed to save to localStorage:", err);
   }
 
   return !currentlySaved;
+}
+
+/**
+ * Lossless Auto-Merge on Login:
+ * Fetches user's wishlisted items from Supabase, merges with local items,
+ * upserts any new local items back to Supabase, and updates localStorage.
+ */
+export async function syncWishlistWithSupabase(userId: string): Promise<string[]> {
+  if (typeof window === "undefined" || !userId) return getWishlist();
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+
+    // 1. Fetch remote items from Supabase
+    const { data: remoteRows, error } = await supabase
+      .from("customer_wishlist")
+      .select("product_handle")
+      .eq("user_id", userId);
+
+    if (error) {
+      console.warn("[Wishlist] Supabase select error:", error.message);
+      return getWishlist();
+    }
+
+    const remoteHandles: string[] = (remoteRows || []).map((r) => r.product_handle);
+
+    // 2. Current local items
+    const localList = getWishlist();
+
+    // 3. Union (Merge)
+    const merged = Array.from(new Set([...localList, ...remoteHandles]));
+
+    // 4. If there were local items missing in remote, upsert them
+    const missingInRemote = localList.filter((h) => !remoteHandles.includes(h));
+    if (missingInRemote.length > 0) {
+      const rowsToInsert = missingInRemote.map((handle) => ({
+        user_id: userId,
+        product_handle: handle,
+      }));
+      await supabase.from("customer_wishlist").upsert(rowsToInsert, {
+        onConflict: "user_id,product_handle",
+      });
+    }
+
+    // 5. Update localStorage and cache
+    const rawUpdated = JSON.stringify(merged);
+    localStorage.setItem(WISHLIST_STORAGE_KEY, rawUpdated);
+    cachedWishlistRaw = rawUpdated;
+    cachedWishlist = merged;
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new CustomEvent("wishlist-change", { detail: merged }));
+
+    return merged;
+  } catch (err) {
+    console.warn("[Wishlist] Supabase sync exception:", err);
+    return getWishlist();
+  }
 }
 
 export function subscribeWishlist(callback: () => void): () => void {

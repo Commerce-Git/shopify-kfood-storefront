@@ -11,6 +11,7 @@ import {
   getWishlistCountSnapshot,
   getServerWishlistCountSnapshot,
 } from "@/lib/wishlist";
+import { isStoreLive } from "@/lib/constants";
 
 const emptySubscribe = () => () => {};
 
@@ -89,6 +90,37 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [activeDropdown]);
 
+  // 2026 Header Height Dynamic Synchronization (SSOT for --header-height)
+  useEffect(() => {
+    const headerEl = document.getElementById("site-header");
+    if (!headerEl) return;
+
+    let rafId: number | null = null;
+    const updateHeaderHeight = () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const height = headerEl.getBoundingClientRect().height;
+        if (height > 0) {
+          document.documentElement.style.setProperty("--header-height", `${Math.round(height)}px`);
+        }
+      });
+    };
+
+    updateHeaderHeight();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeaderHeight();
+    });
+    resizeObserver.observe(headerEl);
+
+    window.addEventListener("resize", updateHeaderHeight, { passive: true });
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, []);
+
   const handleMouseEnter = (id: string) => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
@@ -135,9 +167,16 @@ export default function Header() {
             TOP ANNOUNCEMENT STRIP: Simple & Clean Quiet Luxury Free Shipping & Origin Bar
            ========================================================================= */}
         <div className="bg-[#18181B] text-white py-1.5 px-4 text-center border-b border-white/10">
-          <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
-            All products Made in Korea &middot; Free shipping on all orders
-          </p>
+          {!isStoreLive() ? (
+            <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95 flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+              <span>Atelier Preview &middot; Official International Dispatch Opening Soon</span>
+            </p>
+          ) : (
+            <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
+              All products Made in Korea &middot; Free shipping on all orders
+            </p>
+          )}
         </div>
 
         {/* =========================================================================
@@ -235,7 +274,7 @@ export default function Header() {
 
               {/* Favorites / Wishlist Heart (Etsy Style) */}
               <Link
-                href="/#shelf-bags"
+                href="/wishlist"
                 className="relative p-2 rounded-full text-[#18181B] hover:bg-[#F4EFE6] transition-colors"
                 id="header-favorites-button"
                 aria-label="Favorites"
@@ -253,9 +292,11 @@ export default function Header() {
               {/* Shopping Cart (Etsy Style with Count Badge) */}
               <Link
                 href="/cart"
-                className="relative p-2 rounded-full text-[#18181B] hover:bg-[#F4EFE6] transition-colors"
+                prefetch={true}
+                className="relative p-2.5 sm:p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#18181B] hover:bg-[#F4EFE6] transition-colors"
                 id="cart-button"
-                aria-label="Cart"
+                aria-label="Shopping Cart"
+                title="View Cart"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -263,7 +304,10 @@ export default function Header() {
                   <path d="M16 10a4 4 0 01-8 0" />
                 </svg>
                 {itemCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-[#C25E38] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs">
+                  <span
+                    key={itemCount}
+                    className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#C25E38] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs animate-badge-bounce select-none"
+                  >
                     {itemCount > 9 ? "9+" : itemCount}
                   </span>
                 )}
@@ -451,29 +495,21 @@ export default function Header() {
                       }
                     }}
                   >
-                    {/* Top Group Meta Header */}
-                    <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#F2ECE1]">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
-                            {currentGroup.title}
-                          </h3>
-                          <span className="text-xs text-[#71717A] font-medium hidden sm:inline">
-                            &middot; {currentGroup.subtitle}
-                          </span>
-                        </div>
+                    {/* Top Group Meta Header (Clean Minimal Quiet Luxury) */}
+                    <div className="pb-3.5 mb-4 border-b border-[#F2ECE1]">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-black text-[#18181B]" style={{ fontFamily: "var(--font-heading)" }}>
+                          {currentGroup.title}
+                        </h3>
+                        <span className="text-xs text-[#71717A] font-medium hidden sm:inline">
+                          &middot; {currentGroup.subtitle}
+                        </span>
                       </div>
-                      <Link
-                        href={currentGroup.href}
-                        className="text-xs font-bold text-[#C25E38] hover:text-[#A74B28] flex items-center gap-1 group/hub"
-                      >
-                        <span>View Entire Collection</span>
-                        <span className="group-hover/hub:translate-x-0.5 transition-transform">&rarr;</span>
-                      </Link>
                     </div>
 
                     {/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim Single-Row Capsules) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {currentGroup.children.map((child) => {
                         const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
 
@@ -481,30 +517,25 @@ export default function Header() {
                           <Link
                             key={child.handle}
                             href={child.href}
-                            className="group/item flex items-start gap-3 p-3.5 rounded-xl border border-[#E8DFC8]/50 hover:border-[#C25E38]/50 hover:bg-[#FAF8F5] transition-all shadow-2xs hover:shadow-xs bg-white focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
+                            className="group/item flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl border border-[#E8DFC8]/50 hover:border-[#C25E38]/50 hover:bg-[#FAF8F5] transition-all shadow-2xs hover:shadow-xs bg-white focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
                           >
-                            <span className="text-xl p-2 rounded-lg bg-[#FAF8F5] group-hover/item:bg-white border border-[#E8DFC8]/60 shrink-0 transition-colors">
-                              {child.navEmoji}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-1 mb-1">
-                                <span className="text-xs font-bold text-[#18181B] group-hover/item:text-[#C25E38] transition-colors truncate">
-                                  {child.shortLabel}
-                                </span>
-                                {isInStock ? (
-                                  <span className="text-[9px] font-bold text-[#2E5A44] bg-[#F0F6F2] px-1.5 py-0.5 rounded-full border border-[#D1E5D8] shrink-0">
-                                    In Stock
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] font-medium text-[#8C827A] bg-[#FAF6EE] px-1.5 py-0.5 rounded-full border border-[#E8DFC8]/60 shrink-0">
-                                    Next Drop
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
-                                {child.shelfSubtitle}
-                              </p>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="text-lg p-1.5 rounded-lg bg-[#FAF8F5] group-hover/item:bg-white border border-[#E8DFC8]/60 shrink-0 transition-colors flex items-center justify-center w-8 h-8">
+                                {child.navEmoji}
+                              </span>
+                              <span className="text-xs font-bold text-[#18181B] group-hover/item:text-[#C25E38] transition-colors truncate">
+                                {child.shortLabel}
+                              </span>
                             </div>
+                            {isInStock ? (
+                              <span className="text-[9px] font-bold text-[#2E5A44] bg-[#F0F6F2] px-2 py-0.5 rounded-full border border-[#D1E5D8] shrink-0">
+                                In Stock
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-medium text-[#8C827A] bg-[#FAF6EE] px-2 py-0.5 rounded-full border border-[#E8DFC8]/60 shrink-0">
+                                Next Drop
+                              </span>
+                            )}
                           </Link>
                         );
                       })}
@@ -513,24 +544,19 @@ export default function Header() {
                       {currentGroup.children.length === 3 && (
                         <Link
                           href="/collections/ritual-mood"
-                          className="group/custom flex items-start gap-3 p-3.5 rounded-xl border border-dashed border-[#C25E38]/30 hover:border-[#C25E38] hover:bg-[#FAF8F5] transition-all bg-[#FAF8F5]/40 focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
+                          className="group/custom flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl border border-dashed border-[#C25E38]/30 hover:border-[#C25E38] hover:bg-[#FAF8F5] transition-all bg-[#FAF8F5]/40 focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
                         >
-                          <span className="text-xl p-2 rounded-lg bg-white group-hover/custom:bg-[#FAF8F5] border border-[#E8DFC8]/70 shrink-0 transition-colors">
-                            🍵
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-1 mb-1">
-                              <span className="text-xs font-bold text-[#C25E38] group-hover/custom:text-[#A74B28] transition-colors truncate">
-                                Studio Commission
-                              </span>
-                              <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-1.5 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
-                                Inquire
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-[#71717A] line-clamp-2 leading-relaxed">
-                              Custom incense sets, meditation bells & bespoke master artisan requests
-                            </p>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="text-lg p-1.5 rounded-lg bg-white group-hover/custom:bg-[#FAF8F5] border border-[#E8DFC8]/70 shrink-0 transition-colors flex items-center justify-center w-8 h-8">
+                              🍵
+                            </span>
+                            <span className="text-xs font-bold text-[#C25E38] group-hover/custom:text-[#A74B28] transition-colors truncate">
+                              Studio Commission
+                            </span>
                           </div>
+                          <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-2 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
+                            Inquire
+                          </span>
                         </Link>
                       )}
                     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import EmailConsentNotice from "@/app/components/EmailConsentNotice";
 
 export default function NewsletterCTA() {
   const [email, setEmail] = useState("");
@@ -119,13 +120,7 @@ export default function NewsletterCTA() {
           <p className="text-red-600 text-xs sm:text-sm mt-3 font-medium">{message}</p>
         )}
 
-        <p className="text-[#9CA3AF] text-xs mt-5">
-          * No spam ever. Unsubscribe at any time. View our{" "}
-          <Link href="/policies/privacy" className="underline hover:text-[#18181B] transition-colors">
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        <EmailConsentNotice align="center" className="mt-5 text-[#9CA3AF]" />
       </div>
     </section>
   );

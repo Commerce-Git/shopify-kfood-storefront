@@ -25,3 +25,21 @@ export interface CancelRequest {
   requested_at: string;
   processed_at: string | null;
 }
+
+export interface CustomerWishlistItem {
+  id: string;
+  user_id: string;
+  product_handle: string;
+  created_at: string;
+}
+
+export interface CustomerFollowedArtist {
+  id: string;
+  user_id: string;
+  artist_slug: string;
+  artist_name: string;
+  notify_drops: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

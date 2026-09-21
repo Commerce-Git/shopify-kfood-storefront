@@ -1,7 +1,7 @@
 const BADGES = [
   {
     emoji: "✈️",
-    title: "Dispatched Direct from Korea",
+    title: "Direct Dispatch from Korea",
     description:
       "Every piece is curated in Seoul and shipped directly from South Korea with end-to-end international air tracking straight to your door.",
     gradient: "from-emerald-500/10 to-teal-500/10",
@@ -10,7 +10,7 @@ const BADGES = [
     emoji: "🏛️",
     title: "Verified Domestic Quality",
     description:
-      "Curated from verified South Korean makers and studios. Meticulous quality inspection at our central Seoul hub before dispatch.",
+      "Curated from verified South Korean makers and studios. Meticulous quality inspection at our central Korea hub before dispatch.",
     gradient: "from-amber-500/10 to-orange-500/10",
   },
   {

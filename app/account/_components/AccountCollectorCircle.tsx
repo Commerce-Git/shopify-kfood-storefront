@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import EmailConsentNotice from "@/app/components/EmailConsentNotice";
 
 interface AccountCollectorCircleProps {
   isLocallySubscribed: boolean;
@@ -26,7 +27,7 @@ export default function AccountCollectorCircle({
     <div className="mb-8 sm:mb-10 bg-white rounded-3xl p-8 sm:p-10 border border-stone-200/80 shadow-xs text-center">
       <div className="max-w-lg mx-auto">
         <span className="text-xs font-bold uppercase tracking-widest text-[#C77B4A] block mb-1.5">
-          ARTISAN GUILD JOURNAL
+          STUDIO ALERTS & CURATION
         </span>
         <h2
           className="text-xl sm:text-2xl font-extrabold text-[#18181B] mb-2 tracking-tight"
@@ -35,8 +36,8 @@ export default function AccountCollectorCircle({
           Join the Collector Circle
         </h2>
         <p className="text-xs sm:text-sm text-stone-500 leading-relaxed mb-6 max-w-md mx-auto">
-          Receive early private alerts when Korean master artisans drop
-          <br className="hidden sm:inline" /> limited edition heritage works.
+          Receive private drop alerts for studios you follow, plus early access
+          <br className="hidden sm:inline" /> to new curated Korean heritage releases.
         </p>
 
         {newsletterStatus === "success" ? (
@@ -49,7 +50,7 @@ export default function AccountCollectorCircle({
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>{newsletterMessage || "Thank you for subscribing! 🎉"}</span>
+            <span>{newsletterMessage || "Welcome to the Collector Circle. You will receive private studio alerts."}</span>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-md mx-auto">
@@ -80,13 +81,7 @@ export default function AccountCollectorCircle({
           <p className="text-red-600 text-xs mt-2.5 font-medium">{newsletterMessage}</p>
         )}
 
-        <p className="text-[11px] text-stone-400 mt-4 leading-none">
-          No spam. Unsubscribe anytime. View our{" "}
-          <Link href="/policies/privacy" className="underline hover:text-stone-700 transition-colors">
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        <EmailConsentNotice align="center" compact className="mt-4 text-stone-400" />
       </div>
     </div>
   );

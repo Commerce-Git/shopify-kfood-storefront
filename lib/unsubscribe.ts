@@ -16,24 +16,45 @@ const SITE_URL =
   "https://blank-seoul-storefront.vercel.app";
 
 /** HMAC 토큰 생성 */
-function generateToken(email: string): string {
+function generateToken(email: string, artistSlug?: string): string {
+  const payload = artistSlug
+    ? `${email.toLowerCase().trim()}:${artistSlug.toLowerCase().trim()}`
+    : email.toLowerCase().trim();
   return createHmac("sha256", UNSUBSCRIBE_SECRET)
-    .update(email.toLowerCase().trim())
+    .update(payload)
     .digest("hex");
 }
 
-/** Unsubscribe URL 생성 (이메일 템플릿에서 사용) */
-export function generateUnsubscribeUrl(email: string): string {
-  const token = generateToken(email);
+/** Unsubscribe URL 생성 (이메일 템플릿 웹 링크에서 사용) */
+export function generateUnsubscribeUrl(email: string, artistSlug?: string): string {
+  const token = generateToken(email, artistSlug);
   const encodedEmail = encodeURIComponent(email.toLowerCase().trim());
-  return `${SITE_URL}/unsubscribe?email=${encodedEmail}&token=${token}`;
+  const artistParam = artistSlug
+    ? `&artist=${encodeURIComponent(artistSlug.toLowerCase().trim())}`
+    : "";
+  return `${SITE_URL}/unsubscribe?email=${encodedEmail}&token=${token}${artistParam}`;
+}
+
+/**
+ * RFC 8058 One-Click Unsubscribe API URL 생성
+ * Mail-client automated POST (Gmail, Yahoo) uses this target.
+ */
+export function generateOneClickUnsubscribeApiUrl(email: string, artistSlug?: string): string {
+  const token = generateToken(email, artistSlug);
+  const encodedEmail = encodeURIComponent(email.toLowerCase().trim());
+  const artistParam = artistSlug
+    ? `&artist=${encodeURIComponent(artistSlug.toLowerCase().trim())}`
+    : "";
+  return `${SITE_URL}/api/unsubscribe?email=${encodedEmail}&token=${token}${artistParam}`;
 }
 
 /** HMAC 토큰 검증 (API에서 사용) */
 export function verifyUnsubscribeToken(
   email: string,
-  token: string
+  token: string,
+  artistSlug?: string
 ): boolean {
-  const expected = generateToken(email);
+  const expected = generateToken(email, artistSlug);
   return expected === token;
 }
+

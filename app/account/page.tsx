@@ -60,7 +60,7 @@ export default function AccountPage() {
       const data = await res.json();
       if (res.ok) {
         setNewsletterStatus("success");
-        setNewsletterMessage(data.message || "Thank you for subscribing! 🎉");
+        setNewsletterMessage(data.message || "Welcome to the Collector Circle. You will receive private studio alerts.");
         if (typeof window !== "undefined" && newsletterEmail) {
           localStorage.setItem(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
           setIsLocallySubscribed(true);
@@ -206,7 +206,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-32 sm:pt-36 md:pt-40 pb-24 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] pt-page-offset pb-24 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
         {/* 1. Profile Card: Customer Details + Inline Shipment Status + Sign Out */}
         <AccountProfileCard

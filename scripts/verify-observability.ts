@@ -1,5 +1,7 @@
 import { render } from "@react-email/components";
 import * as React from "react";
+import * as fs from "fs";
+import * as path from "path";
 import { ReviewRequestEmail } from "../emails/templates/ReviewRequestEmail";
 import { CouponConfirmationEmail } from "../emails/templates/CouponConfirmationEmail";
 import { CouponReminderEmail } from "../emails/templates/CouponReminderEmail";
@@ -177,6 +179,40 @@ async function runPrecisionAudit() {
   assert("Dashboard displays 2026 Google & Yahoo Sender Authentication", dashboardHtml.includes("2026 Google &amp; Yahoo Sender Authentication") || dashboardHtml.includes("2026 Google & Yahoo Sender Authentication"));
   assert("Dashboard includes direct Shopify deeplink", dashboardHtml.includes("https://admin.shopify.com/store/tv7r0x-zn/settings/notifications"));
   assert("Dashboard includes Crisp console link", dashboardHtml.includes("https://app.crisp.chat/"));
+
+  // 6. CAN-SPAM, CCPA & Privacy Policy Compliance on All Email Capture Components
+  console.log("\n--- 6. Testing CAN-SPAM, CCPA & Privacy Policy Compliance ---");
+  const consentNoticePath = path.join(process.cwd(), "app/components/EmailConsentNotice.tsx");
+  const consentNoticeContent = fs.readFileSync(consentNoticePath, "utf-8");
+  assert("EmailConsentNotice component exists and links to /policies/privacy", consentNoticeContent.includes("/policies/privacy"));
+  assert("EmailConsentNotice opens in a new tab with target='_blank' to preserve cart context", consentNoticeContent.includes('target="_blank"'));
+  assert("EmailConsentNotice secures new tab with rel='noopener noreferrer'", consentNoticeContent.includes('rel="noopener noreferrer"'));
+  assert("EmailConsentNotice includes CAN-SPAM 'Unsubscribe anytime' disclosure", consentNoticeContent.includes("Unsubscribe anytime"));
+
+  const prelaunchCardContent = fs.readFileSync(path.join(process.cwd(), "app/components/PrelaunchWaitlistCard.tsx"), "utf-8");
+  assert("PrelaunchWaitlistCard component exists and integrates EmailConsentNotice", prelaunchCardContent.includes("<EmailConsentNotice"));
+  assert("PrelaunchWaitlistCard supports namespaced idPrefix to prevent HTML ID collisions", prelaunchCardContent.includes("idPrefix"));
+
+  const cartDrawerContent = fs.readFileSync(path.join(process.cwd(), "app/components/CartDrawer.tsx"), "utf-8");
+  assert("CartDrawer delegates to PrelaunchWaitlistCard (clean & lean)", cartDrawerContent.includes("<PrelaunchWaitlistCard"));
+
+  const cartSummaryContent = fs.readFileSync(path.join(process.cwd(), "app/cart/_components/CartOrderSummary.tsx"), "utf-8");
+  assert("CartOrderSummary delegates to PrelaunchWaitlistCard (clean & lean)", cartSummaryContent.includes("<PrelaunchWaitlistCard"));
+
+  const newsletterContent = fs.readFileSync(path.join(process.cwd(), "app/components/NewsletterCTA.tsx"), "utf-8");
+  assert("NewsletterCTA integrates standardized EmailConsentNotice", newsletterContent.includes("<EmailConsentNotice"));
+
+  const categoryWaitlistContent = fs.readFileSync(path.join(process.cwd(), "app/components/CategoryWaitlistCard.tsx"), "utf-8");
+  assert("CategoryWaitlistCard integrates standardized EmailConsentNotice", categoryWaitlistContent.includes("<EmailConsentNotice"));
+
+  const collectorCircleContent = fs.readFileSync(path.join(process.cwd(), "app/account/_components/AccountCollectorCircle.tsx"), "utf-8");
+  assert("AccountCollectorCircle integrates standardized EmailConsentNotice", collectorCircleContent.includes("<EmailConsentNotice"));
+
+  const orderLookupContent = fs.readFileSync(path.join(process.cwd(), "app/order-lookup/page.tsx"), "utf-8");
+  assert("OrderLookup page integrates standardized EmailConsentNotice", orderLookupContent.includes("<EmailConsentNotice"));
+
+  const deadModalPath = path.join(process.cwd(), "app/components/LaunchNotificationModal.tsx");
+  assert("Dead code LaunchNotificationModal.tsx is completely eliminated", !fs.existsSync(deadModalPath));
 
   console.log("\n==================================================================");
   console.log(`📊 FINAL AUDIT SCORE: ${passedTests} / ${totalTests} TESTS PASSED (${Math.round((passedTests / totalTests) * 100)}%)`);

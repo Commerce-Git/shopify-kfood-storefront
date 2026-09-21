@@ -5,6 +5,7 @@ import { getAllProducts } from "@/lib/shopify/api";
 import { getEnrichedArtistBySlug, getEnrichedArtistsWithProducts, getArtistSlug } from "@/lib/artists";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import WishlistHeartOverlay from "@/app/components/WishlistHeartOverlay";
+import ArtistFollowButton from "@/app/components/ArtistFollowButton";
 
 interface ArtistPageProps {
   params: Promise<{ slug: string }>;
@@ -65,7 +66,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
     .map((a) => a.profile);
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] text-[#18181B] pt-28 sm:pt-36 pb-20">
+    <div className="min-h-screen bg-[#FBF9F5] text-[#18181B] pt-page-offset pb-20">
       {/* 1. Breadcrumb */}
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 py-3 text-xs text-[#6B7280]">
         <nav className="flex items-center gap-2">
@@ -106,11 +107,19 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             {artist.name || artist.nameEn}
           </h1>
 
-          {/* Works Count Badge */}
-          <div className="mt-3">
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold text-[#C25E38] bg-white border border-[#E8DFC8] shadow-2xs">
+          {/* Works Count Badge & Follow Button */}
+          <div className="mt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="inline-block px-4 py-2 rounded-full text-xs font-bold text-[#C25E38] bg-white border border-[#E8DFC8] shadow-2xs">
               {artistProducts.length} {artistProducts.length === 1 ? "Studio Work" : "Studio Works"} Available
             </span>
+          </div>
+
+          <div className="mt-4">
+            <ArtistFollowButton
+              artistSlug={artist.slug}
+              artistName={artist.name || artist.nameEn}
+              variant="hero"
+            />
           </div>
         </div>
       </section>

@@ -1,5 +1,17 @@
 // App-wide constants
 
+/**
+ * Global Store Launch Status
+ * - "preview": Logistics contract pending. Purchasing disabled. Collects launch waitlist emails with zero discount promises.
+ * - "live": Official international express logistics active. Standard Add to Cart & Shopify Checkout.
+ */
+export const STORE_LAUNCH_STATUS: "preview" | "live" =
+  (process.env.NEXT_PUBLIC_STORE_LAUNCH_STATUS as "preview" | "live") || "preview";
+
+export function isStoreLive(): boolean {
+  return STORE_LAUNCH_STATUS === "live";
+}
+
 /** Cancel window in hours. Configurable via NEXT_PUBLIC_CANCEL_WINDOW_HOURS env var. */
 export const CANCEL_WINDOW_HOURS =
   Number(process.env.NEXT_PUBLIC_CANCEL_WINDOW_HOURS) || 3;

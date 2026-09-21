@@ -3,15 +3,20 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { getArtistBySlug } from "@/lib/artists";
 
 function UnsubscribeContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const token = searchParams.get("token") || "";
+  const artistSlug = searchParams.get("artist") || "";
+
+  const artistName = artistSlug ? getArtistBySlug(artistSlug).name : "";
 
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error" | "invalid"
   >("idle");
+  const [undoStatus, setUndoStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   useEffect(() => {
     if (!email || !token) {
@@ -26,7 +31,11 @@ function UnsubscribeContent() {
       const res = await fetch("/api/unsubscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token }),
+        body: JSON.stringify({
+          email,
+          token,
+          artist: artistSlug || undefined,
+        }),
       });
 
       if (res.ok) {
@@ -38,6 +47,31 @@ function UnsubscribeContent() {
       }
     } catch {
       setStatus("error");
+    }
+  }
+
+  async function handleUndoRefollow() {
+    if (!artistSlug || !email) return;
+    setUndoStatus("loading");
+    try {
+      const res = await fetch("/api/artists/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          artistSlug,
+          artistName,
+          action: "follow",
+        }),
+      });
+
+      if (res.ok) {
+        setUndoStatus("done");
+      } else {
+        setUndoStatus("error");
+      }
+    } catch {
+      setUndoStatus("error");
     }
   }
 
@@ -67,25 +101,34 @@ function UnsubscribeContent() {
         {/* Confirm unsubscribe */}
         {status === "idle" && (
           <>
-            <div className="text-5xl mb-6">📧</div>
+            <div className="text-5xl mb-6">{artistSlug ? "🏺" : "📧"}</div>
             <h1
               className="text-2xl font-bold text-gray-900 mb-3"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              Unsubscribe
+              {artistSlug
+                ? `Unfollow ${artistName}`
+                : "Unsubscribe"}
             </h1>
             <p className="text-gray-500 mb-2">
-              Are you sure you want to stop receiving emails from Blank Seoul?
+              {artistSlug
+                ? `Are you sure you want to stop receiving drop alerts for ${artistName}?`
+                : "Are you sure you want to stop receiving promotional emails from Blank Seoul?"}
             </p>
+            {artistSlug && (
+              <p className="text-xs text-[#71717A] mb-4">
+                Note: You will still remain subscribed to other Korean artisan drops and Blank Seoul news.
+              </p>
+            )}
             <p className="text-sm text-gray-400 mb-8">
               Email: <span className="font-medium text-gray-600">{email}</span>
             </p>
             <button
               onClick={handleUnsubscribe}
               className="bg-gray-900 text-white font-semibold px-6 py-3 rounded-xl
-                hover:bg-gray-800 transition-all w-full mb-3"
+                hover:bg-gray-800 transition-all w-full mb-3 cursor-pointer"
             >
-              Yes, Unsubscribe Me
+              {artistSlug ? `Yes, Unfollow ${artistName}` : "Yes, Unsubscribe Me"}
             </button>
             <Link
               href="/"
@@ -112,17 +155,45 @@ function UnsubscribeContent() {
               className="text-2xl font-bold text-gray-900 mb-3"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              You&apos;ve Been Unsubscribed
+              {artistSlug
+                ? `Unfollowed ${artistName}`
+                : "You\u2019ve Been Unsubscribed"}
             </h1>
             <p className="text-gray-500 mb-2">
-              We&apos;re sorry to see you go! You will no longer receive
-              promotional emails from us.
+              {artistSlug
+                ? `You will no longer receive release alerts for ${artistName}.`
+                : "We\u2019re sorry to see you go! You will no longer receive promotional emails from us."}
             </p>
-            <p className="text-sm text-gray-400 mb-8">
-              Note: You&apos;ll still receive essential emails related to your
-              orders and coupon confirmations.
+            <p className="text-sm text-gray-400 mb-6">
+              {artistSlug
+                ? "Your subscription to other studios and essential order notifications remains active."
+                : "Note: You\u2019ll still receive essential emails related to your orders and customer service."}
             </p>
-            <Link href="/" className="btn-primary">
+
+            {/* Accidental click / Undo Option */}
+            {artistSlug && (
+              <div className="mb-6 p-4 rounded-xl bg-[#FDF9F3] border border-[#E8DFC8] text-xs">
+                {undoStatus === "done" ? (
+                  <p className="text-emerald-700 font-bold">
+                    ✓ You have successfully re-followed {artistName}!
+                  </p>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <span className="text-[#71717A]">Accidentally clicked?</span>
+                    <button
+                      type="button"
+                      onClick={handleUndoRefollow}
+                      disabled={undoStatus === "loading"}
+                      className="font-bold text-[#C25E38] hover:text-[#A74B28] underline cursor-pointer"
+                    >
+                      {undoStatus === "loading" ? "Restoring..." : `Re-follow ${artistName} (Undo)`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Link href="/" className="btn-primary inline-block">
               Back to Homepage
             </Link>
           </>
@@ -144,7 +215,7 @@ function UnsubscribeContent() {
             </p>
             <button
               onClick={handleUnsubscribe}
-              className="btn-primary w-full mb-3"
+              className="btn-primary w-full mb-3 cursor-pointer"
             >
               Try Again
             </button>

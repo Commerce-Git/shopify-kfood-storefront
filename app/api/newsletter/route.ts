@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminGraphQL } from "@/lib/shopify/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -53,9 +54,22 @@ export async function POST(request: Request) {
         );
       }
 
+      // Sync marketing_consent to Supabase storefront_customers
+      try {
+        await supabaseAdmin
+          .from("storefront_customers")
+          .update({
+            marketing_consent: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("email", email);
+      } catch (dbErr) {
+        console.warn("[Newsletter] Supabase marketing_consent sync notice:", dbErr);
+      }
+
       return NextResponse.json({
         success: true,
-        message: "You are already subscribed to our newsletter.",
+        message: "You are already subscribed to the Collector Circle.",
         existing: true,
       });
     }
@@ -122,9 +136,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Sync marketing_consent to Supabase storefront_customers
+    try {
+      await supabaseAdmin
+        .from("storefront_customers")
+        .update({
+          marketing_consent: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("email", email);
+    } catch (dbErr) {
+      console.warn("[Newsletter] Supabase marketing_consent sync notice:", dbErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Welcome! You have successfully joined the Artisan Guild Journal.",
+      message: "Welcome to the Collector Circle. You will receive private studio alerts.",
       existing: false,
     });
   } catch (error) {

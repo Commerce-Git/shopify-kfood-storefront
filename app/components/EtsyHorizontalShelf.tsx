@@ -142,7 +142,7 @@ export default function EtsyHorizontalShelf({
                 <div className="relative block aspect-square rounded-2xl overflow-hidden bg-[#F5F0E6] border border-[#E8DFC8] shadow-2xs group-hover:shadow-md transition-all">
                   <Link
                     href={`/product/${item.handle}`}
-                    className="block w-full h-full"
+                    className="relative block w-full h-full"
                     tabIndex={-1}
                     aria-hidden="true"
                   >

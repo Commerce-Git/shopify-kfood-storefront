@@ -4,6 +4,7 @@ import { useState } from "react";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { CREATE_CART } from "@/lib/shopify/queries";
 import type { CartItem } from "@/lib/shopify/types";
+import { isStoreLive } from "@/lib/constants";
 
 interface CartResponse {
   cartCreate: {
@@ -34,7 +35,7 @@ export function useCartCheckout({
   const [error, setError] = useState<string | null>(null);
 
   const handleCheckout = async () => {
-    if (items.length === 0) return;
+    if (!isStoreLive() || items.length === 0) return;
 
     setLoading(true);
     setError(null);

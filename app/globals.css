@@ -50,6 +50,23 @@
   --shadow-glow-strong: 0 0 30px rgba(45, 74, 62, 0.5), 0 0 80px rgba(45, 74, 62, 0.2);
 }
 
+/* --- Global Header & Page Top Offset System (SSOT) --- */
+:root {
+  --header-height: 154px; /* Mobile fallback baseline: Announcement (29px) + Brand Nav (60px) + Mobile Search (56px) + Borders */
+  --page-top-offset: calc(var(--header-height) + 1.25rem); /* +20px Editorial breathing margin */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 104px; /* Desktop fallback baseline: Announcement + Desktop Integrated Nav */
+    --page-top-offset: calc(var(--header-height) + 2rem); /* +32px Editorial gallery margin */
+  }
+}
+
+.pt-page-offset {
+  padding-top: var(--page-top-offset);
+}
+
 /* --- Global Resets & Base --- */
 html {
   scroll-behavior: smooth;
@@ -354,4 +371,15 @@ body {
 }
 .animate-heart-pop {
   animation: heart-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Tactile Cart Badge Bounce Animation */
+@keyframes badge-bounce {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.35); }
+  75% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.animate-badge-bounce {
+  animation: badge-bounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

@@ -15,7 +15,7 @@ export default async function ArtistsDirectoryPage() {
   const artists = await getEnrichedArtistsWithProducts(products);
 
   return (
-    <div className="pt-28 sm:pt-36 min-h-screen bg-[#FBF9F5]">
+    <div className="pt-page-offset min-h-screen bg-[#FBF9F5]">
       {/* 1. Directory Hero Header */}
       <section className="py-12 sm:py-16 border-b border-[#E8DFC8] bg-[#F5F0E6]">
         <div className="max-w-[1360px] mx-auto px-4 sm:px-6 text-center">

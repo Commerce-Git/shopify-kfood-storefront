@@ -245,7 +245,7 @@ export default function AboutPage() {
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
             <span className="text-xs font-extrabold uppercase tracking-widest text-[#C25E38] block mb-2">
-              Uncompromising Quality &middot; Direct from Seoul
+              Uncompromising Quality &middot; Direct Dispatch
             </span>
             <h2
               className="text-2xl sm:text-4xl font-black text-[#18181B] tracking-tight mb-3 sm:mb-4 text-balance"
@@ -312,16 +312,16 @@ export default function AboutPage() {
             </div>
             <div className="lg:col-span-8 space-y-2.5 sm:space-y-3">
               <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-[#2E5A44] bg-[#F0F6F2] border border-[#D1E5D8] px-2.5 py-0.5 rounded-full inline-block">
-                Careful Seoul Hub Packaging
+                Careful Hub Packaging
               </span>
               <h3
                 className="text-lg sm:text-2xl font-bold text-[#18181B] text-balance"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Every Order is Individually Inspected &amp; Packed in Seoul.
+                Every Order is Individually Inspected &amp; Packed in Korea.
               </h3>
               <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
-                We take packaging as seriously as product selection. Every order is barcode-scanned at our Seoul facility, secured in high-grade shock-absorbent cushioning, and dispatched with official documentation confirming verified South Korean origin. Your items arrive safely and pristine.
+                We take packaging as seriously as product selection. Every order is barcode-scanned at our central Korea facility, secured in high-grade shock-absorbent cushioning, and dispatched with official documentation confirming verified South Korean origin. Your items arrive safely and pristine.
               </p>
             </div>
           </div>
@@ -391,7 +391,7 @@ export default function AboutPage() {
           </h2>
 
           <p className="text-sm sm:text-base text-white/70 max-w-xl mx-auto leading-relaxed">
-            Curated in Seoul and Made in Korea, inspected in our Seoul hub, and delivered safely to your door with tracked international express.
+            Curated in Seoul and Made in Korea, inspected in our Korea hub, and delivered safely to your door with tracked international express.
           </p>
 
           {/* Action-Oriented 1st-Person Dual Buttons (Mobile Thumb Ergonomics) */}

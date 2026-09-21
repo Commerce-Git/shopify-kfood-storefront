@@ -1,8 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { isStoreLive } from "@/lib/constants";
 
 export default function EtsyEditorialSplitBanner() {
+  const live = isStoreLive();
+
   return (
     <section className="py-8 sm:py-12 bg-[#FBF9F5]">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
@@ -12,50 +15,69 @@ export default function EtsyEditorialSplitBanner() {
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#D4A373]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-            {/* Left 60%: Hook & Brand Manifesto Story */}
+            {/* Left 60%: Hook & Pure Brand Manifesto Story */}
             <div className="lg:col-span-7 flex flex-col gap-4 text-center lg:text-left">
+              {/* Eyebrow Badge: Clear Launch Status */}
               <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-[11px] font-extrabold uppercase tracking-widest text-[#D4A373]">
-                <span>🇰🇷</span> Dispatched Direct from Korea
+                {!live ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span>OFFICIAL LAUNCH &middot; ATELIER PREVIEW</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🇰🇷</span>
+                    <span>DIRECT DISPATCH FROM KOREA</span>
+                  </>
+                )}
               </div>
 
+              {/* Main Headline: Prominent 2-Tier Opening Soon + Origin Guarantee */}
               <h2
-                className="text-2xl sm:text-4xl lg:text-[40px] font-serif font-bold text-white leading-tight"
+                className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-bold leading-tight"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                All Products Made in Korea.
+                {!live ? (
+                  <>
+                    <span className="text-[#D4A373] block mb-1">Opening Soon.</span>
+                    <span className="text-white">All Products Made in Korea.</span>
+                  </>
+                ) : (
+                  <span className="text-white">All Products Made in Korea.</span>
+                )}
               </h2>
 
-              <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Every product on Blank Seoul is authentically designed and made in Korea—curated in Seoul from skilled local workshops and verified studios across Korea, dispatched directly with tracked global express.
+              {/* Refined Single-Sentence Narrative (Zero Repetition, Pure Transparency) */}
+              <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
+                {!live
+                  ? "Every piece on Blank Seoul is authentically crafted by verified Korean artisans and local workshops. Our official direct international express dispatch will open soon."
+                  : "Every product on Blank Seoul is authentically crafted in Korea—curated in Seoul from skilled local workshops and verified studios, dispatched directly with tracked global express."}
               </p>
 
-              {/* 3 Core Authenticity Pillars (Legally Safe & Comprehensive) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 mt-4 border-t border-white/15 text-left">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>🇰🇷</span> Made in Korea
+              {/* Refined Dual Assurance Bar (Quiet Luxury & Clutter-Free) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 mt-2 border-t border-white/15 text-left max-w-lg">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0">🏛️</span>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#D4A373]">Verified Korean Workshops</h3>
+                    <p className="text-[11px] text-white/70 leading-snug mt-0.5">
+                      Curated directly from verified local master studios.
+                    </p>
                   </div>
-                  <p className="text-[11px] text-white/70 leading-snug">
-                    Authentically designed and produced in Korea.
-                  </p>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>🏛️</span> Verified Quality
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0">✈️</span>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#D4A373]">
+                      {!live ? "Global Dispatch Opening Soon" : "Tracked International Air"}
+                    </h3>
+                    <p className="text-[11px] text-white/70 leading-snug mt-0.5">
+                      {!live
+                        ? "Insured worldwide express launching shortly."
+                        : "Insured express straight to your door."}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-white/70 leading-snug">
-                    Curated from skilled Korean makers & workshops.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4A373]">
-                    <span>✈️</span> Direct Air Express
-                  </div>
-                  <p className="text-[11px] text-white/70 leading-snug">
-                    Insured international express straight to your door.
-                  </p>
                 </div>
               </div>
             </div>
@@ -66,6 +88,7 @@ export default function EtsyEditorialSplitBanner() {
                 src="/assets/korean_silk_taegeukgi_luxury_texture.jpg"
                 alt="Made in Korea - Natural Korean Silk Woven Taegeukgi"
                 fill
+                priority
                 sizes="(max-width: 1024px) 100vw, 500px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />

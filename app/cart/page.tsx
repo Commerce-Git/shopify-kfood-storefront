@@ -15,6 +15,7 @@ import CartUpsellShelf from "./_components/CartUpsellShelf";
 import CartCouponDrawer from "./_components/CartCouponDrawer";
 import CartBackupModal from "./_components/CartBackupModal";
 import CartOrderSummary from "./_components/CartOrderSummary";
+import { isStoreLive } from "@/lib/constants";
 
 export default function CartPage() {
   const {
@@ -51,6 +52,11 @@ export default function CartPage() {
     appliedCoupon,
     backupToStorageOnly,
   });
+
+  const handleProceedToCheckout = () => {
+    if (!isStoreLive()) return;
+    handleCheckout();
+  };
 
   // Hook 2: Contextual upsells & live stock checking
   const {
@@ -172,7 +178,13 @@ export default function CartPage() {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center bg-[#FAF9F6]">
         <div className="text-center px-4 max-w-md mx-auto">
-          <div className="text-6xl mb-6">🛒</div>
+          <div className="w-16 h-16 rounded-full bg-white border border-[#E8DFC8] flex items-center justify-center mx-auto mb-6 text-[#C25E38] shadow-xs">
+            <svg className="w-8 h-8 text-[#C25E38]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+          </div>
           <h1
             className="text-2xl sm:text-3xl font-extrabold text-[#18181B] mb-3"
             style={{ fontFamily: "var(--font-heading)" }}
@@ -241,17 +253,18 @@ export default function CartPage() {
           </div>
           <div className="justify-self-end">
             <div className="flex items-center gap-1.5 text-xs font-bold text-[#2E7D32] bg-[#E8F5E9] px-3 py-1 rounded-full border border-[#C8E6C9]">
-              <span>🔒</span> Secure Checkout
+              <svg className="w-3.5 h-3.5 text-[#2E7D32]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+              <span>Secure Checkout</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. 3-Step Checkout Stepper */}
-      <div className="max-w-4xl mx-auto px-4 mb-6 sm:mb-8">
+      <div className="max-w-4xl mx-auto px-4 mb-5 sm:mb-8">
         <div className="flex items-center justify-between text-xs font-semibold text-[#71717A] select-none">
           <div className="flex items-center gap-1.5 sm:gap-2 text-[#C25E38] font-bold">
-            <span className="w-5 h-5 rounded-full bg-[#C25E38] text-white flex items-center justify-center text-[10px]">1</span>
+            <span className="w-5 h-5 rounded-full bg-[#C25E38] text-white flex items-center justify-center text-[10px] shadow-2xs">1</span>
             <span className="hidden sm:inline">Review Cart</span>
           </div>
           <div className="flex-1 h-[2px] bg-[#E8DFC8]/70 mx-2 sm:mx-4" />
@@ -265,6 +278,10 @@ export default function CartPage() {
             <span className="hidden sm:inline">Secure Payment</span>
           </div>
         </div>
+        {/* Mobile micro indicator */}
+        <p className="sm:hidden text-center text-[11px] font-semibold text-[#C25E38] mt-2">
+          Step 1 of 3: Review Cart
+        </p>
       </div>
 
       {/* 3. Main 2-Column Responsive Layout */}
@@ -292,7 +309,7 @@ export default function CartPage() {
               availableCoupon={availableCoupon}
               appliedCoupon={appliedCoupon}
               couponLoading={couponLoading}
-              onApplyCoupon={(code) => setAppliedCoupon(code)}
+              onApplyCoupon={(code: string) => setAppliedCoupon(code)}
               onRemoveCoupon={() => setAppliedCoupon(null)}
             />
           </div>
@@ -305,7 +322,8 @@ export default function CartPage() {
             discountLabel={availableCoupon?.discountLabel}
             loading={loading}
             error={error}
-            onCheckout={handleCheckout}
+            items={items}
+            onCheckout={handleProceedToCheckout}
           />
         </div>
       </div>

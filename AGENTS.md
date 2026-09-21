@@ -17,3 +17,12 @@ When designing or updating the UI/UX, layouts, or copywriting for this storefron
 3. **Value Ladder**: Think about the customer journey. Design order bumps (e.g., "Add Spicy Ramen for $3") and One-Time Offers (OTOs) to increase Average Order Value (AOV).
 4. **Direct Response Copywriting**: Use action-oriented, 1st-person call-to-action buttons (e.g., "Yes, Send Me The Snack Box!") instead of boring generics (e.g., "Submit" or "Buy").
 <!-- END:marketing-persona-rules -->
+
+<!-- BEGIN:compliance-email-rules -->
+# ⚖️ Legal & Privacy Compliance (CAN-SPAM / CCPA / GDPR)
+
+When creating or modifying ANY email capture form, newsletter box, or waitlist component:
+1. You MUST ALWAYS include the standardized `<EmailConsentNotice />` component directly below the submit button or input.
+2. The disclosure must explicitly state "No spam. Unsubscribe anytime." and contain a clickable link to `/policies/privacy` opening in a new tab (`target="_blank" rel="noopener noreferrer"`).
+3. NEVER write plain text spam assurances without the Privacy Policy link.
+<!-- END:compliance-email-rules -->
