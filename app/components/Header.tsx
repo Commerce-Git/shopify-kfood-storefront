@@ -508,8 +508,8 @@ export default function Header() {
                     </div>
 
                     {/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim) */}
-                    {/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim Single-Row Capsules) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* Quiet Luxury Artisan Grid (Adaptive 3 or 4 Columns) */}
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${currentGroup.children.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-3`}>
                       {currentGroup.children.map((child) => {
                         const isInStock = child.handle === "jewelry-charms" || child.handle === "ceramics-dining";
 
@@ -539,26 +539,6 @@ export default function Header() {
                           </Link>
                         );
                       })}
-
-                      {/* Ritual & Mood 4th Slot: Custom Studio Commission Card (Maintains 4-Col Symmetry) */}
-                      {currentGroup.children.length === 3 && (
-                        <Link
-                          href="/collections/ritual-mood"
-                          className="group/custom flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl border border-dashed border-[#C25E38]/30 hover:border-[#C25E38] hover:bg-[#FAF8F5] transition-all bg-[#FAF8F5]/40 focus-visible:ring-2 focus-visible:ring-[#C25E38] focus-visible:outline-none"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-lg p-1.5 rounded-lg bg-white group-hover/custom:bg-[#FAF8F5] border border-[#E8DFC8]/70 shrink-0 transition-colors flex items-center justify-center w-8 h-8">
-                              🍵
-                            </span>
-                            <span className="text-xs font-bold text-[#C25E38] group-hover/custom:text-[#A74B28] transition-colors truncate">
-                              Studio Commission
-                            </span>
-                          </div>
-                          <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-2 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
-                            Inquire
-                          </span>
-                        </Link>
-                      )}
                     </div>
                   </div>
                 );
@@ -688,22 +668,6 @@ export default function Header() {
                           );
                         })}
 
-                        {/* Ritual & Mood: Studio Commission Action */}
-                        {group.id === "ritual" && (
-                          <Link
-                            href="/collections/ritual-mood"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-[#C25E38] hover:bg-[#FAF8F5] border border-dashed border-[#C25E38]/30 mt-1"
-                          >
-                            <span className="flex items-center gap-2 truncate">
-                              <span>🍵</span>
-                              <span className="truncate">Studio Commission</span>
-                            </span>
-                            <span className="text-[9px] font-bold text-[#C25E38] bg-[#C25E38]/10 px-1.5 py-0.5 rounded-full border border-[#C25E38]/20 shrink-0">
-                              Inquire
-                            </span>
-                          </Link>
-                        )}
 
                         <Link
                           href={group.href}
