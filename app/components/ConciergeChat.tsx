@@ -11,6 +11,7 @@ interface InquiryMessage {
   sender_type: 'CUSTOMER' | 'ADMIN';
   body_original: string;
   body_translated: string | null;
+  attachment_url?: string | null;
   created_at: string;
 }
 
@@ -75,6 +76,7 @@ export default function ConciergeChat() {
 
   // PDP / 작가 컨텍스트
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [supabase] = useState(() => createClient());
@@ -309,6 +311,8 @@ export default function ConciergeChat() {
           productTitle: enrichedTitle,
           productHandle: effectiveHandle,
           productImageUrl: productContext?.imageUrl || null,
+          artistName: productContext?.artist || (productContext?.type === 'artist' ? productContext.title : null),
+          artistId: productContext?.artistSlug || null,
           honeypot,
           renderedAt,
         }),
@@ -574,9 +578,15 @@ export default function ConciergeChat() {
             /* 활성 대화 말풍선 피드 */
             messages.map((msg) => {
               const isCustomer = msg.sender_type === 'CUSTOMER';
-              const displayBody = isCustomer
+              const rawBody = isCustomer
                 ? msg.body_original
                 : msg.body_translated || msg.body_original;
+
+              // 이미지 URL 감지 (attachment_url 또는 본문 내 이미지 URL)
+              const detectedImageUrl = msg.attachment_url || (
+                rawBody.match(/https?:\/\/[^\s\)]+\.(?:jpg|jpeg|png|webp|gif)/i)?.[0]
+              );
+              const cleanText = rawBody.replace(/https?:\/\/[^\s\)]+\.(?:jpg|jpeg|png|webp|gif)/ig, '').trim();
 
               return (
                 <div
@@ -586,7 +596,7 @@ export default function ConciergeChat() {
                   }`}
                 >
                   <span className="text-[10.5px] text-zinc-400 px-1 font-medium">
-                    {isCustomer ? 'You' : 'Blank Seoul Concierge'}
+                    {isCustomer ? 'You' : 'Studio Artisan & Concierge'}
                   </span>
                   <div
                     className={`p-3 rounded-2xl text-[13px] leading-relaxed shadow-sm break-words ${
@@ -595,7 +605,34 @@ export default function ConciergeChat() {
                         : 'bg-white text-zinc-800 border border-zinc-200 rounded-bl-sm'
                     }`}
                   >
-                    {displayBody}
+                    {detectedImageUrl && (
+                      <div className="mb-2">
+                        {failedImages[detectedImageUrl] ? (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 border border-dashed border-zinc-300 text-[11px] text-zinc-500">
+                            <span>📁</span>
+                            <span>Studio photo expired (90-day archive)</span>
+                          </div>
+                        ) : (
+                          <a
+                            href={detectedImageUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block overflow-hidden rounded-lg group"
+                          >
+                            <img
+                              src={detectedImageUrl}
+                              alt="Studio Sample"
+                              onError={() => setFailedImages((prev) => ({ ...prev, [detectedImageUrl]: true }))}
+                              className="max-w-[220px] max-h-[180px] rounded-lg object-cover border border-zinc-200 group-hover:opacity-90 transition-opacity"
+                            />
+                            <span className="text-[10px] text-zinc-400 mt-1 block group-hover:underline">
+                              🔍 View full photo
+                            </span>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {cleanText && <div>{cleanText}</div>}
                   </div>
                   <span className="text-[9.5px] text-zinc-400 px-1">
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
