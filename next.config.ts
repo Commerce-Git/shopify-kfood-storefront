@@ -29,6 +29,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://blank-seoul-admin.vercel.app';
+    return [
+      {
+        source: '/api/inquiries/:path*',
+        destination: `${adminUrl}/api/inquiries/:path*`,
+      },
+      {
+        source: '/api/inquiries',
+        destination: `${adminUrl}/api/inquiries`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

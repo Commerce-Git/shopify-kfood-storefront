@@ -66,7 +66,7 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[#141416] text-white relative overflow-hidden border-t border-white/10" id="site-footer">
+    <footer className="bg-[#141416] text-white relative overflow-hidden border-t border-white/10 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0" id="site-footer">
       {/* 1. Pre-Footer 4-Pillar Trust Strip */}
       <div className="border-b border-white/10 bg-[#18181B]/60">
         <div className="max-w-[1360px] mx-auto px-4 sm:px-6 py-8">

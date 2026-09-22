@@ -14,7 +14,7 @@ import dynamic from "next/dynamic";
 import { syncWishlistWithSupabase } from "@/lib/wishlist";
 import { syncFollowedArtistsWithSupabase } from "@/lib/followed-artists";
 
-const CrispChat = dynamic(() => import("./CrispChat"), { ssr: false });
+const ConciergeChat = dynamic(() => import("./ConciergeChat"), { ssr: false });
 
 interface AuthContextType {
   user: User | null;
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      <CrispChat />
+      <ConciergeChat />
     </AuthContext.Provider>
   );
 }

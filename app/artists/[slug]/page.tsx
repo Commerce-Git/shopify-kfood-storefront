@@ -6,6 +6,7 @@ import { getEnrichedArtistBySlug, getEnrichedArtistsWithProducts, getArtistSlug 
 import type { ShopifyProduct } from "@/lib/shopify/types";
 import WishlistHeartOverlay from "@/app/components/WishlistHeartOverlay";
 import ArtistFollowButton from "@/app/components/ArtistFollowButton";
+import ConciergeTriggerButton from "@/app/components/ConciergeTriggerButton";
 
 interface ArtistPageProps {
   params: Promise<{ slug: string }>;
@@ -114,11 +115,18 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             </span>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <ArtistFollowButton
               artistSlug={artist.slug}
               artistName={artist.name || artist.nameEn}
               variant="hero"
+            />
+            <ConciergeTriggerButton
+              variant="artist-hero"
+              contextType="artist"
+              artistName={artist.name || artist.nameEn}
+              artistSlug={artist.slug}
+              artistAvatar={artist.avatar}
             />
           </div>
         </div>

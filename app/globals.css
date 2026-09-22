@@ -357,6 +357,15 @@ body {
   }
 }
 
+/* Mobile App-like Touch & Tap Optimizations */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
 /* Safe area insets utility for modern mobile devices */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));

@@ -15,6 +15,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
+import MobileBottomNav from "./components/MobileBottomNav";
 import { CartProvider } from "./components/CartProvider";
 import { AuthProvider } from "./components/AuthProvider";
 const outfit = Outfit({
@@ -76,6 +77,15 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Blank Seoul",
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -97,6 +107,7 @@ export default function RootLayout({
             <main className="flex-1 flex flex-col pt-page-offset">{children}</main>
             <Footer />
             <CartDrawer />
+            <MobileBottomNav />
           </CartProvider>
         </AuthProvider>
       </body>

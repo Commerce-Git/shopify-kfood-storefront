@@ -10,6 +10,7 @@ import AddToCartSection from "./AddToCartSection";
 import MobileStickyBottomBar from "./MobileStickyBottomBar";
 import ProductTrustAccordions from "./ProductTrustAccordions";
 import ArtistFollowButton from "./ArtistFollowButton";
+import ConciergeTriggerButton from "./ConciergeTriggerButton";
 
 interface ProductInteractiveProps {
   product: ShopifyProduct;
@@ -297,6 +298,23 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                   <span className="font-semibold">30-Day Returns</span>
                 </div>
               </div>
+
+              {/* 1:1 Bespoke Inquiries & Direct Line to Seoul Concierge */}
+              <div className="pt-1">
+                <ConciergeTriggerButton
+                  variant="pdp-buybox"
+                  contextType="product"
+                  productTitle={product.title}
+                  productHandle={product.handle}
+                  productImageUrl={images[0]?.url}
+                  artistName={artistDisplayName}
+                  artistSlug={getArtistSlug(product.vendor || "")}
+                  variantTitle={selectedVariant?.title}
+                  selectedOptions={selectedOptions}
+                  price={price}
+                  currency={currency}
+                />
+              </div>
             </div>
           )}
 
@@ -378,6 +396,13 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
               artistSlug={getArtistSlug(product.vendor)}
               artistName={artistDisplayName}
               variant="compact"
+            />
+            <ConciergeTriggerButton
+              variant="pdp-atelier"
+              contextType="artist"
+              artistName={artistDisplayName}
+              artistSlug={getArtistSlug(product.vendor || "")}
+              artistAvatar={artistProfile.avatar}
             />
             <Link
               href={`/artists/${getArtistSlug(product.vendor)}`}
