@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderPackageCard";
 import { getOrderStep } from "@/lib/shopify/order-utils";
 import type { OrderPackage } from "@/lib/shopify/admin";
 import EmailConsentNotice from "@/app/components/EmailConsentNotice";
+import { useAuth } from "@/app/components/AuthProvider";
 
 interface TrackingInfo {
   number: string;
@@ -45,7 +45,7 @@ interface TrackResult {
 }
 
 function OrderLookupContent() {
-  const searchParams = useSearchParams();
+  const { user, isLoggedIn, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrackResult | null>(null);
@@ -109,7 +109,7 @@ function OrderLookupContent() {
   };
 
   // Common tracking fetch executor
-  const executeTrack = async (emailVal: string) => {
+  const executeTrack = useCallback(async (emailVal: string) => {
     if (!emailVal.trim()) return;
     setLoading(true);
     setError(null);
@@ -146,16 +146,15 @@ function OrderLookupContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Trigger search on email query param change automatically
+  // Only the verified account email can be used for order lookup.
   useEffect(() => {
-    const emailParam = searchParams.get("email");
-    if (emailParam) {
-      setEmail(emailParam);
-      executeTrack(emailParam);
+    if (!authLoading && isLoggedIn && user?.email) {
+      setEmail(user.email);
+      executeTrack(user.email);
     }
-  }, [searchParams]);
+  }, [authLoading, isLoggedIn, user?.email, executeTrack]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +168,7 @@ function OrderLookupContent() {
   const handleReset = () => {
     setResult(null);
     setError(null);
-    setEmail("");
+    setEmail(user?.email || "");
     setExpandedTracking(null);
   };
 
@@ -193,28 +192,41 @@ function OrderLookupContent() {
             Track Your Order
           </h1>
           <p className="text-gray-500">
-            Enter your email to check delivery status
+            Sign in with your checkout email to see delivery status
           </p>
         </div>
 
         {/* Search Form — always visible */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6">
+          {!authLoading && !isLoggedIn ? (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-gray-600">
+                We verify your email before showing order and tracking details.
+              </p>
+              <Link
+                href="/account/login"
+                className="block w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25"
+              >
+                Yes, Send My Secure Access Link →
+              </Link>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
                 htmlFor="track-email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email Address
+                Verified Account Email
               </label>
               <input
                 id="track-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="The email you used at checkout"
+                readOnly
+                placeholder="Sign in to verify your checkout email"
                 required
-                disabled={loading}
+                disabled={loading || authLoading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl 
                   focus:ring-2 focus:ring-orange-500 focus:border-transparent 
                   outline-none transition-all text-gray-900
@@ -230,7 +242,7 @@ function OrderLookupContent() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || authLoading || !isLoggedIn}
               className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-red-500 
                 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 
                 transition-all shadow-lg shadow-orange-500/25
@@ -246,6 +258,7 @@ function OrderLookupContent() {
               )}
             </button>
           </form>
+          )}
 
           {/* Tip */}
           <div className="mt-4 flex items-start gap-2 text-xs text-gray-400">
@@ -277,7 +290,7 @@ function OrderLookupContent() {
                   onClick={handleReset}
                   className="text-sm text-orange-600 hover:text-orange-700 font-semibold"
                 >
-                  ← Try another email
+                  ← Check again
                 </button>
 
                 <div className="mt-6 pt-4 border-t border-gray-100">
@@ -308,7 +321,7 @@ function OrderLookupContent() {
                     onClick={handleReset}
                     className="text-xs text-orange-600 hover:text-orange-700 font-medium"
                   >
-                    Change email
+                    Check again
                   </button>
                 </div>
 

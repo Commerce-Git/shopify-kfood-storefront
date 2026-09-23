@@ -1,5 +1,5 @@
 /**
- * Track Order API — Public endpoint for order tracking by email.
+ * Track Order API — verified-account order tracking.
  *
  * Returns only non-sensitive order data (no addresses, names, amounts, or product details).
  * Rate limited to prevent abuse.
@@ -10,6 +10,8 @@ import { getOrdersByEmail, checkIsSubscribed } from "@/lib/shopify/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { splitOrderIntoVendorPackages } from "@/lib/shopify/order-utils";
 import { getArtistSlug } from "@/lib/artists";
+import { createClient } from "@/lib/supabase/server";
+import { verifyOrderLookupEmail } from "@/lib/security/orderOwnership";
 
 // Simple in-memory rate limiter (per serverless instance)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
     const body = await request.json();
     const email = body.email?.trim()?.toLowerCase();
 
@@ -93,7 +97,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orders = await getOrdersByEmail(email);
+    const ownership = verifyOrderLookupEmail(user, email);
+    if (!ownership.ok) {
+      return NextResponse.json({ error: ownership.error }, { status: ownership.status });
+    }
+    const verifiedEmail = ownership.email;
+
+    const orders = await getOrdersByEmail(verifiedEmail);
 
     // Filter out cancelled/refunded orders
     const activeOrders = orders.filter(
@@ -104,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     const shopifyIds = activeOrders.map((o) => o.id);
     const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
-    let artistOrdersMap: Record<string, string[]> = {};
+    const artistOrdersMap: Record<string, string[]> = {};
     const artistStatusByOrderAndVendor: Record<string, Record<string, string>> = {};
 
     if (shopifyIds.length > 0) {
@@ -202,10 +212,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    const isSubscribed = await checkIsSubscribed(email);
+    const isSubscribed = await checkIsSubscribed(verifiedEmail);
 
     return NextResponse.json({
-      maskedEmail: maskEmail(email),
+      maskedEmail: maskEmail(verifiedEmail),
       isSubscribed,
       orders: publicOrders,
     });

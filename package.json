@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
     "start": "next start",
     "lint": "eslint",
     "email": "node scripts/dev-email.js"

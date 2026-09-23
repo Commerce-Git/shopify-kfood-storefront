@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { adminGraphQL } from "@/lib/shopify/admin";
 import { COUPON_CONFIG } from "@/lib/coupon-config";
 
@@ -52,7 +53,9 @@ export async function GET() {
     }
 
     // Supabase에서 해당 이메일의 쿠폰 조회
-    const { data: reviews, error } = await supabase
+    // The user-scoped client proves identity; protected review data is read only
+    // by the server client and is constrained to that verified email.
+    const { data: reviews, error } = await supabaseAdmin
       .from("reviews")
       .select("coupon_code, coupon_expires_at, order_name")
       .eq("customer_email", user.email)
