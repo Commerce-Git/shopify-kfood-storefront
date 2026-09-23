@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "agent:bridge": "node scripts/agent-bridge-front.mjs",
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit --incremental false",

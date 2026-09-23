@@ -1,9 +1,16 @@
 import type { ShopifyProduct, ShopifyImage, ShopifyProductVariant } from "./types";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+const text = (value: unknown): string => typeof value === "string" ? value : "";
+const records = (value: unknown): Record<string, unknown>[] => Array.isArray(value) ? value.filter(isRecord) : [];
+
 /**
  * Converts raw preview payload from artist/admin portal into a fully compliant ShopifyProduct object.
  */
-export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
+export function adaptPreviewToShopifyProduct(input: unknown): ShopifyProduct {
+  const payload = isRecord(input) ? input : null;
   const defaultPlaceholderPhotos = [
     "https://cdn.shopify.com/s/files/1/0000/0000/files/placeholder.jpg?v=1",
   ];
@@ -46,8 +53,8 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
     };
   }
 
-  const title = payload.title_en || payload.title || "Korean Traditional Artisan Craft";
-  const vendor = payload.artist || payload.vendor || "Master Artisan";
+  const title = text(payload.title_en) || text(payload.title) || "Korean Traditional Artisan Craft";
+  const vendor = text(payload.artist) || text(payload.vendor) || "Master Artisan";
   
   // Use valid USD price if provided and non-zero; otherwise default to clean $79.00 USD
   let priceAmount = "79.00";
@@ -55,7 +62,7 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
     priceAmount = Number(payload.price_usd).toFixed(2);
   }
 
-  const rawDescription = payload.description_en || payload.description || "";
+  const rawDescription = text(payload.description_en) || text(payload.description) || "";
   let descriptionText = rawDescription.trim().length > 0
     ? rawDescription
     : `Authentic Korean Handicraft from ${vendor}. Carefully crafted and shipped directly from Korea. Free worldwide shipping included.`;
@@ -64,21 +71,20 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
   if (payload.weight_grams && Number(payload.weight_grams) > 0) {
     descriptionText += `\n\n⚖️ Weight: ${payload.weight_grams}g`;
   }
-  if (payload.material && payload.material.trim().length > 0) {
-    descriptionText += `\n🧵 Material: ${payload.material}`;
+  if (text(payload.material) && text(payload.material).trim().length > 0) {
+    descriptionText += `\n🧵 Material: ${text(payload.material)}`;
   }
 
   // Handle photo list extraction from all potential fields
   const rawPhotosList: string[] = [];
   
   if (Array.isArray(payload.photos)) {
-    rawPhotosList.push(...payload.photos);
+    rawPhotosList.push(...payload.photos.filter((photo): photo is string => typeof photo === "string"));
   }
   if (Array.isArray(payload.images)) {
-    payload.images.forEach((img: any) => {
+    payload.images.forEach((img: unknown) => {
       if (typeof img === "string") rawPhotosList.push(img);
-      else if (img?.url) rawPhotosList.push(img.url);
-      else if (img?.src) rawPhotosList.push(img.src);
+      else if (isRecord(img)) rawPhotosList.push(text(img.url) || text(img.src));
     });
   }
   if (payload.thumbnail && typeof payload.thumbnail === "string") {
@@ -105,12 +111,12 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
   // Handle variants (supports payload.options, payload.color_variants, or fallback single variant)
   let variantEdges: { node: ShopifyProductVariant }[] = [];
 
-  const rawOptions = Array.isArray(payload.options) && payload.options.length > 0 ? payload.options : null;
+  const rawOptions = records(payload.options);
   const firstOptionGroup = rawOptions ? rawOptions[0] : null;
 
   if (firstOptionGroup && Array.isArray(firstOptionGroup.variants) && firstOptionGroup.variants.length > 0) {
     const optionName = firstOptionGroup.option_name || firstOptionGroup.name || firstOptionGroup.title || "Color";
-    variantEdges = firstOptionGroup.variants.map((v: any, idx: number) => {
+    variantEdges = records(firstOptionGroup.variants).map((v, idx) => {
       const vName = v.option_value || v.color_name || v.name || v.value || v.title || `Option ${idx + 1}`;
       const vPhoto = v.photo || v.image_url || v.imageUrl || v.url || v.src || null;
       return {
@@ -126,15 +132,15 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
       };
     });
   } else if (Array.isArray(payload.color_variants) && payload.color_variants.length > 0) {
-    variantEdges = payload.color_variants.map((c: any, idx: number) => ({
+    variantEdges = records(payload.color_variants).map((c, idx) => ({
       node: {
         id: `preview-color-${idx}`,
-        title: c.color_name || c.name || `Color ${idx + 1}`,
+        title: text(c.color_name) || text(c.name) || `Color ${idx + 1}`,
         availableForSale: true,
         price: { amount: priceAmount, currencyCode: "USD" },
         compareAtPrice: null,
-        image: c.image_url ? { url: c.image_url, altText: c.color_name || title, width: 1000, height: 1000 } : (imagesEdges[0]?.node || null),
-        selectedOptions: [{ name: "Color", value: c.color_name || `Color ${idx + 1}` }],
+        image: text(c.image_url) ? { url: text(c.image_url), altText: text(c.color_name) || title, width: 1000, height: 1000 } : (imagesEdges[0]?.node || null),
+        selectedOptions: [{ name: "Color", value: text(c.color_name) || `Color ${idx + 1}` }],
       },
     }));
   } else {
@@ -154,14 +160,14 @@ export function adaptPreviewToShopifyProduct(payload: any): ShopifyProduct {
   }
 
   return {
-    id: payload.id || "preview-product-id",
-    handle: payload.handle || "preview-handle",
+    id: text(payload.id) || "preview-product-id",
+    handle: text(payload.handle) || "preview-handle",
     title,
     description: descriptionText,
     descriptionHtml: `<p>${descriptionText.replace(/\n/g, "<br/>")}</p>`,
     tags: ["preview", "artisan-craft"],
     vendor,
-    productType: payload.category || "Artisan Craft",
+    productType: text(payload.category) || "Artisan Craft",
     availableForSale: true,
     images: { edges: imagesEdges },
     variants: { edges: variantEdges },

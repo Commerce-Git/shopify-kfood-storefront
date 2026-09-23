@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Offline validation must never replace the production build output.
+  distDir: process.env.STOREFRONT_OFFLINE_CHECK === "1" ? ".next-offline" : ".next",
   // Prune inactive dev pages from memory after 60s to keep RAM usage lean on 8GB machines
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,

@@ -39,9 +39,11 @@ function timeAgo(dateStr: string): string {
 interface ReviewsProps {
   initialReviews?: ReviewItem[];
   initialAvgRating?: number | null;
+  title?: string;
+  subtitle?: string;
 }
 
-export default function Reviews({ initialReviews, initialAvgRating }: ReviewsProps = {}) {
+export default function Reviews({ initialReviews, initialAvgRating, title, subtitle }: ReviewsProps = {}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [reviews, setReviews] = useState<Review[]>((initialReviews as Review[]) || []);
   const [averageRating, setAverageRating] = useState(initialAvgRating ?? 0);
@@ -104,11 +106,17 @@ export default function Reviews({ initialReviews, initialAvgRating }: ReviewsPro
         <div className="flex items-end justify-between mb-12">
           <div>
             <span className="text-primary-light text-sm font-semibold uppercase tracking-widest mb-3 block">
-              Reviews
+              {subtitle || "Reviews"}
             </span>
             <h2 className="heading-lg text-white">
-              Loved by{" "}
-              <span className="gradient-text">K-Culture Fans</span>
+              {title ? (
+                title
+              ) : (
+                <>
+                  Loved by{" "}
+                  <span className="gradient-text">K-Culture Fans</span>
+                </>
+              )}
             </h2>
           </div>
 

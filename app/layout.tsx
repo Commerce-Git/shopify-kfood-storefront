@@ -10,7 +10,7 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: dark)", color: "#18181B" },
   ],
 };
-import { Outfit, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -18,17 +18,17 @@ import CartDrawer from "./components/CartDrawer";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { CartProvider } from "./components/CartProvider";
 import { AuthProvider } from "./components/AuthProvider";
-const outfit = Outfit({
+const outfit = localFont({
+  src: "./fonts/outfit-variable.ttf",
   variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "400 800",
   display: "swap",
 });
 
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/inter-variable.ttf",
   variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: "400 600",
   display: "swap",
 });
 

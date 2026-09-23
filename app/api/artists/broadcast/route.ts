@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { getResendClient } from "@/emails/client";
 import { generateUnsubscribeUrl, generateOneClickUnsubscribeApiUrl } from "@/lib/unsubscribe";
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         .eq("artist_slug", normalizedSlug);
 
       if (error) {
-        console.warn("[Broadcast] Supabase active subscribers view query notice:", error.message);
+        console.warn("[Broadcast] Supabase active subscribers view query notice:", errorMessage(error));
       } else if (data) {
         supabaseSubscribers = data;
       }
@@ -283,8 +284,8 @@ export async function POST(request: Request) {
         } else {
           totalSent += chunk.length;
         }
-      } catch (batchErr: any) {
-        errors.push(batchErr.message || "Batch send failure");
+      } catch (batchErr: unknown) {
+        errors.push(errorMessage(batchErr, "Batch send failure"));
       }
 
       // Micro-sleep pacing (50ms) between batches to prevent API burst limit issues on large follower lists (up to 10K CCU)
@@ -304,10 +305,10 @@ export async function POST(request: Request) {
       batches: Math.ceil(followers.length / CHUNK_SIZE),
       errors: errors.length > 0 ? errors : undefined,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Broadcast API Error]:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to broadcast studio drop." },
+      { success: false, error: errorMessage(error, "Failed to broadcast studio drop.") },
       { status: 500 }
     );
   }

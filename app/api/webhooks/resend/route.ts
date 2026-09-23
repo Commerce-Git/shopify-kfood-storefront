@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -166,10 +167,10 @@ export async function POST(request: Request) {
       type: eventType,
       processedRecipients: recipients.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Resend Webhook Exception]:", error);
     return NextResponse.json(
-      { error: error?.message || "Webhook processing error" },
+      { error: errorMessage(error, "Webhook processing error") },
       { status: 500 }
     );
   }

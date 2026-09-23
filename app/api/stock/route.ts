@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     const json = await res.json();
     
     if (json.errors) {
-      const messages = json.errors.map((e: any) => e.message).join(", ");
+      const messages = json.errors.map((e: { message: string }) => e.message).join(", ");
       throw new Error(`GraphQL Errors: ${messages}`);
     }
 
@@ -70,8 +71,8 @@ export async function GET(request: Request) {
         },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Stock API Error]:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }

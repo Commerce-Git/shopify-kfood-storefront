@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { verifyUnsubscribeToken } from "@/lib/unsubscribe";
 import { updateMarketingConsent, updateArtistFollowStatus } from "@/lib/shopify/admin";
@@ -131,10 +132,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Unsubscribe API Error]:", error);
     return NextResponse.json(
-      { error: error?.message || "Invalid request." },
+      { error: errorMessage(error, "Invalid request.") },
       { status: 400 }
     );
   }

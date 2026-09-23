@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { getAllProducts } from "@/lib/shopify/api";
 import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
@@ -119,10 +120,10 @@ export async function GET(request: Request) {
       studioWorks,
       totalCount: products.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Wishlist Products API Error]:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to load wishlisted products." },
+      { success: false, error: errorMessage(error, "Failed to load wishlisted products.") },
       { status: 500 }
     );
   }

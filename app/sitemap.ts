@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllProducts } from "@/lib/shopify/api";
+import { fetchAllCatalogProducts } from "@/lib/shopify/api";
 import { MASTER_COLLECTIONS } from "@/lib/config/collections";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 
@@ -10,7 +10,7 @@ export const revalidate = 3600; // Revalidate sitemap cache every 1 hour
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let products: ShopifyProduct[] = [];
   try {
-    products = await getAllProducts(100);
+    products = await fetchAllCatalogProducts({ maxItems: 1000, pageSize: 250 });
   } catch (error) {
     console.error("[sitemap] Failed to fetch products:", error);
   }

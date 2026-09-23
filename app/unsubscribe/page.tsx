@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getArtistBySlug } from "@/lib/artists";
@@ -13,16 +13,12 @@ function UnsubscribeContent() {
 
   const artistName = artistSlug ? getArtistBySlug(artistSlug).name : "";
 
-  const [status, setStatus] = useState<
+  const [requestStatus, setStatus] = useState<
     "idle" | "loading" | "success" | "error" | "invalid"
   >("idle");
   const [undoStatus, setUndoStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
-  useEffect(() => {
-    if (!email || !token) {
-      setStatus("invalid");
-    }
-  }, [email, token]);
+  const status = !email || !token ? "invalid" : requestStatus;
 
   async function handleUnsubscribe() {
     setStatus("loading");

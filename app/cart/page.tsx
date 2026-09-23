@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useStoredValue } from "@/lib/hooks/useStoredValue";
 import { useCart } from "@/app/components/CartProvider";
 import { useAuth } from "@/app/components/AuthProvider";
 import { storefrontFetch } from "@/lib/shopify/storefront";
@@ -33,18 +34,13 @@ export default function CartPage() {
   } = useCart();
 
   const { user } = useAuth();
-  const [backup, setBackup] = useState(getCheckoutBackup());
+  const backupSnapshot = useStoredValue("blank-seoul-checkout-backup");
+  const backup = useMemo(() => backupSnapshot ? getCheckoutBackup() : null, [backupSnapshot, getCheckoutBackup]);
   const [productVariantsMap, setProductVariantsMap] = useState<Record<string, ProductVariantOption[]>>({});
-  const [availableCoupon, setAvailableCoupon] = useState<AvailableCoupon | null>(null);
+  const [couponResult, setCouponResult] = useState<{ email: string; coupon: AvailableCoupon | null } | null>(null);
+  const availableCoupon = couponResult?.email === user?.email ? couponResult?.coupon ?? null : null;
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
-
-  // Initialize backup safely on client mount
-  useEffect(() => {
-    if (itemCount === 0) {
-      setBackup(getCheckoutBackup());
-    }
-  }, [itemCount, getCheckoutBackup]);
+  const couponLoading = !!user?.email && couponResult?.email !== user.email;
 
   // Hook 1: Checkout execution & redirection
   const { loading, isRedirecting, error, handleCheckout } = useCartCheckout({
@@ -70,20 +66,22 @@ export default function CartPage() {
     addToCart,
   });
 
-  // Fetch available coupons for logged-in users
+  // Keep requests scoped to the current account and ignore stale responses.
   useEffect(() => {
-    if (!user?.email) return;
-    setCouponLoading(true);
-    fetch("/api/my-coupons")
-      .then((res) => res.json())
-      .then((data) => {
-        const active = data.coupons?.find(
+    const email = user?.email;
+    if (!email) return;
+    const controller = new AbortController();
+    fetch("/api/my-coupons", { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (!controller.signal.aborted) setCouponResult({ email, coupon: data.coupons?.find(
           (c: AvailableCoupon & { status: string }) => c.status === "active"
-        );
-        if (active) setAvailableCoupon(active);
+        ) ?? null });
       })
-      .catch(() => {})
-      .finally(() => setCouponLoading(false));
+      .catch(() => {
+        if (!controller.signal.aborted) setCouponResult({ email, coupon: null });
+      });
+    return () => controller.abort();
   }, [user?.email]);
 
   // Fetch product variants for multi-variant items in cart
@@ -201,7 +199,6 @@ export default function CartPage() {
               onRestore={restoreFromBackup}
               onDismiss={() => {
                 dismissBackup();
-                setBackup(null);
               }}
             />
           )}

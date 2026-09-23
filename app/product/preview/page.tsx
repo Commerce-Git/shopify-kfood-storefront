@@ -7,7 +7,7 @@ import Reviews from "@/app/components/Reviews";
 import { adaptPreviewToShopifyProduct } from "@/lib/shopify/preview-adapter";
 
 export default function StorePreviewPage() {
-  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<unknown>(null);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 /**
  * Shopify Admin API client (2026+ OAuth flow).
  *
@@ -163,7 +164,7 @@ export async function adminGraphQL(
 
     // Handle Shopify GraphQL cost limit throttling (10K CCU resilience)
     const isThrottled = data.errors?.some(
-      (e: any) =>
+      (e: { message?: string; extensions?: { code?: string } }) =>
         e.extensions?.code === "THROTTLED" ||
         e.message?.toLowerCase().includes("throttled")
     );
@@ -534,7 +535,7 @@ export async function cancelOrder(
     return {
       success: false,
       status: refundCompleted ? "refund_completed_cancel_pending" : refundStarted ? "review_required" : "failed",
-      error: err instanceof Error ? err.message : "Unknown error",
+      error: err instanceof Error ? errorMessage(err) : "Unknown error",
     };
   }
 }
@@ -646,7 +647,7 @@ export async function updateMarketingConsent(
     console.error("[Admin API] Marketing consent update failed:", err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Unknown error",
+      error: err instanceof Error ? errorMessage(err) : "Unknown error",
     };
   }
 }
@@ -813,11 +814,11 @@ export async function updateArtistFollowStatus(
       success: true,
       message: `You are now on the VIP priority list for ${artistName}'s upcoming studio releases.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Admin API] updateArtistFollowStatus error:", err);
     return {
       success: false,
-      error: err.message || "Failed to update artist follow status.",
+      error: errorMessage(err, "Failed to update artist follow status."),
     };
   }
 }

@@ -146,8 +146,8 @@ export function splitOrderIntoVendorPackages(params: {
       wmsStatus = "packaging";
     } else if (artistRawStatus === "confirmed") {
       wmsStatus = "crafting";
-    } else if (orderWmsStatus) {
-      wmsStatus = orderWmsStatus as any;
+    } else if (orderWmsStatus === "placed" || orderWmsStatus === "crafting" || orderWmsStatus === "packaging" || orderWmsStatus === "shipped") {
+      wmsStatus = orderWmsStatus;
     }
 
     const { step } = getOrderStep(orderFulfillmentStatus || "", wmsStatus);

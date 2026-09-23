@@ -73,7 +73,7 @@ export async function GET() {
 
     if (variantIds.length > 0) {
       try {
-        const response = await storefrontFetch<{ nodes: any[] }>(GET_VARIANT_IMAGES, { ids: variantIds });
+        const response = await storefrontFetch<{ nodes: Array<{ id: string; image: { url: string; altText?: string | null } | null } | null> }>(GET_VARIANT_IMAGES, { ids: variantIds });
         if (response?.nodes) {
           response.nodes.forEach((node) => {
             if (node && node.id) {
@@ -90,7 +90,7 @@ export async function GET() {
 
     const shopifyIds = orders.map((o) => o.id);
     const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
-    let artistOrdersMap: Record<string, string[]> = {};
+    const artistOrdersMap: Record<string, string[]> = {};
     const artistStatusByOrderAndVendor: Record<string, Record<string, string>> = {};
 
     if (shopifyIds.length > 0) {

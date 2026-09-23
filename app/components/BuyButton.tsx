@@ -57,7 +57,7 @@ export default function BuyButton({
       variantTitle,
       price,
       quantity,
-      image: (image as any),
+      image: image ? { ...image, altText: image.altText ?? null, width: 0, height: 0 } : null,
       stockLimit,
     });
 

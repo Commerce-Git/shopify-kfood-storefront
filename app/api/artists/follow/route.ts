@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { updateArtistFollowStatus, adminGraphQL } from "@/lib/shopify/admin";
 
@@ -42,10 +43,10 @@ export async function POST(request: Request) {
       artistSlug,
       action,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Artist Follow API Error]:", error);
     return NextResponse.json(
-      { success: true, shopifySynced: false, warning: error.message || "Failed background Shopify tag" },
+      { success: true, shopifySynced: false, warning: errorMessage(error, "Failed background Shopify tag") },
       { status: 200 }
     );
   }
@@ -85,7 +86,7 @@ export async function GET(request: Request) {
       email,
       followedSlugs,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.warn("[Get Customer Follow Tags Warning]:", error);
     return NextResponse.json({ success: true, followedSlugs: [] });
   }

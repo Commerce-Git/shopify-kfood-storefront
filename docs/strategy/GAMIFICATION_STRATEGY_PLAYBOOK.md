@@ -1,4 +1,7 @@
 # 🎮 Blank Seoul: Gaming-Inspired E-Commerce Strategy Playbook (2026 v2.0)
+
+> **참조 범위 (2026-09-24):** 기존 전략/기획 자료입니다. 현재 목표와 확정 결정은 [공통 목표 문서](../platform-analysis/PROJECT_DIRECTION.md)를 따릅니다. 아래의 상품 수·타깃·가격·드롭 방식·추가 기능은 해당 결정 근거와 실제 구현을 확인한 뒤 적용하며, 현재 작업 지시로 자동 채택하지 않습니다.
+
 > **콰이어트 게이미피케이션(Quiet Gamification) 기반의 글로벌 D2C 전환율 & 객단가 극대화 전략서**
 
 본 문서는 전 세계 디지털 전환율(CRO)과 몰입도(Engagement)의 정점에 있는 **게임 산업(Steam, Battle Pass, Early Access, Gacha 등)의 핵심 메커니즘**을 Blank Seoul의 프리미엄 아틀리에 이커머스 환경에 맞게 재해석하여 추후 실무에 즉시 도입할 수 있도록 체계화한 전략 실행 플레이북입니다.

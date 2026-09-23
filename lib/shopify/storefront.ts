@@ -1,4 +1,4 @@
-import type { StorefrontResponse } from "./types";
+import type { StorefrontResponse } from "./types.ts";
 
 /**
  * Shopify Storefront API GraphQL client.

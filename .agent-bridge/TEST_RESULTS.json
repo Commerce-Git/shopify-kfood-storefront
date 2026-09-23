@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "runId": "2026-09-23T14-16-06-790Z",
+  "generatedAt": "2026-09-23T14:16:43.943Z",
+  "iteration": 0,
+  "commands": [
+    {
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3474,
+      "outputTail": ""
+    },
+    {
+      "name": "unit",
+      "command": "npm run test:unit",
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 318,
+      "outputTail": ""
+    },
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6330,
+      "outputTail": ""
+    },
+    {
+      "name": "build",
+      "command": "node scripts/build-offline.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 26806,
+      "outputTail": ""
+    }
+  ]
+}

@@ -40,7 +40,7 @@ export function useArtistFollow() {
     } catch {
       return "";
     }
-  }, [user?.email]);
+  }, [user]);
 
   const followArtist = useCallback(
     async (slug: string, artistName: string, emailOverride?: string) => {
@@ -103,7 +103,7 @@ export function useArtistFollow() {
         message: `You are now following ${artistName}.`,
       };
     },
-    [user?.id, getSavedEmail]
+    [user, getSavedEmail]
   );
 
   const unfollowArtist = useCallback(
@@ -163,7 +163,7 @@ export function useArtistFollow() {
         message: `Unfollowed ${artistName}.`,
       };
     },
-    [user?.id, getSavedEmail]
+    [user, getSavedEmail]
   );
 
   return {

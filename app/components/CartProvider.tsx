@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { useStoredValue, notifyStorageChanged } from "@/lib/hooks/useStoredValue";
 import type { CartItem } from "@/lib/shopify/types";
 
 export interface CheckoutBackup {
@@ -42,10 +43,8 @@ const CART_STORAGE_KEY = "blank-seoul-cart";
 const BACKUP_STORAGE_KEY = "blank-seoul-checkout-backup";
 const BACKUP_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
-function loadCart(): CartItem[] {
-  if (typeof window === "undefined") return [];
+function parseCart(stored: string | null): CartItem[] {
   try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) return [];
@@ -58,21 +57,27 @@ function loadCart(): CartItem[] {
   }
 }
 
+function loadCart(): CartItem[] {
+  if (typeof window === "undefined") return [];
+  try { return parseCart(localStorage.getItem(CART_STORAGE_KEY)); } catch { return []; }
+}
+
 function saveCart(items: CartItem[]) {
   if (typeof window === "undefined") return;
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  notifyStorageChanged();
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const storedCart = useStoredValue(CART_STORAGE_KEY);
+  const items = useMemo(() => parseCart(storedCart), [storedCart]);
+  const setItems = useCallback((update: React.SetStateAction<CartItem[]>) => {
+    saveCart(typeof update === "function" ? update(loadCart()) : update);
+  }, []);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from localStorage on mount + clean expired backup
+  // Clean expired backups; cart hydration is handled by the external store.
   useEffect(() => {
-    setItems(loadCart());
-    setHydrated(true);
-
     // Auto-clean expired backup
     try {
       const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
@@ -80,19 +85,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const backup: CheckoutBackup = JSON.parse(raw);
         if (Date.now() - new Date(backup.timestamp).getTime() > BACKUP_EXPIRY_MS) {
           localStorage.removeItem(BACKUP_STORAGE_KEY);
+          notifyStorageChanged();
         }
       }
     } catch {
       localStorage.removeItem(BACKUP_STORAGE_KEY);
+      notifyStorageChanged();
     }
   }, []);
-
-  // Persist to localStorage on change
-  useEffect(() => {
-    if (hydrated) {
-      saveCart(items);
-    }
-  }, [items, hydrated]);
 
   const addToCart = useCallback((newItem: CartItem) => {
     setItems((prev) => {
@@ -112,11 +112,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, newItem];
     });
-  }, []);
+  }, [setItems]);
 
   const addBundleToCart = useCallback((bundleItems: CartItem[]) => {
     setItems((prev) => {
-      let updated = [...prev];
+      const updated = [...prev];
       for (const newItem of bundleItems) {
         const idx = updated.findIndex((item) => item.variantId === newItem.variantId);
         if (idx > -1) {
@@ -132,11 +132,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     setIsCartOpen(true);
-  }, []);
+  }, [setItems]);
 
   const removeFromCart = useCallback((variantId: string) => {
     setItems((prev) => prev.filter((item) => item.variantId !== variantId));
-  }, []);
+  }, [setItems]);
 
   const updateQuantity = useCallback((variantId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -154,7 +154,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return item;
       })
     );
-  }, []);
+  }, [setItems]);
 
   const updateItemVariant = useCallback(
     (
@@ -213,10 +213,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
       });
     },
-    []
+    [setItems]
   );
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => setItems([]), [setItems]);
 
   // Backup checkout items and remove them from cart
   const checkoutAndBackup = useCallback((variantIds: string[]) => {
@@ -231,11 +231,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           items: backupItems,
         };
         localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(backup));
+        notifyStorageChanged();
       }
 
       return remaining;
     });
-  }, []);
+  }, [setItems]);
 
   // Restore items from backup to cart
   const restoreFromBackup = useCallback(() => {
@@ -263,15 +264,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       });
 
       localStorage.removeItem(BACKUP_STORAGE_KEY);
+      notifyStorageChanged();
     } catch {
       localStorage.removeItem(BACKUP_STORAGE_KEY);
+      notifyStorageChanged();
     }
-  }, []);
+  }, [setItems]);
 
   // Dismiss backup without restoring
   const dismissBackup = useCallback(() => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(BACKUP_STORAGE_KEY);
+      notifyStorageChanged();
     }
   }, []);
 
@@ -283,12 +287,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!raw) return null;
       const backup: CheckoutBackup = JSON.parse(raw);
       if (Date.now() - new Date(backup.timestamp).getTime() > BACKUP_EXPIRY_MS) {
-        localStorage.removeItem(BACKUP_STORAGE_KEY);
         return null;
       }
       return backup;
     } catch {
-      localStorage.removeItem(BACKUP_STORAGE_KEY);
       return null;
     }
   }, []);
@@ -307,6 +309,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           items: backupItems,
         };
         localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(backup));
+        notifyStorageChanged();
       }
 
       // Update localStorage directly (no React re-render)

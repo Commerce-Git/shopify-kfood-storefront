@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, MouseEvent } from "react";
+import { useState, useCallback, MouseEvent } from "react";
 import Image from "next/image";
-import type { ShopifyImage } from "@/lib/shopify/types";
 
 interface ProductGalleryProps {
   images: { url: string; alt: string }[];
@@ -12,19 +11,14 @@ interface ProductGalleryProps {
 }
 
 export default function ProductGallery({ images, title, activeImageUrl, onImageSelect }: ProductGalleryProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [localIndex, setSelectedIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
 
-  useEffect(() => {
-    if (activeImageUrl) {
-      const stripQuery = (url: string) => url.split('?')[0];
-      const idx = images.findIndex((img) => stripQuery(img.url) === stripQuery(activeImageUrl));
-      if (idx !== -1) {
-        setSelectedIndex(idx);
-      }
-    }
-  }, [activeImageUrl, images]);
+  const activeIndex = activeImageUrl
+    ? images.findIndex(img => img.url.split("?")[0] === activeImageUrl.split("?")[0])
+    : -1;
+  const selectedIndex = activeIndex >= 0 ? activeIndex : Math.min(localIndex, Math.max(0, images.length - 1));
 
   const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

@@ -1,23 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import { useStoredValue, notifyStorageChanged } from "@/lib/hooks/useStoredValue";
 import EmailConsentNotice from "@/app/components/EmailConsentNotice";
 
 export default function NewsletterCTA() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [isSubscribed, setIsSubscribed] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedGlobal = localStorage.getItem("blank_seoul_subscribed");
-      if (savedGlobal === "true") {
-        setIsSubscribed(true);
-      }
-    }
-  }, []);
+  const isSubscribed = useStoredValue("blank_seoul_subscribed") === "true";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,11 +28,11 @@ export default function NewsletterCTA() {
       if (res.ok) {
         setStatus("success");
         setMessage(data.message || "Thank you for joining the Artisan Guild.");
-        setIsSubscribed(true);
         if (typeof window !== "undefined") {
           const lowerEmail = email.trim().toLowerCase();
           localStorage.setItem(`blank_seoul_subscribed_${lowerEmail}`, "true");
           localStorage.setItem("blank_seoul_subscribed", "true");
+          notifyStorageChanged();
         }
         setEmail("");
       } else {

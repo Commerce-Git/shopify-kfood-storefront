@@ -1,0 +1,49 @@
+{
+  "workspaceRoot": ".",
+  "antigravityProject": "agent-bridge-storefront",
+  "maxIterations": 2,
+  "commandTimeoutMs": 300000,
+  "models": {
+    "codexPlan": "gpt-6-sol",
+    "gemini": "gemini-3.8-flash",
+    "codexReview": "gpt-6-sol"
+  },
+  "reasoningEffort": {
+    "codexPlan": "high",
+    "gemini": "high",
+    "codexReview": "high"
+  },
+  "tests": [
+    {
+      "name": "typecheck",
+      "command": "npm",
+      "args": [
+        "run",
+        "typecheck"
+      ]
+    },
+    {
+      "name": "unit",
+      "command": "npm",
+      "args": [
+        "run",
+        "test:unit"
+      ]
+    },
+    {
+      "name": "lint",
+      "command": "npm",
+      "args": [
+        "run",
+        "lint"
+      ]
+    },
+    {
+      "name": "build",
+      "command": "node",
+      "args": [
+        "scripts/build-offline.mjs"
+      ]
+    }
+  ]
+}

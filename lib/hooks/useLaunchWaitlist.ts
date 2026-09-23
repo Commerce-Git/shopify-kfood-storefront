@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/app/components/AuthProvider";
 
@@ -143,8 +145,8 @@ export function useLaunchWaitlist() {
 
         isManualEditRef.current = false;
         return { success: true };
-      } catch (err: any) {
-        const msg = err.message || "Something went wrong. Please try again.";
+      } catch (err: unknown) {
+        const msg = errorMessage(err, "Something went wrong. Please try again.");
         setError(msg);
         return { success: false, error: msg };
       } finally {

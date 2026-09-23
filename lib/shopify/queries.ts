@@ -64,11 +64,16 @@ export const GET_PRODUCT_BY_HANDLE = `
   }
 `;
 
-/** Fetch all products (for catalog / landing page) */
+/** Fetch all products (for catalog / landing page) with cursor pagination */
 export const GET_ALL_PRODUCTS = `
-  query GetAllProducts($first: Int = 250) {
-    products(first: $first, sortKey: CREATED_AT, reverse: true) {
+  query GetAllProducts($first: Int = 250, $after: String) {
+    products(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       edges {
+        cursor
         node {
           id
           handle
@@ -114,16 +119,21 @@ export const GET_ALL_PRODUCTS = `
   }
 `;
 
-/** Fetch a single collection by handle and its products */
+/** Fetch a single collection by handle and its products with cursor pagination */
 export const GET_COLLECTION_BY_HANDLE = `
-  query GetCollectionByHandle($handle: String!, $first: Int = 250) {
+  query GetCollectionByHandle($handle: String!, $first: Int = 250, $after: String) {
     collection(handle: $handle) {
       id
       handle
       title
       description
-      products(first: $first) {
+      products(first: $first, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         edges {
+          cursor
           node {
             id
             handle

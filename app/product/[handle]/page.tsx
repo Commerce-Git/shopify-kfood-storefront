@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -77,7 +76,7 @@ export default async function ProductPage({ params }: PageProps) {
   const avgRating =
     reviews.length > 0
       ? Math.round(
-          (reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) /
+          (reviews.reduce((sum: number, r: { rating: number | null }) => sum + (r.rating || 0), 0) /
             reviews.length) *
             10
         ) / 10
@@ -118,9 +117,6 @@ export default async function ProductPage({ params }: PageProps) {
       price: price,
       priceCurrency: currency,
       itemCondition: "https://schema.org/NewCondition",
-      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
       availability: isAvailable
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
@@ -171,24 +167,9 @@ export default async function ProductPage({ params }: PageProps) {
     jsonLd.material = materialTag;
   }
 
-  // Conditionally attach verified customer ratings only when reviews exist
-  if (avgRating && reviews.length > 0) {
-    jsonLd.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: String(avgRating),
-      reviewCount: String(reviews.length),
-    };
-    jsonLd.review = reviews.slice(0, 5).map((r: any) => ({
-      "@type": "Review",
-      author: { "@type": "Person", name: r.customer_name },
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: String(r.rating),
-      },
-      reviewBody: r.body || r.title || "",
-      datePublished: r.submitted_at,
-    }));
-  }
+  // Task E: Single Product JSON-LD must NOT include store-wide reviews or aggregate ratings.
+  // Per Google Merchant & Schema.org guidelines, aggregateRating on a Product must only reflect
+  // reviews specific to that product. Store-wide reviews are rendered in the UI with clear labelling.
 
   return (
     <div className="flex-1 bg-[#FBF9F5]">
@@ -212,7 +193,12 @@ export default async function ProductPage({ params }: PageProps) {
         <ProductInteractive product={product} />
       </section>
 
-      <Reviews initialReviews={reviews} initialAvgRating={avgRating} />
+      <Reviews
+        initialReviews={reviews}
+        initialAvgRating={avgRating}
+        subtitle="Store Reviews"
+        title="What Collectors Say About BLANK SEOUL"
+      />
     </div>
   );
 }
