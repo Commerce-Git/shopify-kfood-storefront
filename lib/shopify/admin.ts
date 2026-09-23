@@ -428,7 +428,9 @@ function extractNumericId(gid: string): string {
 export async function cancelOrder(
   shopifyOrderGid: string,
   reason: string = "customer"
-): Promise<{ success: boolean; refundAmount?: string; error?: string }> {
+): Promise<{ success: boolean; refundAmount?: string; error?: string; status?: "completed" | "refund_completed_cancel_pending" | "review_required" | "failed" }> {
+  let refundStarted = false;
+  let refundCompleted = false;
   try {
     const token = await getAdminToken();
     const numericId = extractNumericId(shopifyOrderGid);
@@ -494,6 +496,7 @@ export async function cancelOrder(
       },
     };
 
+    refundStarted = true;
     const refundRes = await adminFetch(
       `${ADMIN_API_URL}/orders/${numericId}/refunds.json`,
       { method: "POST", headers, body: JSON.stringify(refundBody) }
@@ -505,6 +508,7 @@ export async function cancelOrder(
       return { success: false, error: `Refund failed: HTTP ${refundRes.status}: ${text}` };
     }
 
+    refundCompleted = true;
     // ---- Step 3: Cancel the order ----
     const cancelRes = await adminFetch(
       `${ADMIN_API_URL}/orders/${numericId}/cancel.json`,
@@ -516,18 +520,20 @@ export async function cancelOrder(
     );
 
     if (!cancelRes.ok) {
-      // Refund succeeded but cancel failed — still considered success
-      console.warn("[Admin API] Cancel failed after refund:", cancelRes.status);
+      // A partial completion must not be reported as a cancelled order.
+      return { success: false, status: "refund_completed_cancel_pending", error: "Refund completed; order cancellation requires reconciliation." };
     }
 
     return {
       success: true,
-      refundAmount: order.total_price,
+      status: "completed",
+      refundAmount: transactions.reduce((sum: number, tx: { amount: string }) => sum + Number(tx.amount || 0), 0).toFixed(2),
     };
   } catch (err) {
     console.error("[Admin API] Cancel+Refund exception:", err);
     return {
       success: false,
+      status: refundCompleted ? "refund_completed_cancel_pending" : refundStarted ? "review_required" : "failed",
       error: err instanceof Error ? err.message : "Unknown error",
     };
   }

@@ -56,7 +56,10 @@ export async function POST(request: Request) {
     const rawBody = await request.text();
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
-    // Verify webhook signature if secret configured
+    if (!webhookSecret) {
+      return NextResponse.json({ error: 'Webhook secret is not configured.' }, { status: 503 });
+    }
+    // Signature verification is mandatory in every environment.
     if (webhookSecret) {
       const svixHeaders = {
         id: request.headers.get("svix-id"),

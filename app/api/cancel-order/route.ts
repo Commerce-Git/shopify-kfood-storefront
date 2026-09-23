@@ -147,14 +147,14 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (!user?.email || !user.email_confirmed_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const { shopify_order_id, order_number, reason } = body;
 
-    if (!shopify_order_id || !order_number) {
+    if (typeof shopify_order_id !== "string" || !/^gid:\/\/shopify\/Order\/\d+$/.test(shopify_order_id)) {
       return NextResponse.json(
         { error: "Missing order information" },
         { status: 400 }
@@ -166,12 +166,21 @@ export async function POST(request: Request) {
       `query GetOrderProcessedAt($id: ID!) {
         order(id: $id) {
           processedAt
+          email
+          name
+          cancelledAt
         }
       }`,
       { id: shopify_order_id }
     );
 
-    const processedAt = orderData?.order?.processedAt;
+    const ownedOrder = orderData?.order;
+    if (!ownedOrder || typeof ownedOrder.email !== 'string' || ownedOrder.email.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+      return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+    }
+    if (ownedOrder.cancelledAt) return NextResponse.json({ error: 'Order is already cancelled.' }, { status: 409 });
+    const processedAt = ownedOrder.processedAt;
+    if (!processedAt || !Number.isFinite(Date.parse(processedAt))) return NextResponse.json({ error: 'Order eligibility could not be verified.' }, { status: 503 });
     if (processedAt) {
       if (!isCancelable(processedAt)) {
         return NextResponse.json(
@@ -182,14 +191,15 @@ export async function POST(request: Request) {
     }
 
     // Check for duplicate request
-    const { data: existing } = await supabase
+    const { data: existing, error: lookupError } = await supabaseAdmin
       .from("storefront_cancel_requests")
       .select("id, status")
       .eq("shopify_order_id", shopify_order_id)
       .eq("customer_id", user.id)
-      .in("status", ["pending", "approved"])
-      .single();
+      .in("status", ["pending", "approved", "review_required", "refund_completed_cancel_pending"])
+      .maybeSingle();
 
+    if (lookupError) throw lookupError;
     if (existing) {
       const msg =
         existing.status === "approved"
@@ -199,19 +209,20 @@ export async function POST(request: Request) {
     }
 
     // 1. Record cancel request in Supabase (pending)
-    const { data: cancelRecord, error: dbError } = await supabase
+    const { data: cancelRecord, error: dbError } = await supabaseAdmin
       .from("storefront_cancel_requests")
       .insert({
         customer_id: user.id,
         customer_email: user.email!,
         shopify_order_id,
-        order_number,
+        order_number: ownedOrder.name,
         reason: reason || null,
         status: "pending",
       })
       .select("id")
       .single();
 
+    if (dbError?.code === '23505') return NextResponse.json({ error: 'Cancellation is already in progress.' }, { status: 409 });
     if (dbError) {
       console.error("[cancel-order] DB error:", dbError);
       return NextResponse.json(
@@ -223,20 +234,26 @@ export async function POST(request: Request) {
     // 2. Cancel + full refund in Shopify Admin API
     const result = await cancelOrder(shopify_order_id, "customer");
 
+    if (result.status === 'review_required' || result.status === 'refund_completed_cancel_pending') {
+      const { error: statusError } = await supabaseAdmin.from('storefront_cancel_requests')
+        .update({ status: result.status, reason: result.error }).eq('id', cancelRecord.id);
+      if (statusError) console.error('[cancel-order] Pending reconciliation status could not be saved:', statusError);
+      return NextResponse.json({ success: false, status: result.status, error: 'Your cancellation needs confirmation. Please contact support; do not submit another refund request.' }, { status: 202 });
+    }
     if (result.success) {
       // Update status to approved
-      await supabase
+      await supabaseAdmin
         .from("storefront_cancel_requests")
         .update({ status: "approved" })
         .eq("id", cancelRecord.id);
 
       // 3. 쿠폰 재발급 (fire-and-forget — 취소 응답을 지연시키지 않음)
-      handleCouponReplacement(shopify_order_id);
+      await handleCouponReplacement(shopify_order_id);
 
       // 4. 취소 확인 이메일 발송 (fire-and-forget)
       const emailTo = user.email;
       if (emailTo) {
-        sendOrderCancellationEmail({
+        await sendOrderCancellationEmail({
           to: emailTo,
           customerName: emailTo.split("@")[0],
           orderNumber: order_number,
@@ -257,7 +274,7 @@ export async function POST(request: Request) {
       console.error("[cancel-order] Shopify cancel failed:", result.error);
 
       // Update with failure reason so admin can review
-      await supabase
+      await supabaseAdmin
         .from("storefront_cancel_requests")
         .update({
           status: "failed",

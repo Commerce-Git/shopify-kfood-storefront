@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
-import { createClient } from '@/lib/supabase/client';
 
 interface InquiryMessage {
   id: string;
@@ -79,7 +78,6 @@ export default function ConciergeChat() {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [supabase] = useState(() => createClient());
 
   // 1. 초기 토큰 복원 및 URL 딥링크 (?inquiry_token=... / ?inquire=true / ?chat=open)
   useEffect(() => {
@@ -185,43 +183,10 @@ export default function ConciergeChat() {
     }
   }, [activeToken, fetchThreadAndMessages]);
 
-  // 5. Supabase Realtime 웹소켓 직접 구독 (0.1초 실시간 반응)
-  useEffect(() => {
-    if (!activeThread?.id) return;
-
-    const channel = supabase
-      .channel(`concierge_${activeThread.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'inquiry_messages',
-          filter: `thread_id=eq.${activeThread.id}`,
-        },
-        (payload) => {
-          const newMsg = payload.new as InquiryMessage;
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-
-          // 창이 닫혀있고 관리자 답변인 경우 뱃지 증가
-          if (!isOpen && newMsg.sender_type === 'ADMIN') {
-            setUnreadCount((c) => c + 1);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [activeThread?.id, isOpen, supabase]);
-
+  // Conversation access is checked by the API. Public table subscriptions are disabled.
   // 6. 연결 백업 폴링 (10초 간격)
   useEffect(() => {
-    if (!activeToken || !isOpen) return;
+    if (!activeToken) return;
 
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
@@ -230,7 +195,7 @@ export default function ConciergeChat() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [activeToken, isOpen, fetchThreadAndMessages]);
+  }, [activeToken, fetchThreadAndMessages]);
 
   // 스크롤 최하단 이동
   useEffect(() => {
