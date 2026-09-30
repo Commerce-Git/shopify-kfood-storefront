@@ -33,3 +33,12 @@ Status: COMPLETED
   - 문서 검토 완료 후 변경 사항에 대한 Git push 직접 수행.
 - **수동 조치 불필요 확인**:
   - 본 작업은 분석 및 운영 지도 문서 갱신 작업이므로 SQL 실행, Supabase 마이그레이션, Vercel 배포 등의 수동 조치는 일체 필요하지 않음.
+
+
+## 2026-09-30 직접 작업 — Storefront 환경 분리
+
+- 요청: Admin 보완에 이어 프론트의 이메일 링크, 토큰 캐시, 미리보기 origin 문제 수정. 관련 목표 R01–R03/R08: 구매자 동작이 같은 환경의 Shopify·DB·Admin으로 이어지도록 보완.
+- 범위: `lib/unsubscribe.ts`, `lib/shopify/admin.ts`, 상품 미리보기 origin/창 검사, `.env.example`, 개발 로컬 사이트 주소·수신거부 키.
+- 검증: `npm run test:unit` 13개 통과, `npm run typecheck` 통과(가상 DB/HTTP). 브리지 자동 실행이나 독립 에이전트 검토를 수행한 것은 아님.
+- 남은 확인: Vercel 환경변수·배포, 개발 스토어 결제, 실제 이메일 및 웹훅. 외부 데이터 변경·SQL·Git push 미실행.
+- 설정과 호환성 한계: [환경 분리 원본](../docs/environment-isolation.md). 기존 운영 이메일의 구형 서명 호환은 유지하며, 신규 링크부터 환경에 서명을 연결한다.

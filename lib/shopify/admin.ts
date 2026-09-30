@@ -2,18 +2,18 @@ import { errorMessage } from "@/lib/errors";
 /**
  * Shopify Admin API client (2026+ OAuth flow).
  *
- * Since Jan 2026, Shopify no longer issues static shpat_ tokens.
- * Instead, we use Client Credentials Grant to get short-lived tokens.
+ * Uses Client Credentials Grant for stores in our Shopify organization.
  * This module handles token acquisition, caching (in-memory + Supabase),
  * and auto-refresh.
  *
  * Server-side only — never import this from client components.
  */
 
+import { createHash } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const SHOPIFY_STORE_DOMAIN =
-  process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
+  (process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "").trim().toLowerCase().replace(/^https:\/\//, "").replace(/\/$/, "");
 const SHOPIFY_CLIENT_ID =
   process.env.SHOPIFY_CLIENT_ID || "";
 const SHOPIFY_CLIENT_SECRET =
@@ -33,6 +33,15 @@ let tokenExpiresAt: number = 0;
  * Priority: in-memory cache → Supabase cache → fresh OAuth.
  */
 export async function getAdminToken(): Promise<string> {
+  // Validate before reading any cache; unscoped legacy rows are never trusted.
+  if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(SHOPIFY_STORE_DOMAIN)
+    || !SHOPIFY_CLIENT_ID.trim() || !SHOPIFY_CLIENT_SECRET.trim()) {
+    throw new Error("[Admin API] Invalid Shopify domain or missing client credentials.");
+  }
+  const cacheId = "admin_token:" + createHash("sha256")
+    .update(JSON.stringify([SHOPIFY_STORE_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET]))
+    .digest("hex");
+  // Module configuration is immutable; memory belongs to this same identity.
   // 1. In-memory cache (same serverless instance)
   if (cachedToken && Date.now() < tokenExpiresAt - 5 * 60 * 1000) {
     return cachedToken;
@@ -43,10 +52,10 @@ export async function getAdminToken(): Promise<string> {
     const { data: cached } = await supabaseAdmin
       .from("shopify_token_cache")
       .select("access_token, expires_at")
-      .eq("id", "admin_token")
+      .eq("id", cacheId)
       .single();
 
-    if (cached && new Date(cached.expires_at).getTime() > Date.now() + 5 * 60 * 1000) {
+    if (cached && typeof cached.access_token === "string" && cached.access_token && new Date(cached.expires_at).getTime() > Date.now() + 5 * 60 * 1000) {
       // Valid token found in Supabase — save to in-memory too
       cachedToken = cached.access_token;
       tokenExpiresAt = new Date(cached.expires_at).getTime();
@@ -57,14 +66,10 @@ export async function getAdminToken(): Promise<string> {
   }
 
   // 3. Fresh OAuth token
-  if (!SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) {
-    throw new Error(
-      "[Admin API] Missing SHOPIFY_CLIENT_ID or SHOPIFY_CLIENT_SECRET in environment variables."
-    );
-  }
-
   const response = await fetch(TOKEN_URL, {
     method: "POST",
+    redirect: "error",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
@@ -76,22 +81,26 @@ export async function getAdminToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    console.error("[Admin API] Token error:", response.status, text);
+    console.error("[Admin API] Token error:", response.status);
     throw new Error(
       `[Admin API] Failed to get access token: HTTP ${response.status}`
     );
   }
 
   const data = await response.json();
+  if (!data || typeof data.access_token !== "string" || !data.access_token
+    || !Number.isFinite(data.expires_in) || data.expires_in <= 0) {
+    throw new Error("[Admin API] Invalid token response.");
+  }
   cachedToken = data.access_token;
-  tokenExpiresAt = Date.now() + (data.expires_in || 86400) * 1000;
+  tokenExpiresAt = Date.now() + data.expires_in * 1000;
 
-  // Save to Supabase for other instances (fire-and-forget)
-  supabaseAdmin
+  // Await persistence so the serverless invocation does not drop the write.
+  try {
+    await supabaseAdmin
     .from("shopify_token_cache")
     .upsert({
-      id: "admin_token",
+      id: cacheId,
       access_token: cachedToken,
       expires_at: new Date(tokenExpiresAt).toISOString(),
       updated_at: new Date().toISOString(),
@@ -99,6 +108,9 @@ export async function getAdminToken(): Promise<string> {
     .then(({ error }) => {
       if (error) console.warn("[Admin API] Failed to cache token:", error.message);
     });
+  } catch {
+    console.warn("[Admin API] Token cache unavailable; using memory.");
+  }
 
   return cachedToken!;
 }

@@ -5,32 +5,19 @@ import Link from "next/link";
 import ProductInteractive from "@/app/components/ProductInteractive";
 import Reviews from "@/app/components/Reviews";
 import { adaptPreviewToShopifyProduct } from "@/lib/shopify/preview-adapter";
+import { configuredPreviewOrigin, isTrustedPreviewMessage } from "@/lib/security/preview-origin";
 
 export default function StorePreviewPage() {
   const [previewData, setPreviewData] = useState<unknown>(null);
 
   useEffect(() => {
+    const adminOrigin = configuredPreviewOrigin(process.env.NEXT_PUBLIC_ADMIN_API_URL);
+    const parent = window.parent !== window ? window.parent : null;
+    const opener = window.opener;
     const handleMessage = (event: MessageEvent) => {
-      // Security: Validate origin domain if needed
-      const allowedOrigins = [
-        "https://blank-seoul-admin.vercel.app",
-        "https://shopify-git.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:3003",
-        "https://blankseoul.com",
-      ];
-
       // Match payload type
       if (event.data?.type === "BLANK_SEOUL_PREVIEW_UPDATE") {
-        const originOk =
-          !event.origin ||
-          allowedOrigins.some((o) => event.origin.startsWith(o)) ||
-          event.origin.includes("localhost") ||
-          event.origin.includes("vercel.app");
-
-        if (originOk && event.data.payload) {
+        if (isTrustedPreviewMessage(event, adminOrigin, parent, opener) && event.data.payload) {
           setPreviewData(event.data.payload);
         }
       }
@@ -40,11 +27,11 @@ export default function StorePreviewPage() {
 
     // Notify parent window or opener that preview listener is ready
     try {
-      if (window.opener) {
-        window.opener.postMessage({ type: "BLANK_SEOUL_PREVIEW_READY" }, "*");
+      if (opener && adminOrigin) {
+        opener.postMessage({ type: "BLANK_SEOUL_PREVIEW_READY" }, adminOrigin);
       }
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: "BLANK_SEOUL_PREVIEW_READY" }, "*");
+      if (parent && adminOrigin) {
+        parent.postMessage({ type: "BLANK_SEOUL_PREVIEW_READY" }, adminOrigin);
       }
     } catch {
       // Ignore cross-origin parent postMessage errors
