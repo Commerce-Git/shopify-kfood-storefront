@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import EmailConsentNotice from './EmailConsentNotice';
+import { createInquiryRequestKey, mergeInquiryMessages } from '../../lib/inquiries/clientDelivery';
+import { useInquirySignals } from '../../lib/inquiries/useInquirySignals';
 import { createInquiryPoller } from '../../lib/inquiries/polling';
 
 interface InquiryMessage {
@@ -13,11 +16,11 @@ interface InquiryMessage {
   body_translated: string | null;
   attachment_url?: string | null;
   created_at: string;
+  is_read?: boolean;
 }
 
 interface InquiryThread {
   id: string;
-  token: string;
   status: 'ACTIVE' | 'RESOLVED' | 'SPAM';
   customer_name: string;
   customer_email: string;
@@ -64,6 +67,15 @@ export default function ConciergeChat() {
   const [activeToken, setActiveToken] = useState<string | null>(null);
   const [activeThread, setActiveThread] = useState<InquiryThread | null>(null);
   const [messages, setMessages] = useState<InquiryMessage[]>([]);
+  const requestKey = useRef(createInquiryRequestKey());
+  const sendingRef = useRef(false);
+  const versionRef = useRef<string | null>(null);
+  const loadedAtRef = useRef(0);
+  const tokenRef = useRef(activeToken);
+  tokenRef.current = activeToken;
+  const [sendError, setSendError] = useState('');
+  const [olderCursor, setOlderCursor] = useState<{ at: string; id: string } | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // 입력 필드 상태
@@ -78,6 +90,7 @@ export default function ConciergeChat() {
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
+  const suppressScrollRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollerRef = useRef<ReturnType<typeof createInquiryPoller> | null>(null);
   const openRef = useRef(isOpen);
@@ -154,42 +167,86 @@ export default function ConciergeChat() {
     return () => window.removeEventListener('open-concierge', handleOpenEvent);
   }, []);
 
-  // API reads stay behind the same token authorization; no direct table subscription.
+  // Read receipts acknowledge only messages returned to this visible conversation.
+  const markDisplayed = useCallback(async (token: string, rows: InquiryMessage[], signal: AbortSignal) => {
+    if (!openRef.current || document.visibilityState !== 'visible') return;
+    const messageIds = rows.filter(row => row.sender_type === 'ADMIN' && !row.is_read).map(row => row.id);
+    if (!messageIds.length) return;
+    const res = await fetch(`/api/inquiries/${token}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageIds }), signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
+    });
+    if (!res.ok) throw new Error('Read acknowledgment failed');
+    if (!signal.aborted && tokenRef.current === token) {
+      const data = await res.json();
+      setUnreadCount(data.unreadCount);
+      setMessages(prev => prev.map(row => messageIds.includes(row.id) ? { ...row, is_read: true } : row));
+    }
+  }, []);
+
   const fetchThreadAndMessages = useCallback(async (token: string, silent: boolean, signal: AbortSignal) => {
     try {
-      const res = await fetch(`/api/inquiries/${token}`, {
-        signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
+      const query = new URLSearchParams();
+      const opened = openRef.current;
+      if (!opened) query.set('summary', '1');
+      // Signed attachment links are refreshed before their one-hour expiry.
+      else if (versionRef.current && Date.now() - loadedAtRef.current < 45 * 60_000) query.set('known', versionRef.current);
+      const res = await fetch(`/api/inquiries/${token}?${query}`, {
+        signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]), cache: 'no-store',
       });
-      if (signal.aborted) return false;
-      if (res.status === 410) {
+      if (signal.aborted || tokenRef.current !== token) return false;
+      if (res.status === 410 || res.status === 404) {
         localStorage.removeItem(STORAGE_TOKEN_KEY);
-        setActiveToken(null);
-        setActiveThread(null);
-        setMessages([]);
-        if (!silent) alert('This inquiry session has expired after 30 days.');
+        setActiveToken(null); setActiveThread(null); setMessages([]); setUnreadCount(0);
+        if (!silent) setSendError('This conversation is unavailable. Please start a new inquiry.');
         return true;
       }
       if (!res.ok) return false;
       const data = await res.json();
-      if (signal.aborted) return false;
-      if (data.ok) {
-        setActiveThread(data.thread);
-        setMessages(data.messages || []);
-        return true;
+      if (signal.aborted || tokenRef.current !== token || !data.ok) return false;
+      setActiveThread(data.thread);
+      setUnreadCount(data.thread.unread_customer_count || 0);
+      if (Array.isArray(data.messages)) {
+        setMessages(prev => mergeInquiryMessages(prev, data.messages));
+        // A changed recent window may hide a gap after a long disconnect; permit paging it again.
+        setOlderCursor(data.nextCursor);
+        loadedAtRef.current = Date.now();
+        await markDisplayed(token, data.messages, signal);
+        if (!signal.aborted) versionRef.current = data.version;
       }
-      return false;
-    } catch (err) {
-      if (!signal.aborted) console.warn('Failed to fetch concierge thread:', err);
-      return false;
-    }
-  }, []);
+      return true;
+    } catch { return false; }
+  }, [markDisplayed]);
+
+  const loadOlder = async () => {
+    if (!activeToken || !olderCursor || loadingOlder) return;
+    const token = activeToken;
+    setLoadingOlder(true);
+    try {
+      const res = await fetch(`/api/inquiries/${token}?before=${encodeURIComponent(JSON.stringify(olderCursor))}`, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw Error();
+      const data = await res.json();
+      if (tokenRef.current !== token) return;
+      suppressScrollRef.current = true;
+      setMessages(prev => mergeInquiryMessages(prev, data.messages || []));
+      setOlderCursor(data.nextCursor);
+      await markDisplayed(token, data.messages || [], new AbortController().signal);
+    } catch { setSendError('Earlier messages could not be loaded. Please try again.'); }
+    finally { setLoadingOlder(false); }
+  };
 
   useEffect(() => {
     openRef.current = isOpen;
+    if (isOpen) versionRef.current = null;
     pollerRef.current?.setOpen(isOpen);
   }, [isOpen]);
 
   useEffect(() => {
+    versionRef.current = null;
+    setMessages([]);
+    setActiveThread(null);
+    loadedAtRef.current = 0;
+    setOlderCursor(null);
     if (!activeToken) return;
     let firstRead = true;
     const poller = createInquiryPoller({
@@ -203,7 +260,7 @@ export default function ConciergeChat() {
       initialOpen: openRef.current,
     });
     pollerRef.current = poller;
-    const resume = () => poller.refresh();
+    const resume = () => { versionRef.current = null; poller.refresh(); };
     const visibility = () => {
       if (document.visibilityState === 'visible') resume();
       else poller.pause();
@@ -222,8 +279,12 @@ export default function ConciergeChat() {
     };
   }, [activeToken, fetchThreadAndMessages]);
 
-  // 스크롤 최하단 이동
+  const realtimeReady = useInquirySignals(activeToken && isOpen ? `/api/inquiries/${activeToken}/realtime` : null, () => pollerRef.current?.refresh());
+  useEffect(() => { pollerRef.current?.setRealtimeReady(realtimeReady); }, [realtimeReady, activeToken]);
+
+  // Earlier-page reads preserve the reader's scroll position.
   useEffect(() => {
+    if (suppressScrollRef.current) { suppressScrollRef.current = false; return; }
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -233,17 +294,17 @@ export default function ConciergeChat() {
   const handleToggleOpen = () => {
     const next = !isOpen;
     setIsOpen(next);
-    if (next) {
-      setUnreadCount(0);
-    }
+
   };
 
   // 신규 문의 시작 (회원 또는 비회원)
   const handleStartInquiry = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputMessage.trim() || isSending) return;
+    if (!inputMessage.trim() || sendingRef.current) return;
 
+    sendingRef.current = true;
     setIsSending(true);
+    setSendError('');
 
     const effectiveName = isLoggedIn
       ? customer?.first_name || user?.user_metadata?.full_name || 'Valued Collector'
@@ -255,6 +316,7 @@ export default function ConciergeChat() {
 
     if (!effectiveName || !effectiveEmail) {
       alert('Please provide your name and email address.');
+      sendingRef.current = false;
       setIsSending(false);
       return;
     }
@@ -289,11 +351,7 @@ export default function ConciergeChat() {
       productContext?.handle ||
       (productContext?.artistSlug ? `artists/${productContext.artistSlug}` : null);
 
-    try {
-      const res = await fetch('/api/inquiries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    const payload = {
           customerName: effectiveName,
           customerEmail: effectiveEmail,
           message: inputMessage.trim(),
@@ -301,17 +359,22 @@ export default function ConciergeChat() {
           productHandle: effectiveHandle,
           productImageUrl: productContext?.imageUrl || null,
           artistName: productContext?.artist || (productContext?.type === 'artist' ? productContext.title : null),
-          artistId: productContext?.artistSlug || null,
-          honeypot,
-          renderedAt,
-        }),
-      });
 
+    };
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, honeypot, renderedAt, requestId: requestKey.current.get(['create', payload]) }),
+        signal: AbortSignal.timeout(15000),
+      });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         throw new Error(data.error || 'Failed to start inquiry');
       }
 
+      requestKey.current.clear();
+      tokenRef.current = data.token;
+      versionRef.current = null;
       setActiveToken(data.token);
       localStorage.setItem(STORAGE_TOKEN_KEY, data.token);
       setInputMessage('');
@@ -320,15 +383,16 @@ export default function ConciergeChat() {
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error occurred. Please try again.';
-      alert(errorMsg);
+      setSendError(errorMsg);
     } finally {
+      sendingRef.current = false;
       setIsSending(false);
     }
   };
 
   // 추가 메시지 전송
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isSending) return;
+    if (!inputMessage.trim() || sendingRef.current) return;
 
     // 만약 기존 스레드가 이미 해결 완료(RESOLVED)되었거나 토큰이 없다면, 맥락 오염을 방지하기 위해 신규 클린 스레드로 자동 분기
     if (!activeToken || activeThread?.status === 'RESOLVED') {
@@ -337,42 +401,26 @@ export default function ConciergeChat() {
     }
 
     const text = inputMessage.trim();
-    setInputMessage('');
-    setIsSending(true);
-
-    // 옵티미스틱 메시지 추가
-    const optimisticId = `opt_${Date.now()}`;
-    const optimisticMsg: InquiryMessage = {
-      id: optimisticId,
-      thread_id: activeThread?.id || '',
-      sender_type: 'CUSTOMER',
-      body_original: text,
-      body_translated: null,
-      created_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimisticMsg]);
-
+    const token = activeToken;
+    sendingRef.current = true;
+    setIsSending(true); setSendError('');
     try {
-      const res = await fetch(`/api/inquiries/${activeToken}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          senderType: 'CUSTOMER',
-          body: text,
-        }),
+      const res = await fetch(`/api/inquiries/${token}/messages`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: requestKey.current.get([token, text]), senderType: 'CUSTOMER', body: text }),
+        signal: AbortSignal.timeout(15000),
       });
-
       const data = await res.json();
-      if (data.ok && data.message) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === optimisticId ? data.message : m))
-        );
+      if (!res.ok || !data.ok || !data.message) throw Error(data.error || 'Message could not be saved.');
+      requestKey.current.clear();
+      if (tokenRef.current === token) {
+        setMessages(prev => mergeInquiryMessages(prev, [data.message]));
+        setInputMessage(prev => prev.trim() === text ? '' : prev);
+        pollerRef.current?.refresh();
       }
-    } catch (err) {
-      console.error('Failed to send inquiry message:', err);
-    } finally {
-      setIsSending(false);
-    }
+    } catch {
+      setSendError('We could not confirm delivery. Your message is kept here; press Send to retry safely.');
+    } finally { sendingRef.current = false; setIsSending(false); }
   };
 
   return (
@@ -416,7 +464,7 @@ export default function ConciergeChat() {
             </div>
             <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Direct Line · Live Translation (Seoul)</span>
+              <span>Support · Reply notifications</span>
             </div>
           </div>
           <button
@@ -428,6 +476,8 @@ export default function ConciergeChat() {
           </button>
         </div>
 
+        {sendError && <p role="alert" className="px-4 py-2 text-xs text-red-700">{sendError}</p>}
+        {activeToken && olderCursor && <button onClick={loadOlder} disabled={loadingOlder} className="py-2 text-xs underline">{loadingOlder ? 'Loading…' : 'Load earlier messages'}</button>}
         {/* 컨텍스트 배너 (상품 상세페이지 또는 작가 페이지 연동) */}
         {productContext && (
           <div className="bg-[#F8F7F4] border-b border-[#E8DFC8]/60 px-4 py-2.5 flex items-center gap-3">
@@ -547,6 +597,7 @@ export default function ConciergeChat() {
                   <textarea
                     required
                     rows={3}
+                    maxLength={5000}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder={
@@ -565,6 +616,7 @@ export default function ConciergeChat() {
                 >
                   {isSending ? 'Connecting...' : 'Start Conversation ➔'}
                 </button>
+                <EmailConsentNotice compact />
               </form>
             </div>
           ) : messages.length === 0 ? (
@@ -656,7 +708,8 @@ export default function ConciergeChat() {
             <div className="flex gap-2">
               <input
                 type="text"
-                value={inputMessage}
+                maxLength={5000}
+                    value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -676,11 +729,11 @@ export default function ConciergeChat() {
                 disabled={isSending || !inputMessage.trim()}
                 className="px-4 py-2 bg-[#18181B] text-white text-xs font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
               >
-                Send
+                {isSending ? 'Sending…' : 'Send'}
               </button>
             </div>
             <div className="text-[10px] text-zinc-400 text-center">
-              We respond in real time. If you leave, replies will be emailed to you.
+              Send your inquiry here. Our team will reply as soon as possible.
             </div>
           </div>
         )}

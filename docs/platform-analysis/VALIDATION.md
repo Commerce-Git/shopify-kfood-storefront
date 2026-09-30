@@ -1,6 +1,6 @@
 # 검증 결과와 후속 시험
 
-아래 1–3절은 2026-09-24의 검증 기록이다. 운영·테스트 환경 분리 수정 보고서는 문서 후반의 해당 절을 참조한다.
+아래 1–3절은 2026-09-24의 검증 기록이다. 운영·테스트 환경 분리와 문의 개선의 최신 실행 결과는 문서 후반의 각 절을 참조한다.
 
 실행일: 2026-09-24 · 검증 대상은 로컬 작업 트리다. [기준선](README.md)과 [명령 원문 결과](check-results.json)를 함께 참고한다.
 
@@ -227,3 +227,43 @@ SQL은 파일 작성/검토만 했고 DB 실행·실행 계획 검증은 하지 
 사용자의 테스트 DB 진단 결과와 가상 대화 2개/메시지 4개 준비 결과를 접수했다. 실제 익명 REST HEAD는 문의 두 테이블 모두 401, 서비스 역할의 준비된 문의 조회는 200이었다. 로컬 Chrome에서 실제 GET을 확인했으며 닫힌 상태는 1분당 6→1회였다. 열림/숨김/복귀 조건과 측정 한계는 [공통 결과](INQUIRY_DELIVERY.md#무료-테스트-환경의-조회-개선-결과)와 [비교 JSON](../../../blank-seoul-admin/scripts/performance/inquiry-polling-baseline.json)을 따른다.
 
 SQL은 사용자가 실행했고 에이전트가 적용하지 않았다. 신규 private Broadcast, 미확인 배지, 메시지 페이지 조회, 쓰기/첨부/메일 시험, 운영 DB·Vercel 배포·실제 비용·부하 검증은 미완료다. 사용자 Git push와 Preview 확인이 다음 단계다.
+
+
+## 문의 신뢰성·권한·알림 구현 검증
+
+실행일: 2026-09-30. Admin `de67e02`, Storefront `a34907e` 이후의 미커밋 작업 트리를 검증했다. 구현 내용과 사용자 적용 순서는 [문의 전달 계약](INQUIRY_DELIVERY.md#문의-신뢰성알림-구현과-적용-절차)에 기록한다. 아래 결과는 원격 Supabase/Vercel 적용이나 출시 승인이 아니다.
+
+| 검사 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| Admin `npm run typecheck` | 통과 | TypeScript 계약 |
+| Storefront `npm run typecheck` | 통과 | TypeScript 계약 |
+| Admin `npm run test:unit` | 292/292 통과 | 기존 회귀와 문의 권한·전송·응답 계약·메일 공급자 오류 처리 |
+| Storefront `npm run test:unit` | 23/23 통과 | 조건부 폴링, 실시간 연결 중 정기 조회 중지와 오류 fallback, 요청 키·메시지 병합 |
+| Admin `node --import tsx --test tests/unit/inquiry-ui.test.ts` | 마지막 읽음 실패 보완 후 2/2 통과 | 실제 고객 컴포넌트의 미확인 배지·읽음 실패 재조회·전송 실패 입력/요청 키 유지·중복 방지; 알림 훅의 재인가·힌트 병합·숨김 해제 |
+| Admin `tests/integration/inquiry-delivery.mjs` | 15/15 시나리오 통과 | 임시 로컬 PostgreSQL에서 SQL 07–09 실제 실행: 동시성·트랜잭션·권한·페이지·알림 범위·메일 작업 복구 |
+| 신규 문의 공통 모듈 ESLint | 통과 | `clientDelivery`, `deliveryContract`, `saveMessage`, `signalLease`, `useInquirySignals`, `notificationManager` |
+| 양쪽 `git diff --check` | 통과 | 변경 파일 공백 오류 |
+
+단위/JSDOM 시험은 HTTP·인증·Supabase 연결을 대역으로 사용한다. 실제 컴포넌트 코드를 실행했지만 Chrome·모바일 화면의 시각 검증이나 배포 E2E는 아니다. 읽음 실패 보완 후 관련 UI 시험을 재실행했으며, 위 전체 단위 테스트 수와 별개의 추가 기능 수로 합산하지 않는다.
+
+SQL 통합 시험은 `.env`를 읽지 않고 임의 loopback 포트에 생성한 일회용 PostgreSQL에서 실행했다. 원격 DB에는 연결하지 않는다. Supabase 전용 `realtime.send`/`realtime.topic`은 로컬 함수로 대체하고 `anon`·`authenticated`·`service_role` 역할로 RLS를 검사했다. 따라서 실제 Supabase 채널 가입과 캐시된 연결 권한의 동작까지 증명하지 않는다.
+
+재현 명령(Admin 디렉터리):
+
+```sh
+npm install --prefix /tmp/blank-inquiry-test embedded-postgres pg
+INQUIRY_TEST_MODULE_ROOT=/tmp/blank-inquiry-test node tests/integration/inquiry-delivery.mjs
+```
+
+핵심 SQL 확인 사항:
+
+- 동일 요청의 동시 실행은 대화/첫 메시지와 일반 메시지를 한 번만 저장하며, 첫 메시지 실패 시 새 대화도 롤백한다. 같은 키로 다른 내용을 보내면 거부한다.
+- 고객 응답에 내부 중계·감사·내부 결정·직원 메타데이터가 포함되지 않는다. 만료/직원 대화 조회와 만료/SPAM 고객 전송을 거부한다.
+- 고객 읽음은 요청한 자기 대화의 공개 관리자 메시지에만 적용된다. 동일 시각 메시지를 포함한 이력은 50개 이하의 페이지로 중복 없이 조회된다.
+- 고객 알림에는 본문이 없고, 내부 변경은 허용된 직원에게만 전달된다. 다른 topic·직접 테이블 읽기·브라우저 알림 위조를 거부한다. 별도의 permissive 정책이 존재해도 해당 topic namespace 제한이 유지된다.
+- 자격 만료와 작가 배정 회수 후에는 기존 가입 상태를 가정해도 새 알림 발행이 중단된다.
+- 공개 답변의 메일 작업은 저장 트랜잭션 안에서 예약된다. 읽은 메시지는 최초 발송 대상에서 제외하며 연속 답변을 묶는다. 재시도 수신자/본문 고정, 오래된 claim 완료 거부, 공급자 idempotency 보존 기간 전 자동 재시도 중단을 확인했다.
+
+**미실행:** 프로덕션 빌드, 실제 브라우저 양쪽 앱 E2E, Supabase private Broadcast 연결, 실제 Resend 수신, 스케줄러 등록, Vercel Preview 배포, 실사용 비용·부하 측정. 운영/시험 Supabase SQL과 Git push는 수행하지 않았다. 실시간/메일 플래그는 기본 false이므로 로컬 구현 완료를 실시간 운영 개시로 간주하지 않는다.
+
+다음 완료 증거는 [적용 순서](INQUIRY_DELIVERY.md#적용-순서)에 따라 테스트 DB에 SQL을 적용하고 Preview에서 고객 두 명·배정/미배정 작가·관리자 간 격리, 전송 재시도, 연결 복구, 시험 이메일 도착을 확인하는 것이다.

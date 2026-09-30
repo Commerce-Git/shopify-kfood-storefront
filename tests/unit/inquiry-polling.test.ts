@@ -92,3 +92,21 @@ test('a thrown network error is retried with backoff', async () => {
     isVisible: () => true, isOnline: () => true, initialOpen: true, schedule: timer.schedule });
   poller.start(); await settle(); assert.equal(timer.delay(), 20_000); poller.stop();
 });
+
+
+test('healthy signals suspend recurring reads; losing the connection refreshes and resumes fallback', async () => {
+  const timer = clock(); let reads = 0;
+  const poller = createInquiryPoller({ read: async () => { reads++; return true; }, isVisible: () => true,
+    isOnline: () => true, initialOpen: true, schedule: timer.schedule });
+  poller.start(); await settle(); poller.setRealtimeReady(true); assert.equal(timer.count(),0);
+  poller.refresh(); await settle(); assert.equal(reads,2); assert.equal(timer.count(),0);
+  poller.setRealtimeReady(false); await settle(); assert.equal(reads,3); assert.equal(timer.delay(),10000);
+  poller.stop();
+});
+test('HTTP failure retries even while the signal connection is healthy', async () => {
+  const timer = clock(); let ok = false;
+  const poller = createInquiryPoller({ read: async () => ok, isVisible: () => true,
+    isOnline: () => true, initialOpen: true, schedule: timer.schedule });
+  poller.setRealtimeReady(true); poller.start(); await settle(); assert.equal(timer.delay(),20000);
+  ok = true; timer.fire(); await settle(); assert.equal(timer.count(),0); poller.stop();
+});

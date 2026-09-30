@@ -8,7 +8,7 @@ export async function proxyInquiryRequest(req: NextRequest, subpath = '') {
   if (process.env.NODE_ENV === 'production' && base.protocol !== 'https:') {
     return NextResponse.json({ error: 'Invalid concierge configuration.' }, { status: 503 });
   }
-  if (subpath && !/^inq_[a-f0-9]{32}(?:\/messages)?$/.test(subpath)) {
+  if (subpath && !/^inq_[a-f0-9]{32}(?:\/(?:messages|realtime))?$/.test(subpath)) {
     return NextResponse.json({ error: 'Conversation not found.' }, { status: 404 });
   }
   const target = new URL(`/api/inquiries${subpath ? `/${subpath}` : ''}`, base);
@@ -20,7 +20,7 @@ export async function proxyInquiryRequest(req: NextRequest, subpath = '') {
     const response = await fetch(target, {
       method: req.method, headers,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : await req.arrayBuffer(),
-      signal: AbortSignal.timeout(15000), cache: 'no-store', redirect: 'error',
+      signal: AbortSignal.any([req.signal, AbortSignal.timeout(15000)]), cache: 'no-store', redirect: 'error',
     });
     return new NextResponse(await response.arrayBuffer(), {
       status: response.status,

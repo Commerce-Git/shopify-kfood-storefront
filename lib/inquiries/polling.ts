@@ -1,4 +1,4 @@
-/** One inquiry read at a time; visible, online pages only. No Realtime connection. */
+/** One authorized read at a time; periodic fallback pauses during a healthy signal subscription. */
 interface InquiryPollerOptions {
   read: (signal: AbortSignal) => Promise<boolean>;
   isVisible: () => boolean;
@@ -14,6 +14,7 @@ export function createInquiryPoller(options: InquiryPollerOptions) {
   });
   let open = options.initialOpen ?? false;
   let failures = 0;
+  let realtimeReady = false;
   let stopped = false;
   let running = false;
   let pendingRefresh = false;
@@ -27,7 +28,7 @@ export function createInquiryPoller(options: InquiryPollerOptions) {
   };
   const queueNext = () => {
     clearTimer();
-    if (!available() || running) return;
+    if (!available() || running || (realtimeReady && failures === 0)) return;
     const base = open ? 10_000 : 60_000;
     const delay = Math.min(120_000, base * 2 ** Math.min(failures, 4));
     cancelTimer = schedule(() => {
@@ -69,6 +70,12 @@ export function createInquiryPoller(options: InquiryPollerOptions) {
   return {
     start: refresh,
     refresh,
+    setRealtimeReady(next: boolean) {
+      if (realtimeReady === next) return;
+      realtimeReady = next;
+      if (next) clearTimer();
+      else refresh();
+    },
     setOpen(next: boolean) {
       if (open === next) return;
       open = next;
