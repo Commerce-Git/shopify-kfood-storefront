@@ -215,19 +215,19 @@ export default function ConciergeChat() {
   };
 
   // 신규 문의 시작 (회원 또는 비회원)
-  const handleStartInquiry = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStartInquiry = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!inputMessage.trim() || isSending) return;
 
     setIsSending(true);
 
     const effectiveName = isLoggedIn
       ? customer?.first_name || user?.user_metadata?.full_name || 'Valued Collector'
-      : guestName.trim();
+      : guestName.trim() || activeThread?.customer_name || '';
 
     const effectiveEmail = isLoggedIn
       ? user?.email || ''
-      : guestEmail.trim().toLowerCase();
+      : guestEmail.trim().toLowerCase() || activeThread?.customer_email || '';
 
     if (!effectiveName || !effectiveEmail) {
       alert('Please provide your name and email address.');
@@ -305,7 +305,14 @@ export default function ConciergeChat() {
 
   // 추가 메시지 전송
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !activeToken || isSending) return;
+    if (!inputMessage.trim() || isSending) return;
+
+    // 만약 기존 스레드가 이미 해결 완료(RESOLVED)되었거나 토큰이 없다면, 맥락 오염을 방지하기 위해 신규 클린 스레드로 자동 분기
+    if (!activeToken || activeThread?.status === 'RESOLVED') {
+      await handleStartInquiry();
+      return;
+    }
+
     const text = inputMessage.trim();
     setInputMessage('');
     setIsSending(true);
@@ -606,6 +613,17 @@ export default function ConciergeChat() {
               );
             })
           )}
+          {activeThread?.status === 'RESOLVED' && (
+            <div className="my-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center select-none">
+              <div className="text-[12px] font-semibold text-emerald-800 flex items-center justify-center gap-1.5">
+                <span>✨</span>
+                <span>This consultation has been resolved.</span>
+              </div>
+              <div className="text-[10.5px] text-emerald-600 mt-0.5">
+                Sending a new message below will automatically start a fresh inquiry session.
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -623,7 +641,11 @@ export default function ConciergeChat() {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Type your reply in English..."
+                placeholder={
+                  activeThread?.status === 'RESOLVED'
+                    ? 'Start a fresh inquiry with a new message...'
+                    : 'Type your reply in English...'
+                }
                 className="flex-1 px-3 py-2 text-xs border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
               />
               <button

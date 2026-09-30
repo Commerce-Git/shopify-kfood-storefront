@@ -6,14 +6,32 @@ import { getEnrichedArtistsWithProducts } from "@/lib/artists";
 import { groupProductsIntoShelves } from "@/lib/config/collections";
 import { isStoreLive } from "@/lib/constants";
 
-export default async function Home() {
+interface HomePageProps {
+  searchParams?: Promise<{
+    mode?: string;
+    preview?: string;
+  }>;
+}
+
+export default async function Home({ searchParams }: HomePageProps) {
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const modeOverride = resolvedParams?.mode?.toLowerCase();
+  const previewParam = resolvedParams?.preview?.toLowerCase();
+
+  // If ?mode=live -> live, if ?mode=preview or ?preview=true -> preview, else default to isStoreLive()
+  let isLive = isStoreLive();
+  if (modeOverride === "live") {
+    isLive = true;
+  } else if (modeOverride === "preview" || previewParam === "true" || previewParam === "1") {
+    isLive = false;
+  }
+
   // Fetch all live products directly from Shopify Storefront API
   const liveProducts = await getAllProducts(50);
   const enrichedArtists = await getEnrichedArtistsWithProducts(liveProducts);
 
   // Group live products dynamically into SSOT shelves (Auto-Hides 0-product shelves)
   const shelves = groupProductsIntoShelves(liveProducts);
-  const isLive = isStoreLive();
 
   return (
     <div className="relative w-full flex-1 bg-[#FFFFFF] text-[#18181B] overflow-hidden">

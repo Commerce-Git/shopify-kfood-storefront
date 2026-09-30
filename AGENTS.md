@@ -9,6 +9,7 @@ Start with [the shared platform index](docs/platform-analysis/README.md), then r
 - Preserve the overall module assessment when investigating a defect. Do not select the next implementation merely because a defect was found. Relate it to the goal, affected modules and acceptance criteria.
 - Product category, market and metric proposals remain proposals until decided. Continue independent technical analysis while those decisions are pending.
 - Record goal changes in PROJECT_DIRECTION, progress/next actions in the index, and task execution in agent-bridge. Past COMMAND/REPORT/REVIEW files are evidence of their own run, not authorization for the current task.
+- Document ownership: keep shared goals, operating policies and cross-project contracts in the shared platform folder. Store project-specific workflow, UI and implementation designs in the owning project: admin `doc/` (artist/logistics in `doc/logistics/`), storefront `docs/`. Link to these originals from the shared index; do not duplicate them.
 - The user applies Supabase SQL/migrations and performs Git push manually.
 <!-- END:platform-direction -->
 

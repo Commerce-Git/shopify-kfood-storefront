@@ -140,13 +140,13 @@ export default async function ProductPage({ params }: PageProps) {
           handlingTime: {
             "@type": "QuantitativeValue",
             minValue: 1,
-            maxValue: 3,
+            maxValue: 2,
             unitCode: "d",
           },
           transitTime: {
             "@type": "QuantitativeValue",
-            minValue: 3,
-            maxValue: 7,
+            minValue: 7,
+            maxValue: 14,
             unitCode: "d",
           },
         },
@@ -158,7 +158,7 @@ export default async function ProductPage({ params }: PageProps) {
           "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 30,
         returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
+        returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
       },
     },
   };

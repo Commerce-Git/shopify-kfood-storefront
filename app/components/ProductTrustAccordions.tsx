@@ -293,23 +293,25 @@ export default function ProductTrustAccordions({
               </div>
 
               <div className="flex items-start gap-2.5 text-xs">
-                <span className="text-sm shrink-0">🛡️</span>
+                <span className="text-sm shrink-0">📦</span>
                 <div className="w-full relative">
-                  {/* Dotted Underline Popover Trigger */}
-                  <div className="relative inline-block">
+                  {/* Dotted Underline Popover Trigger (Etsy Standard) */}
+                  <div
+                    className="relative inline-block"
+                    onMouseEnter={() => setIsReturnPopoverOpen(true)}
+                    onMouseLeave={() => setIsReturnPopoverOpen(false)}
+                  >
                     <button
                       type="button"
                       onClick={() => setIsReturnPopoverOpen(!isReturnPopoverOpen)}
-                      onMouseEnter={() => setIsReturnPopoverOpen(true)}
-                      onMouseLeave={() => setIsReturnPopoverOpen(false)}
-                      className="font-bold text-[#18181B] underline decoration-dotted underline-offset-4 decoration-[#71717A] hover:text-[#C25E38] hover:decoration-[#C25E38] transition-colors cursor-help text-left"
+                      className="font-bold text-[#18181B] underline decoration-dashed underline-offset-4 decoration-[#71717A] hover:text-[#C25E38] hover:decoration-[#C25E38] transition-colors cursor-help text-left"
                     >
-                      30-Day Safe Delivery & Protection Guarantee
+                      Returns &amp; exchanges accepted within 30 days
                     </button>
 
                     {/* Floating Speech-Bubble Popover Card */}
                     <div
-                      className={`absolute left-0 top-full mt-2 w-64 sm:w-80 p-3.5 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
+                      className={`absolute left-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
                         isReturnPopoverOpen
                           ? "opacity-100 visible translate-y-0 pointer-events-auto"
                           : "opacity-0 invisible -translate-y-1 pointer-events-none"
@@ -318,12 +320,23 @@ export default function ProductTrustAccordions({
                       {/* Speech Bubble Caret */}
                       <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-t border-l border-[#E8DFC8] rotate-45" />
 
-                      <p className="relative z-10 font-medium text-[#18181B] mb-1">
-                        Zero-Hassle Protection Guarantee
+                      <p className="relative z-10 font-bold text-[#18181B] mb-1.5">
+                        Returns &amp; Exchanges Policy
                       </p>
-                      <p className="relative z-10 text-[11px] text-[#52525B]">
-                        In the rare event your item arrives damaged, defective, or goes missing in transit, send us a quick photo within 30 days for an immediate free replacement or full refund. No international return shipping required.
+                      <p className="relative z-10 text-[11px] text-[#52525B] mb-2">
+                        Buyers are responsible for return shipping costs. If the item is not returned in its original condition, the buyer is responsible for any loss in value.
                       </p>
+                      <div className="relative z-10 pt-2 border-t border-[#E8DFC8]/60 text-[10.5px] text-[#71717A]">
+                        <span className="font-semibold text-[#2E7D32]">🛡️ Zero-Hassle Damage Guarantee:</span> Damaged or defective in transit? Send a photo for an immediate free replacement or refund without returning the item.
+                      </div>
+                      <div className="relative z-10 mt-2 text-right">
+                        <Link
+                          href="/policies/returns"
+                          className="text-[10.5px] font-semibold text-[#C25E38] hover:underline"
+                        >
+                          View Return Policy →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>

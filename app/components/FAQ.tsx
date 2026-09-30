@@ -60,7 +60,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "guarantee",
     question: "What is your 30-Day Safe Delivery & Protection Guarantee?",
     answer:
-      "We want you to love every piece you receive from Blank Seoul. If your item arrives damaged, defective, or encounters transit issues, simply email us at support@blankseoul.com with a quick photo within 30 days of delivery. We will immediately issue a full refund or dispatch a free replacement. You will never be required to pay expensive international return shipping back to Korea!",
+      "We want you to love every piece you receive from Blank Seoul. If your item arrives damaged, defective, or encounters transit issues, simply email us at support@blankseoul.com with a quick photo within 30 days of delivery. We will immediately issue a full refund or dispatch a free replacement — you will never be required to pay international return shipping back to Korea for damaged or defective items! For standard change-of-mind returns, we accept returns within 30 days of delivery (buyer covers tracked return shipping).",
     actionButton: {
       label: "Read Full Return Policy →",
       href: "/policies/returns",

@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "agent:bridge": "node scripts/agent-bridge-front.mjs",
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
+    "prod": "node scripts/dev-prod.js",
+    "dev:prod": "node scripts/dev-prod.js",
     "build": "next build",
     "typecheck": "tsc --noEmit --incremental false",
     "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",

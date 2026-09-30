@@ -31,17 +31,17 @@ export default function ReturnPolicyPage() {
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-base shrink-0">🛡️</span>
+            <span className="text-base shrink-0">📦</span>
             <div>
-              <strong className="block text-[#18181B] font-bold">Guarantee Window</strong>
-              <span>30-Day Safe Delivery & Protection Guarantee</span>
+              <strong className="block text-[#18181B] font-bold">30-Day Returns</strong>
+              <span>Accepted within 30 days (buyer pays return shipping)</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-base shrink-0">📦</span>
+            <span className="text-base shrink-0">🛡️</span>
             <div>
-              <strong className="block text-[#18181B] font-bold">Damaged / Defective</strong>
-              <span className="text-[#2E7D32] font-semibold">Free Reshipment or Full Refund</span>
+              <strong className="block text-[#18181B] font-bold">Zero-Hassle Guarantee</strong>
+              <span className="text-[#2E7D32] font-semibold">100% Free Reshipment or Refund for Damage/Defects</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -98,7 +98,7 @@ export default function ReturnPolicyPage() {
       </div>
 
       <p>
-        <strong>No International Return Shipping Required:</strong> You do not need to pay expensive international return postage to ship damaged goods back to Korea. Once verified via photo, we resolve it immediately.
+        <strong>No International Return Shipping Required for Damaged Goods:</strong> You do not need to pay expensive international return postage to ship damaged goods back to Korea. Once verified via photo, we resolve it immediately.
       </p>
 
       <h2>3. Lost or Delayed Package Resolution</h2>
@@ -107,18 +107,26 @@ export default function ReturnPolicyPage() {
         If your tracking shows no updates for 15 business days, or if it is marked as delivered but cannot be located, please contact us within <strong>30 days of shipment</strong>. We will directly handle the courier investigation and arrange a <strong>free expedited reshipment or full refund</strong>.
       </p>
 
-      <h2>4. Non-Refundable Situations & Unclaimed Returns</h2>
+      <h2>4. 30-Day Returns & Exchanges Policy</h2>
       <p>
-        Due to direct international dispatch from independent Korean studios and cross-border customs regulations, orders are not eligible for standard return or full refund in the following scenarios:
+        We want you to feel confident in every artisan purchase. We accept returns and exchanges within <strong>30 days of delivery</strong> under the following standard terms:
       </p>
       <ul>
-        <li>Change of mind after your order has been dispatched from Korea</li>
-        <li>Items showing clear signs of customer misuse, alteration, or intentional damage</li>
-        <li>Incorrect or incomplete shipping address provided by the customer at checkout</li>
-        <li>Parcels refused upon delivery or unclaimed at destination customs / local postal offices</li>
+        <li>
+          <strong>Buyer Responsibility for Return Shipping:</strong> Because each piece is dispatched directly from independent studios in South Korea, buyers are responsible for all tracked international return postage back to our fulfillment hub in Seoul, South Korea.
+        </li>
+        <li>
+          <strong>Condition of Returned Items:</strong> Items must be returned in their original, unused condition, complete with all original artisan packaging, tags, and protective wraps. If the item is not returned in its original condition, the buyer is responsible for any loss in value.
+        </li>
+        <li>
+          <strong>Custom & Bespoke Pieces:</strong> Custom-made, engraved, or personalized items crafted to order cannot be returned or exchanged.
+        </li>
+        <li>
+          <strong>Unclaimed & Refused Parcels:</strong> In the event that a parcel is returned to South Korea due to customer refusal to pay destination customs/taxes or an invalid address, actual round-trip courier fees and customs clearance costs will be deducted from any refund.
+        </li>
       </ul>
       <p>
-        <em>* Important: In the event that a parcel is returned to South Korea due to customer refusal to pay destination customs/taxes or an invalid shipping address, actual incurred expenses (including round-trip international courier fees and return customs processing fees) will be deducted from any eligible refund.</em>
+        <em>* Important: If your item arrived damaged, defective, or missing in transit, you are fully covered under <strong>Section 2 (30-Day Safe Delivery & Damage Protection)</strong> at zero cost to you with no return shipping required.</em>
       </p>
 
       <h2>5. Refund Processing Timeline</h2>
