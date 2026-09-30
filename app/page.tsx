@@ -41,7 +41,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       </h1>
 
       {/* 1. Preview Mode: Opening Soon Manifesto Banner placed at the very top (Hero Hook & Story) */}
-      {!isLive && <EtsyEditorialSplitBanner isHero={true} />}
+      {!isLive && <EtsyEditorialSplitBanner isHero={true} isLive={isLive} />}
 
       {shelves.map((shelf, index) => (
         <div key={shelf.id}>
@@ -53,12 +53,12 @@ export default async function Home({ searchParams }: HomePageProps) {
             viewAllHref={shelf.viewAllHref}
           />
           {/* 2. Live Mode: Insert Editorial Split Banner right after the 1st shelf (Golden Ratio) */}
-          {isLive && index === 0 && <EtsyEditorialSplitBanner isHero={false} />}
+          {isLive && index === 0 && <EtsyEditorialSplitBanner isHero={false} isLive={isLive} />}
         </div>
       ))}
 
       {/* If shelves is empty and in live mode, render banner as fallback */}
-      {shelves.length === 0 && isLive && <EtsyEditorialSplitBanner isHero={false} />}
+      {shelves.length === 0 && isLive && <EtsyEditorialSplitBanner isHero={false} isLive={isLive} />}
 
       {/* Partner Studios Showcase */}
       <AtelierSpotlight artists={enrichedArtists.map((a) => a.profile)} />

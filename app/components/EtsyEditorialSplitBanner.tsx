@@ -5,10 +5,11 @@ import { isStoreLive } from "@/lib/constants";
 
 export interface EtsyEditorialSplitBannerProps {
   isHero?: boolean;
+  isLive?: boolean;
 }
 
-export default function EtsyEditorialSplitBanner({ isHero = false }: EtsyEditorialSplitBannerProps = {}) {
-  const live = isStoreLive();
+export default function EtsyEditorialSplitBanner({ isHero = false, isLive }: EtsyEditorialSplitBannerProps = {}) {
+  const live = typeof isLive === "boolean" ? isLive : isStoreLive();
 
   return (
     <section className={`${isHero ? "pt-2 sm:pt-4 pb-8 sm:pb-12" : "py-8 sm:py-12"} bg-[#FBF9F5]`}>
