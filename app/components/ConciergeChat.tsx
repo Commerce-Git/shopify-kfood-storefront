@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import { createInquiryPoller } from '../../lib/inquiries/polling';
 
 interface InquiryMessage {
   id: string;
@@ -78,6 +79,8 @@ export default function ConciergeChat() {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pollerRef = useRef<ReturnType<typeof createInquiryPoller> | null>(null);
+  const openRef = useRef(isOpen);
 
   // 1. 초기 토큰 복원 및 URL 딥링크 (?inquiry_token=... / ?inquire=true / ?chat=open)
   useEffect(() => {
@@ -151,50 +154,72 @@ export default function ConciergeChat() {
     return () => window.removeEventListener('open-concierge', handleOpenEvent);
   }, []);
 
-  // 4. 대화 내역 및 스레드 조회 (하트비트 동시 수행)
-  const fetchThreadAndMessages = useCallback(async (token: string, silent = false) => {
+  // API reads stay behind the same token authorization; no direct table subscription.
+  const fetchThreadAndMessages = useCallback(async (token: string, silent: boolean, signal: AbortSignal) => {
     try {
-      const res = await fetch(`/api/inquiries/${token}`);
+      const res = await fetch(`/api/inquiries/${token}`, {
+        signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
+      });
+      if (signal.aborted) return false;
       if (res.status === 410) {
-        // 30일 만료된 세션
         localStorage.removeItem(STORAGE_TOKEN_KEY);
         setActiveToken(null);
         setActiveThread(null);
         setMessages([]);
         if (!silent) alert('This inquiry session has expired after 30 days.');
-        return;
+        return true;
       }
-
-      if (!res.ok) return;
-
+      if (!res.ok) return false;
       const data = await res.json();
+      if (signal.aborted) return false;
       if (data.ok) {
         setActiveThread(data.thread);
         setMessages(data.messages || []);
+        return true;
       }
+      return false;
     } catch (err) {
-      console.warn('Failed to fetch concierge thread:', err);
+      if (!signal.aborted) console.warn('Failed to fetch concierge thread:', err);
+      return false;
     }
   }, []);
 
   useEffect(() => {
-    if (activeToken) {
-      fetchThreadAndMessages(activeToken);
-    }
-  }, [activeToken, fetchThreadAndMessages]);
+    openRef.current = isOpen;
+    pollerRef.current?.setOpen(isOpen);
+  }, [isOpen]);
 
-  // Conversation access is checked by the API. Public table subscriptions are disabled.
-  // 6. 연결 백업 폴링 (10초 간격)
   useEffect(() => {
     if (!activeToken) return;
-
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchThreadAndMessages(activeToken, true);
-      }
-    }, 10000);
-
-    return () => clearInterval(interval);
+    let firstRead = true;
+    const poller = createInquiryPoller({
+      read: (signal) => {
+        const silent = !firstRead;
+        firstRead = false;
+        return fetchThreadAndMessages(activeToken, silent, signal);
+      },
+      isVisible: () => document.visibilityState === 'visible',
+      isOnline: () => navigator.onLine,
+      initialOpen: openRef.current,
+    });
+    pollerRef.current = poller;
+    const resume = () => poller.refresh();
+    const visibility = () => {
+      if (document.visibilityState === 'visible') resume();
+      else poller.pause();
+    };
+    const offline = () => poller.pause();
+    document.addEventListener('visibilitychange', visibility);
+    window.addEventListener('online', resume);
+    window.addEventListener('offline', offline);
+    poller.start();
+    return () => {
+      document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('online', resume);
+      window.removeEventListener('offline', offline);
+      poller.stop();
+      if (pollerRef.current === poller) pollerRef.current = null;
+    };
   }, [activeToken, fetchThreadAndMessages]);
 
   // 스크롤 최하단 이동
@@ -210,7 +235,6 @@ export default function ConciergeChat() {
     setIsOpen(next);
     if (next) {
       setUnreadCount(0);
-      if (activeToken) fetchThreadAndMessages(activeToken, true);
     }
   };
 
@@ -294,7 +318,6 @@ export default function ConciergeChat() {
       if (data.message) {
         setMessages([data.message]);
       }
-      fetchThreadAndMessages(data.token, true);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error occurred. Please try again.';
       alert(errorMsg);

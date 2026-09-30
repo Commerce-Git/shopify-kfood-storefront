@@ -1,14 +1,9 @@
-# 🏛️ Architecture & Infrastructure Documentation
+# Architecture and Infrastructure Documentation
 
-이 디렉토리는 Blank Seoul 커머스 플랫폼의 **시스템 구조, 포트 아키텍처, 듀얼 DB 격리, Shopify 연동 파이프라인 및 인프라 검증 보고서**를 관리하는 전용 공간입니다.
+Blank Seoul의 시스템 구조와 인프라 검토 자료를 관리한다. 현재 목표와 확정 정책은 [공통 플랫폼 목차](../platform-analysis/README.md)를 기준으로 한다.
 
----
+## 주요 문서
 
-## 📑 주요 문서 목록
-
-1. **[platform_audit_and_environment_verification_report.md](./platform_audit_and_environment_verification_report.md)**
-   * **Shopify Dev/Prod Parity (2026 OAuth Client Credentials Grant)** 검증
-   * **로컬 5대 포트(3000~3004) 아키텍처** 및 프로세스 간섭 방지 설계
-   * **Supabase 듀얼 DB(운영/테스트) 완전 격리** 및 토큰 식별자 구조
-   * **Next.js 16 프로덕션 빌드 & 단위 테스트(274/274)** 전수 검증 결과
-   * **Vercel 프로덕션/프리뷰 환경변수 세팅 가이드**
+- [운영 테스트 환경 분리 수정 보고서](../platform-analysis/VALIDATION.md#운영-테스트-환경-분리-수정-보고서): 두 프로젝트의 실제 변경 커밋, 단위 테스트 288개와 타입 검사, 배포·외부 연동 미확인 범위.
+- [프론트 환경 분리 가이드](../environment-isolation.md): 로컬·Vercel 변수, 수신거부 링크와 캐시 호환성, 적용 후 확인 절차.
+- [기존 플랫폼 종합 기술 검토 보고서](platform_audit_and_environment_verification_report.md): 과거 작성 자료. 완전 격리·무결함·원격 검증 완료 주장은 현재 검증 결과로 간주하지 않으며 보고서 상단의 안내를 함께 읽는다.
