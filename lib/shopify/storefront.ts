@@ -9,9 +9,9 @@ export async function storefrontFetch<T>(
   variables: Record<string, unknown> = {}
 ): Promise<T> {
   const storeDomain =
-    process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || "";
+    process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
   const storefrontToken =
-    process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
+    process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "";
   const storefrontApiUrl = `https://${storeDomain}/api/2024-01/graphql.json`;
 
   // If no token configured, throw a helpful error

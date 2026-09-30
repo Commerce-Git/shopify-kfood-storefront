@@ -1,5 +1,13 @@
 # Gemini report
 
+## 2026-10-01 direct Codex task: environment consolidation
+
+- User authorized both code and environment cleanup (R11: reduce configuration burden and cross-environment mistakes).
+- Changed server-derived public configuration, removed frontend aliases, organized both projects' env files, removed 9 redundant Vercel registrations, and separated paired Preview revalidation keys.
+- Verification: Admin 301/301 and Storefront 23/23 unit tests; both type checks passed. Remote reread confirmed Production value preservation and paired environment origins/keys.
+- No bridge execution or independent review; no Git push, deployment, production build, or live provider E2E. Production shipping authorization remains pending user input.
+- Current evidence: [environment consolidation validation](../docs/platform-analysis/VALIDATION.md#환경변수-단순화-적용-검증).
+
 Run: 2026-09-23T18-34-24-204Z
 Iteration: 2
 Status: COMPLETED
@@ -66,3 +74,20 @@ Status: COMPLETED
 - 확인: 프론트 단위 총 19개·타입 검사·새 제어기/시험 ESLint 통과. 사용자가 DB 진단 및 가상 2대화/4메시지 SQL을 실행. 로컬 브라우저에서 닫힌 창 1분 GET 6→1회 확인.
 - 원본: [조회 개선과 측정 한계](../docs/platform-analysis/INQUIRY_DELIVERY.md#무료-테스트-환경의-조회-개선-결과). 기존 문서 변경 보존. 실제 배포·비용·쓰기/첨부·실시간 알림 검증은 미완료.
 - 다음: 사용자 Git push 후 Preview에서 열기/닫기/복귀 확인. SQL 정리는 사용자 수동.
+
+
+## 2026-10-01 direct review — environment change regressions
+
+- R11: checked paired API consumers, public configuration boundary and current Vercel registration/deployment state.
+- Fixed artist cache request contract/lifetime, malformed preview base validation and inquiry proxy configuration failures.
+- Admin 302/302, Storefront 26/26, both type checks, isolated compile-mode builds passed. Synthetic Admin render and browser bundles contained public addresses but no tested private markers.
+- Production shipping opt-in and Popbill webhook setup remain unresolved. No remote mutations, deployment, SQL or push in this review; no independent agent review.
+- Evidence: [detailed review](../docs/platform-analysis/VALIDATION.md#환경변수-변경-정밀-재검토).
+
+## 2026-10-01 direct implementation — Popbill test callback
+
+- Implemented member BUY-side API Key callback validation and atomic SQL state application with replay/order checks. Corrected reverse-request/refusal state codes.
+- Registered Admin Preview callback secret as Sensitive; Production settings unchanged.
+- Admin 308/308 tests, type check, isolated compile build and disposable PGlite SQL checks passed. No independent agent review.
+- User must apply SQL and push. Preview deployment protection bypass, provider console setup and real callback verification remain pending.
+- Evidence: [validation](../docs/platform-analysis/VALIDATION.md#팝빌-테스트-웹훅-구현-및-검증).

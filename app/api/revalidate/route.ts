@@ -9,6 +9,7 @@ async function handleRevalidation(request: NextRequest) {
     let handle: string | null = null;
     let collections: string[] = [];
     let secret: string | null = null;
+    let artists = false;
 
     if (request.method === "GET") {
       const searchParams = request.nextUrl.searchParams;
@@ -23,6 +24,7 @@ async function handleRevalidation(request: NextRequest) {
         handle = body.handle || null;
         collections = body.collections || [];
         secret = body.secret || null;
+        artists = body.artists === true;
       } catch (e) {
         return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
       }
@@ -40,6 +42,12 @@ async function handleRevalidation(request: NextRequest) {
     // 3. 보안 비밀키 검증
     if (secret !== systemSecret) {
       return NextResponse.json({ success: false, error: "Invalid secret key" }, { status: 401 });
+    }
+
+    // Invalidate both the directory and old/new slugs after profile/rename updates.
+    if (artists) {
+      revalidatePath('/artists', 'page');
+      revalidatePath('/artists/[slug]', 'page');
     }
 
     // 4. 해당 상품 상세 페이지 캐시 갱신

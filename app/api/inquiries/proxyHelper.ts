@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /** One explicitly configured backend. Never replay a write against another environment. */
 export async function proxyInquiryRequest(req: NextRequest, subpath = '') {
-  const configured = process.env.ADMIN_API_URL || process.env.NEXT_PUBLIC_ADMIN_API_URL;
+  const configured = process.env.NEXT_PUBLIC_ADMIN_API_URL;
   if (!configured) return NextResponse.json({ error: 'Concierge is temporarily unavailable.' }, { status: 503 });
-  const base = new URL(configured);
-  if (process.env.NODE_ENV === 'production' && base.protocol !== 'https:') {
+  let base: URL;
+  try {
+    base = new URL(configured);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(base.hostname);
+    if (base.username || base.password || base.pathname !== '/' || base.search || base.hash ||
+      (base.protocol !== 'https:' && !(process.env.NODE_ENV !== 'production' && local && base.protocol === 'http:'))) {
+      throw new Error('Invalid backend origin');
+    }
+  } catch {
     return NextResponse.json({ error: 'Invalid concierge configuration.' }, { status: 503 });
   }
   if (subpath && !/^inq_[a-f0-9]{32}(?:\/(?:messages|realtime))?$/.test(subpath)) {
