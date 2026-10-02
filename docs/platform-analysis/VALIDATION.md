@@ -1,6 +1,28 @@
 # 검증 결과와 후속 시험
 
-아래 1–3절은 2026-09-24의 검증 기록이다. 운영·테스트 환경 분리와 문의 개선의 최신 실행 결과는 문서 후반의 각 절을 참조한다.
+아래 1–3절은 2026-09-24의 검증 기록이다. 문의의 최신 실행 결과는 바로 아래 후속 확인, 운영·테스트 환경 분리의 이력은 관련 후속 절을 참조한다.
+
+## 문의 Preview 실제 시험과 프록시 접근 보완 — 2026-10-02
+
+사용자 직접 시험 요청으로 실행했다. 대상은 테스트 Supabase `zijvqethklunvydtqmak`와 Admin dev Preview `1c8ab504`/READY, Storefront dev Preview `07e5441b`/READY다. 운영 문의 데이터나 실제 고객 이메일을 사용하지 않았다. [비밀값을 제외한 실행 증거](../../../blank-seoul-admin/scripts/performance/inquiry-preview-test-result.json), [현재 문의 계약·다음 단계](INQUIRY_DELIVERY.md#2026-10-02-실제-문의-시험과-preview-연결-보완).
+
+| 범위 | 실행 결과 | 한계 |
+| --- | --- | --- |
+| 배포된 고객 프론트 Preview | Chrome에서 문의 GET·실시간 자격 POST 503, 대화 이력 미표시를 재현 | 전체 문의 흐름 통과 판정 불가 |
+| 배포된 Admin 문의 HTTP | 생성·회신·동일 요청 재전송·생성 내용 충돌 409·내부 노트 비공개·대화별 읽음·직원 bearer 비노출 확인. 익명 직원/관리자 401, ADMIN 위조 403, 저장된 비참여 작가 세션 403 확인 | 문의 첨부·만료 30일 경과·모든 권한/작가 배정 조합을 전수 시험하지 않음 |
+| 실제 Supabase private Broadcast | 고객 A/B·관리자 구독 성공. 실제 DB 회신으로 A·관리자만 알림 수신. 발급되지 않은 채널 참가 CHANNEL_ERROR | 최초 1.8초 확인에서는 수신 0; 새 구독의 10초 확인과 후속 브라우저에서 수신 성공. 보편적 지연 보장 아님 |
+| 알림 발행 제한 | WebSocket 고객 발행 timeout/미수신. REST 익명·서버 요청 모두 HTTP 202였으나 실제 수신은 서버 대조군만 발생 | HTTP 상태만으로 권한 판정하지 않음 |
+| 로컬 수정 Next.js 프론트 → 배포된 Admin | 문의 작성·관리자 목록 표시·회신 표시·열린 화면 읽음·닫기/다시 열기·새로고침·오프라인 초안/미읽음 보존·재접속 복구 통과 | 프론트는 로컬 포트 3031, 별도 `.next-offline` 캐시. 아직 원격 수정 프론트 시험이 아님 |
+| 실제 Admin Preview UI → 로컬 수정 고객 UI | 관리자가 문의 화면에서 작성한 회신 POST 201·입력 초기화·고객 표시 확인. 표시 대기 약 829ms | 해당 소규모 시험의 관찰값이며 SLA/비용/동시 이용 검증 아님 |
+| 실제 서버 저장 후 브라우저 응답 유실 | 입력 유지 → 같은 요청 재시도 → 원래 메시지 ID 반환. DB 한 행·말풍선 하나·입력 초기화 확인 | 최초 시험 도구의 route/ARIA 대기 충돌은 도구 수정 후 기존 시험 대화로 재확인 |
+
+**503 원인·보완:** 보호된 Admin Preview에 프론트 서버가 접근키 없이 요청했고, 보호 화면으로의 redirect가 `redirect: 'error'`에 의해 503으로 처리됐다. 프론트 문의 프록시에 서버 전용 `ADMIN_API_PROTECTION_BYPASS`를 추가해 검증된 HTTPS Admin origin에만 헤더로 전달한다. 고객 쿠키/Authorization/프론트 보호 키는 전달하지 않고 조회 매개변수도 `summary`, `known`, `before`만 허용한다. 반복 쓰기나 다른 환경으로의 fallback은 추가하지 않았다.
+
+원격 프론트 **dev 브랜치 Preview**에 기존 Admin 자동화 접근키를 encrypted 변수로 등록·pull 재검증했다. 다른 변수·양쪽 접근 보호는 유지했으며 Production/localhost에 이 변수를 새로 등록하지 않았다. `.env.example`에는 선택 변수명·설명만 추가했다. 프론트 전체 단위 **28/28**, TypeScript·변경 프록시 ESLint·diff 공백 검사 통과. 프로덕션 build는 이번 실행에서 반복하지 않았다.
+
+가상 문의 4개를 앱 API로만 만들고 모두 해결·읽음 처리해 미확인 수를 0으로 확인했다. 이메일 flag=false를 유지했고 시험 답변에 미읽음 공개 회신이 남지 않았다. 프론트 브라우저 접근용 임시 키는 시험 후 폐기하고 격리 서버를 종료했다. API 자체의 자동 trigger 변경 외에 SQL/마이그레이션을 적용하거나 Git push·배포를 수행하지 않았다.
+
+**남은 단계:** 사용자가 프론트 수정 코드를 dev에 push·재배포한 뒤 **배포된 프론트 → 배포된 Admin**에서 동일 흐름을 재확인한다. 이번 보완에 새 SQL·Admin 코드 재배포는 필요 없다. 실제 메일 전달과 운영 문의 전체 흐름은 별도다.
 
 실행일: 2026-09-24 · 검증 대상은 로컬 작업 트리다. [기준선](README.md)과 [명령 원문 결과](check-results.json)를 함께 참고한다.
 
@@ -625,3 +647,240 @@ Admin과 프론트의 CRON_SECRET은 **같을 필요가 없다**. 같은 환경�
 4. 실제 테스트 callback에서 정상 응답 및 DB 반영 확인.
 
 정확한 URL·콘솔 위치·적용 범위는 [Admin 팝빌 연동 원본](../../../blank-seoul-admin/doc/notifications/TAX_INVOICE_REVERSE_ISSUANCE_GUIDE.md#b-p2-팝빌-웹훅-수신--2026-10-01-구현-기준)에 모았다. 운영 활성화는 이 검증 이후 별도로 진행한다.
+
+### 추가 확인: Preview 접근 키 생성
+
+2026-10-01 사용자 요청으로 Vercel 공식 API를 통해 Admin 프로젝트에 `popbill-test-webhook` Automation Bypass 키를 생성했다. 기존 접근 키·환경변수 등록·SSO 보호 설정이 보존됐음을 재조회로 확인했다. 키와 완성된 콜백 URL은 Git 밖의 로컬 비공개 파일(권한 600)에만 기록했다. 키의 권한 범위는 Admin 프로젝트 전체 배포다.
+
+- 운영/테스트 DB SQL 적용과 배포 성공: 사용자 보고. 이번 작업에서 SQL 재실행이나 배포는 하지 않았다.
+- 배포된 dev Preview 확인: 우회 키 없이 401; 우회 후 잘못된 웹훅 키는 앱 JSON 401; 올바른 웹훅 키와 잘못된 본문은 앱 JSON 400. 현재 배포에서 접근 보호 통과 및 인증 검증 경로 도달을 확인했다.
+- 유효한 업무 이벤트·DB 쓰기·팝빌 발행 요청은 보내지 않았다. 팝빌 테스트 사이트의 회원 웹훅 등록과 실제 이벤트 검증이 남았다.
+
+## Production 변수 보완 및 외부 서비스 재검토
+
+실행일: 2026-10-01. 사용자의 Production 누락 보완 및 추가 누락 검토 요청에 따른 작업이다. 팝빌 테스트 콘솔 설정 완료는 이후 사용자 보고로 반영한다. 현재 계약은 [환경 분리 기준](../environment-isolation.md#2026-10-01-production-누락-보완-이후-기준)이다.
+
+### 원격 등록 변경
+
+- Admin Production: `EPOST_USE_PROD=false`, 별도의 `POPBILL_WEBHOOK_SECRET`(Sensitive) 2행 추가.
+- Admin Preview/Production: 기존 각 로컬 파일의 사업자번호, K-Packet/EMS 승인번호, 발송인 이름·주소·도시 6개씩 총 12행 추가. 비어 있거나 임의 생성해야 하는 공급자 값은 넣지 않았다.
+- 원격 재조회 및 4개 환경 pull 확인: 기존 등록값 보존, Admin 77행/Storefront 26행, 브랜치 override 0건. 프론트는 원격 변경 없음.
+- 같은 환경의 프론트/Admin DB URL·Shopify 도메인·상호 origin·캐시 키 일치. 환경 간 DB·Shopify 도메인·캐시 키 분리. 배송 변수는 해당 로컬 값과 일치. 두 환경에서 인증 우회 false 및 우체국 실제 접수 false 확인.
+- Sensitive 값은 읽기 불가능한 항목이 있어 평문 일치 검증과 등록 존재 확인을 구분했다. 공급자 자격증명의 유효성·승인 상태는 확인하지 않았다.
+
+### 코드 발견 및 보완
+
+| 발견 | 조치 |
+| --- | --- |
+| 팝빌 설정 누락 시 실제 내장 연동 키·사업자·사용자 기본값 사용 | 내장 기본값 제거. 키·10자리 사업자번호·사용자가 없으면 서비스 호출 전에 실패. 기존 내장 키와 Vercel 키가 일치하여 공급자 키 교체 필요 사항 기록 |
+| 17TRACK 키/서명 누락 허용, 서명 대신 키 원문도 허용 | `sign` 헤더의 64자리 SHA256만 상수 시간 비교. 설정 누락 503, 서명 오류 401. 공식 단일 `data` 객체가 무시되는 문제도 보완 |
+| 우체국 취소는 `EPOST_USE_PROD` 검사 없음 | DEV 등기번호 형식 외 취소에 운영 허용 검사 적용. Preview/미허용 환경에서 실제 등기번호 취소를 암호화·HTTP 전에 차단 |
+
+17TRACK 서명 형식은 [공식 문서](https://api.17track.net/en/doc)의 원문 body + `/` + Security/API key 방식과 대조했다. 현재 두 Vercel 환경의 `TRACK17_WEBHOOK_SECRET`과 API 키가 같음을 값 노출 없이 확인했다.
+
+### 검증 결과
+
+- Admin 전체 단위 **313/313**, TypeScript, 양쪽 diff 공백 검사 통과.
+- 실제 env를 복사하지 않은 가상 설정의 분리된 Next.js webpack compile 빌드 통과. 전체 prerender/외부 공급자 통합 시험은 아니다.
+- 새 회귀 시험: 팝빌 설정 누락 시 SDK 호출 0회, 설정된 자격증명 사용, 17TRACK 위조·누락·본문 변경 서명 거절, 단일 이벤트 반영, 우체국 실제 취소 차단/DEV 취소 경로 유지.
+- 실제 env 파일은 Git 제외, 운영 팝빌 콘솔 입력값 파일은 Git 밖 권한 600으로 보관했다. 기존 사용자 문서 변경 보존.
+- 실제 배송 접수·취소, 세금계산서 발행, 고객 메일/SMS, DB SQL, Git push, 새 배포는 수행하지 않았다. 프론트 실행 코드 변경 없음.
+
+### 남은 사항
+
+1. 이번 코드 push 및 Admin Preview/Production 새 배포. 환경 등록 변경만으로 기존 배포가 갱신되지는 않는다.
+2. 팝빌 **연동 키 `POPBILL_SECRET_KEY` 교체** 및 운영 웹훅 콘솔 등록/실제 수신 확인. 테스트 콘솔은 사용자 설정 완료 보고이나 유효한 상태 변경 이벤트 반영은 미검증이다.
+3. 프론트 양쪽 `RESEND_WEBHOOK_SECRET` 미등록. 공급자가 발급한 해당 endpoint 서명 키 필요. 현재 미설정 경로는 503이다.
+4. 알림톡 승인·세금계산서·인증서 안내 템플릿과 발신 채널 확인. 일부 기존 경로의 LMS 대체 발송은 유지된다.
+5. 문의 메일은 양쪽 disabled. 활성화 시 Admin `CRON_SECRET`과 worker 호출자/예약을 함께 구성해야 한다. 기존 `PIPELINE_SECRET` 호출을 깨뜨리지 않도록 이번에 임의 등록하지 않았다.
+6. Admin Resend/17TRACK 계정 키 공유 및 로컬 운영 파일의 팝빌 시험 모드 등 격리 한계는 환경 분리 문서에 기록했다. `false` 하나로 모든 외부 서비스가 시험 모드가 되지는 않는다.
+7. 17TRACK의 DB/Shopify 부분 실패 복구·이벤트 중복 처리는 이번 인증/입력 수정 범위 밖이다. 현재 핸들러의 부분 실패가 성공 응답으로 끝나는 경로가 남아 있어 배송 상태 동기화 전체의 신뢰성 검증 완료로 판정하지 않는다.
+
+## 외부 연동 구현 정밀 재검토
+
+실행일: 2026-10-01. 현재 로컬 변경·Admin HEAD `6058dc9`·원격 설정을 대조했다. 범위는 최근 환경변수/팝빌/17TRACK/우체국 보호 변경과 직접 연결된 쓰기 경로다. 발견 사항과 조치 원본은 [FINDINGS EXT01–EXT05](FINDINGS.md#4-외부-연동-구현-재검토--2026-10-01)이다.
+
+### 이번 실행 증거
+
+| 검사 | 결과 및 한계 |
+| --- | --- |
+| Admin 전체 단위·타입 | **313/313 통과**, TypeScript 통과. 기존 정상/인증 시험은 아래 경쟁·장애 결함을 막는 증거가 아님 |
+| 폐기 가능한 PGlite SQL | 재적용·중복·시각 순서·취소·모드 불일치·권한 시험 통과. 실제 Supabase 및 다른 직접 쓰기 경로와의 경쟁 검증은 아님 |
+| 팝빌 Preview 모드 가드 | 모듈에 Preview + false를 주면 credentials ok=true/isTest=false 반환. 실제 SDK HTTP는 호출하지 않음 |
+| 오래된 조회와 취소 경쟁 | 가상 현재 행 cancelled, 이전 조회 결과 300 → 상태 issued로 변경. UPDATE 조건은 작가명/기간뿐 |
+| 17TRACK DB 실패 | 가상 DB 오류를 반환했지만 HTTP 200, success=true, delivered=0 |
+| 역발행 DB 실패 | 가상 공급자 기등록 성공 + DB 오류 → HTTP 200, 단건 SUCCESS, successCount=1. 외부 등록·메시지는 실행하지 않음 |
+| 공백 검사 | 양쪽 Git diff --check 통과 |
+
+### 원격 재조회 결과
+
+- 네 프로젝트/환경 조합 env pull 및 공식 API 메타데이터 재조회 성공. Admin 77행/프론트 26행, 브랜치 override 0건.
+- 환경별 DB·Shopify·프론트/Admin origin·캐시 키 일치, 환경 간 캐시 키 분리. Admin 양쪽 EPOST_USE_PROD=false, Preview 팝빌 true/Production false, 문의 메일 false 유지.
+- POPBILL_WEBHOOK_SECRET은 **양쪽 등록 존재**를 메타데이터로 확인했다. Preview Sensitive 값은 pull에서 비어 있으므로 그 결과를 누락으로 판정하지 않는다.
+- 현재 Production READY 배포는 Admin `6058dc9`, Storefront `07e5441`. 최근 Admin 내장 자격증명 제거·17TRACK 서명 보강·우체국 취소 가드는 로컬 미커밋 변경으로 아직 이 배포에 포함되지 않았다. 등록값이 같아도 기존 배포에 새 값이 적용됐음을 의미하지 않는다.
+- 과거 HEAD의 내장 팝빌 연동 키와 현재 Vercel 두 환경 키가 동일함을 값 공개 없이 재확인했다. 사용/악용 여부는 검증하지 않았다.
+
+이번 작업은 검토와 기존 공통 문서 갱신이며 실행 코드·원격 설정을 추가 변경하지 않았다. 실제 금융/배송/메일 호출, SQL 적용, Git push, 배포를 수행하지 않았다. 전체 빌드는 재실행하지 않았으며 이전 compile 검증과 구분한다. 실제 callback에서 BUY 회사번호·문서 키 계약, 모든 공급자 실패/재전송, 사용량·동시성 검증은 미완료다.
+
+판정: 최근 인증·설정 분리 보완은 유효하지만, 다른 쓰기 경로의 상태 경쟁과 실패 은폐가 재현돼 **운영 자동처리 완료로 판정할 수 없다**. 우선 연동 키 교체, 팝빌 쓰기 경로/모드 가드 통합, 배송 부분 실패 복구를 해결하고 테스트 이벤트로 검증해야 한다.
+
+## 외부 연동 오류 복구 구현
+
+실행일: 2026-10-01. 사용자가 직접 구현을 요청하고 배포는 직접 수행하기로 했다. R03/R11과 정산·배송·알림 여정의 EXT02–EXT05를 로컬에서 보완했다. 프론트 실행 코드는 변경하지 않았고 공통 원본 문서만 갱신했다.
+
+### 변경 결과
+
+| 경로 | 구현한 보호 |
+| --- | --- |
+| 역발행 | 공급자 호출 전에 관리번호·금액·환경을 원자적으로 준비. 기존 문서 충돌과 저장 실패는 실패로 반환하며 외부 호출을 중단. 등록 후 저장 실패는 관리번호와 외부 등록 여부를 반환하여 같은 관리번호로 복구 |
+| 조회·웹훅·수동 수정 | 조회도 공급자 시각을 사용해 기존 웹훅 RPC로 반영. 요청 기록은 최신 발행·취소 상태를 되돌리지 않으며 수동 상태 변경도 행 잠금과 전이 조건 적용. 세금계산서의 기존 공개 정책·브라우저 직접 권한 제거 |
+| 알림·표시 | 팝빌 SDK와 알림 경로의 모드 검증 통일. Preview에서 false 및 잘못된 문자열 차단. 설정 누락·권한 오류를 mock 발송 성공으로 표시하지 않음. 화면의 실패 건수·안내 발송 여부·취소/거절 표시 및 수령 확인 문구 수정 |
+| 배송 수신 | 서명·본문 크기·배치·시각 검증 후 EMS 배송 완료와 작업 기록을 한 RPC에서 저장. 재수신해도 최초 완료 시각·작업 키 유지. 현재 DB에 없는 등기번호는 반영하지 않음 |
+| Shopify 반영 | DB claim/lease와 같은 fulfillment 동시 claim 방지. 15초 작업 제한, 최대 3개 처리. 재시도 전 Shopify DELIVERED 조회 및 mutation 자동 재시도 제거. 불확실한 응답을 성공으로 확정하지 않음 |
+| 복구·진단 | 5분 후 재시도·최대 5회 후 failed, 늦게 연결된 fulfillment 재조회. 인증된 관리자 조회/재처리 API와 예약 작업 API 제공. 실행할 pending 작업이 없어도 failed 작업이 있으면 성공으로 숨기지 않음 |
+
+구현 원본: [세금계산서 쓰기 계약](../../../blank-seoul-admin/doc/notifications/TAX_INVOICE_REVERSE_ISSUANCE_GUIDE.md#세금계산서-쓰기-보호--현재-적용-기준), [배송 완료·복구 계약](../../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md#7-배송-완료-외부-반영복구-계약). 환경변수는 추가하지 않았다. 로컬 `.env.production.local`의 POPBILL_IS_TEST는 원격 Production과 같은 false로 변경했고 `.env.local`은 true를 유지했다. 운영 로컬 실행은 실제 팝빌 모드이므로 개발 시험은 테스트 구성을 사용한다. 실제 자격증명 값을 문서·테스트에 복사하지 않았다.
+
+### 실행 검증과 한계
+
+- 전체 Admin 단위 시험 **327/327 통과**. 공급자 호출 전/후 저장 실패, 취소 이후 오래된 조회, 알림 실패, 서명·입력·본문 제한, Shopify 불확실한 결과, 잘못된 claim, 예약/관리자 인증, 실패 작업 진단을 가상 의존성으로 시험했다.
+- 폐기 가능한 PGlite에서 SQL 01→02→03 적용 및 반복 적용, 관리키/환경/금액 충돌, 상태 경쟁 순서, 기존 공개 정책 제거, 직접 테이블/RPC 권한, lease 만료·중복 수신·같은 fulfillment 작업·늦은 연결·5회 실패·수동 복구 시험 통과. 실제 Supabase의 동시 트랜잭션 부하 시험은 아니다.
+- 최종 TypeScript 검사 통과. 실제 env를 복사하지 않은 임시 디렉토리에서 Next.js webpack **compile 빌드 통과**. 전체 prerender·운영 설정·외부 공급자 통합 시험과 구분한다.
+- Shopify 조회 후 생성은 재전송 중복을 줄이는 방식이다. 외부 시스템과 분산 트랜잭션/정확히 한 번 전송을 보장하지 않는다. 실제 API 권한·지연된 상태 조회·공급자 재전송 시험은 필요하다.
+- 실제 DB SQL 적용, 외부 발행·배송·고객 알림, Vercel 설정 변경, Git push 및 배포는 수행하지 않았다. 공급자 연동 키도 교체하지 않았다.
+
+### 사용자 적용 순서
+
+**후속 진행 상태:** 사용자가 SQL 실행·운영/테스트 배포 완료를 보고했다. 아래 원격 검증에서 Admin 양쪽 배포의 `ffc3606`/READY와 테스트 DB의 관련 RPC 공개를 확인했다. 실제 발행·Shopify 반영 시험은 미완료다. 기존 팝빌 키는 D024에 따라 유지하며 자동 복구 예약은 D023으로 보류됐다. 실패 기록·중복 방지·관리자 수동 재처리는 유지한다.
+
+1. 테스트 DB에서 기존 `20261001_01` 적용을 확인한 뒤 Admin `supabase/migrations/20261001_02_tax_invoice_write_guards.sql`과 `20261001_03_tracking_delivery_jobs.sql`을 직접 실행한다. 새 코드는 이 RPC들이 필요하며 SQL 미적용 상태에서 성공으로 우회하지 않는다.
+2. **현재 기존 키 유지(D024):** Private 저장소라는 사용자 설명과 기존 키 사용 요청에 따라 팝빌 연동 키 교체를 배포 필수 선행 조건으로 두지 않는다. 기존 POPBILL_SECRET_KEY를 서버 환경변수와 Git에서 제외된 로컬 파일로 관리하고 코드 내장 값은 복원하지 않는다. 외부 유출·악용은 확인되지 않았으며, 노출이나 접근 범위 변경이 확인되면 교체를 다시 검토한다.
+3. 직접 push 및 Preview 재배포 후 팝빌 실제 시험 문서의 BUY 회사번호/관리키 callback과 17TRACK 재전송·Shopify 반영/복구를 확인한다. 실제 BUY 계약 미확인 때문에 회사번호 검사를 임의로 완화하지 않았다.
+4. **현재 보류(D023):** `/api/cron/process-tracking-deliveries`의 예약 등록은 반복 실패나 수동 관리 부담이 확인될 때 진행한다. Authorization Bearer는 CRON_SECRET이 있으면 해당 값, 없으면 기존 PIPELINE_SECRET이다. 예약이 없어도 실패 기록은 유지되며 초기 운영에서는 관리자가 미처리 작업을 확인하고 수동 재처리한다. 자동화 재개 시 호출자의 응답 대기 제한에 맞춰 처리량과 실행 시간을 보완한다. 한 요청에서 최대 3개를 처리하므로 더 큰 배치·미처리 작업은 반복 처리해야 한다.
+5. 확인 후 운영 DB에도 SQL 02·03을 직접 적용하고 운영 코드를 배포한다. 관리자 복구 API는 로그인 인증이 필요하며 전용 화면은 추가하지 않았다. 과거 배송 완료 전체 재등록·17TRACK 등록 실패 보상·공급자 정기 대조는 이번 구현 범위에 포함하지 않았다.
+
+### 원격 Preview 및 로그인 설정 확인 — 2026-10-01
+
+Supabase CLI 로그인 후 저장된 macOS 자격증명을 메모리에서 사용하여 Management API의 Auth 설정을 **GET으로만** 조회했다. 계정 관리 토큰을 앱 `.env`에 추가하지 않았으며 원격 URL 설정·Provider 설정·SQL은 변경하지 않았다. 비공개 키와 응답 전체는 문서에 저장하지 않았다.
+
+| 대상 | 직접 조회 결과 | 판단 / 다음 확인 |
+| --- | --- | --- |
+| Admin Production / dev Preview | 양쪽 READY, Git SHA `ffc3606e3c42d7918d0bb262091ad44e19c2107e` | 최신 코드 배포 확인. 공급자 업무 결과 검증과 구분 |
+| Preview 설정 | 테스트 Supabase `zijvqethklunvydtqmak`, 팝빌 true, 우체국 false, BYPASS_AUTH false, 문의 메일 false | 현재 등록값 조회이며 배포 당시 전체 env 스냅샷 검증은 아님. Sensitive pull 빈 값은 누락 판정에 사용하지 않음 |
+| 테스트 DB RPC | `apply_popbill_tax_invoice_event`, `prepare_popbill_tax_invoice`, `record_popbill_tax_invoice_request`, `mark_manual_tax_invoice`, 배송 receive/claim/finish/retry 총 8개가 PostgREST schema에 존재 | SQL 전체 정의·운영 DB 동일성까지 검증한 것은 아님 |
+| 테스트 업무 데이터 | `tax_invoices` 0건, `tracking_delivery_jobs` 0건. 두 테이블의 anon SELECT는 401/42501 | 현재 문서·배송 작업을 대상으로 정상 반영/실패 복구 시험할 수 없음 |
+| 운영 Auth | Site URL `https://blankseoul.com`; 운영 프론트·Admin 및 localhost 3000/3001/3002 허용; Kakao·Google true | 운영 복귀 주소는 유지. 로컬 테스트 3001은 환경 정리 때 테스트 DB로 이동하는 것이 맞음 |
+| 테스트 Auth | Site URL도 `https://blankseoul.com`; localhost 3000/3001/3002와 운영 프론트·Admin, Admin dev Preview 허용; localhost 3003와 프론트 dev Preview 누락; Kakao true, Google false | 사용자 확인: 문제가 발생한 주소는 localhost 3003. 허용 URL 누락과 운영 기본 복귀 주소가 홈페이지 이동을 설명함. Kakao 작가 로그인과 Google 관리자 로그인은 별도 |
+
+실제 Admin dev Preview HTTP **18개 확인 통과**(2026-09-30 19:13 UTC / 2026-10-01 04:13 KST): 관리자·작가·cron 인증 없는 요청 401, code 없는 callback 및 외부 next 입력의 같은 Admin origin 복귀 307, 팝빌 키 누락/오류 401·잘못된 JSON/필드 400·interOPYN=false 문서 무처리 200, 17TRACK 서명 누락/오류 401·정상 서명 비배송 이벤트 200·잘못된 JSON 400·존재하지 않는 배송번호 RPC 무처리 200 및 health 200. 첫 시험의 작가 GET은 artist 인자 없이 400을 반환했으므로 인증 시험에서는 artist 인자를 넣어 401을 별도로 확인했다. 실제 발행·알림 발송·등록된 배송 데이터 변경·Shopify mutation·예약 작업 실행은 수행하지 않았다. SQL 적용과 Git push는 사용자 수행 원칙을 유지했다.
+
+당시 테스트 Auth의 제안값(아래 후속 작업에서 적용): Site URL은 `https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app`, Redirect URLs에는 `http://localhost:3001/**`, **`http://localhost:3003/**`**, `https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app/**`, `https://blank-seoul-admin-git-dev-thec9rqwer-4072s-projects.vercel.app/**`를 유지/추가한다. 테스트 목록의 운영 주소와 운영 로컬 포트는 사용처를 확인한 뒤 제거한다. 먼저 localhost 3003를 추가하고 새 Kakao 로그인을 시작하면 해당 callback 복귀를 재검증할 수 있다. 테스트 관리자 업무 시험에는 Google Provider 설정과 정상 관리자 세션이 추가로 필요하다. [Supabase Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [CLI 자격증명 저장](https://supabase.com/docs/reference/cli/supabase-login).
+
+### Supabase Auth URL 원격 수정 — 2026-10-01
+
+위 조회 이후 사용자가 운영·테스트 URL의 직접 수정도 요청했다. Vercel 프로젝트 도메인/두 dev alias와 양쪽 `.env`의 Supabase 연결, npm dev/prod 실행 포트를 재조회·대조한 뒤 URL 필드 두 개만 PATCH했다. 변경 전 URL 값은 `/Users/junseoha/.config/blank-seoul/supabase-auth-url-change.private.json`에 보관했다. 관리 토큰과 Provider 비밀값을 파일·문서에 기록하지 않았다. 설정 원본은 [환경 분리 가이드의 Auth URL 계약](../environment-isolation.md#supabase-auth-url-configuration--2026-10-01-적용)이다.
+
+- 테스트: Site URL을 운영 홈페이지에서 프론트 dev Preview로 변경. Redirect URLs를 테스트 로컬 3001/3003와 프론트·Admin dev Preview 두 주소로 정리했다.
+- 운영: Site URL은 운영 홈페이지 유지. 배포 주소는 프론트 `/auth/callback`, Admin `/api/auth/callback` 및 `?next=/artist`로 지정했고 운영 로컬 3000/3002를 유지했다. 테스트 로컬 3001은 제거했다.
+- 각 PATCH 후 GET 결과의 `site_url`/`uri_allow_list`가 계획값과 일치하며 다른 Auth 설정 필드의 차이는 0개였다. Google/Kakao 활성화, 키, 메일·세션 설정은 변경하지 않았다. SQL 적용·Git push·Vercel 배포는 수행하지 않았다.
+- OAuth 복귀 확인 **7/7 통과**(2026-09-30 19:25 UTC / 2026-10-01 04:25 KST): PKCE authorize 요청 후 공급자의 access_denied 취소 callback을 보내 실제 Supabase가 선택한 Location의 origin/path/기존 query를 확인했다. 테스트 로컬 3003/3001, Admin·프론트 dev Preview, 운영 Admin Kakao·Google callback, 운영 프론트 Google callback이 요청 주소로 복귀했고 `next=/artist`를 유지했다. 취소 오류 query는 비교에서 제외했다. 실제 사용자 로그인·세션 생성·앱 callback 실행·이메일 발송은 수행하지 않았으며 테스트 프론트의 주소 검증에는 활성화된 Kakao를 사용했다. 프론트의 실제 Google 로그인을 시험한 것으로 해석하지 않는다.
+- 사용자에게 필요한 다음 확인: localhost 3003에서 기존 로그인 흐름을 닫고 새 Kakao 로그인부터 시작하여 작가 화면 복귀를 확인한다. 테스트 Google Provider false와 관리자 세션 부재에 따른 업무 시험 한계는 그대로다.
+
+### 운영 관리자 Google 로그인 검토·권한 등록 — 2026-10-01
+
+사용자가 localhost 3002에서 관리자 로그인 실패를 보고했다. 운영 Auth 설정 GET과 사용자 목록 GET을 조회하고 callback/proxy 코드를 대조했다. 사용자가 제공한 로그에는 `EXCHANGE_SUCCESS`가 있어 Google 인증과 세션 교환은 성공했다. 운영 Google Provider/Client ID/Secret은 설정돼 있고 localhost 3002는 허용 URL이다. 운영 Auth 사용자 4명 중 Google 연결 계정은 2개이며, 서버가 관리하는 `app_metadata.role`/`roles`의 admin 권한 계정은 0개였다. `proxy.ts`와 `requireAdmin`이 해당 권한을 요구하므로 Google 인증 이후 관리자 접근이 차단된 것으로 확인했다.
+
+- 사용자가 기존 Google 연결 계정 두 개를 관리자 등록 대상으로 명시했다. 운영 Auth Admin API로 이메일이 확인된 정확한 두 기존 계정의 `app_metadata`를 읽고 기존 필드를 보존하여 `role: "admin"`을 추가했다. 각 계정을 재조회하여 권한을 확인했고, 최종 관리자 수 2개·다른 계정 metadata 변경 없음·대상 계정의 나머지 app_metadata 보존을 확인했다. 새 계정 생성·테스트 계정 변경·SQL 실행은 하지 않았다. 개인 이메일·인증 토큰은 문서에 기록하지 않는다.
+- 회원 가입은 운영/테스트 모두 허용돼 있다(`disable_signup=false`, before-user-created hook 없음). Supabase를 구매자/작가와 공유하므로 프로젝트 전체 가입 차단으로 관리자 접근을 제어하지 않았다. Google 인증 성공과 관리자 업무 인가는 별도이며 `isAdminUser`의 server-managed app_metadata 조건을 유지했다. 등록된 Google OAuth 앱 자체의 Audience 제한은 Google 콘솔을 직접 조회하지 않아 미검증이다.
+- Google provider token을 카카오 사용자 API에 보내던 별도 callback 결함도 수정했다. 카카오 연결 계정의 `/artist` 복귀 흐름에서만 전화번호/이름 수집을 수행하고 Google 관리자 callback은 카카오 호출을 생략한다. 이메일로 생성 후 소셜 계정이 연결되면 app_metadata.provider는 email로 남을 수 있으므로 providers 배열도 확인한다. OAuth 코드가 포함된 요청 URL·provider token 접두사는 callback 진단 로그에서 제거했다.
+- 관련 시험 **18/18 통과**: 새 callback 회귀 시험 3개(Google 토큰 미전송/로그 배제, 카카오와 연결된 Google 관리자 계정의 카카오 호출 생략, 이메일 연결 카카오 작가 복귀 유지)와 기존 security-boundaries 15개. TypeScript 검사·diff 검사 통과. 실제 Google 계정으로 새 로그인 완료 후 관리자 업무 접근은 사용자가 재확인해야 한다.
+- Auth 권한 변경은 원격 반영 완료다. callback 코드는 로컬 수정이며 Git push/Vercel 배포는 수행하지 않았다. localhost 3002에서 로그아웃 후 새 로그인하고, 원격에는 사용자 push/배포 후 확인한다. 테스트 Google Provider는 기존 false/자격증명 미설정 상태를 유지했다.
+
+- **push 후 배포 조회:** 사용자가 push 완료를 보고했고 로컬/원격 추적 main·dev가 `b4845a3b69ed18d3a9c7544014a01df25c47f3e6`를 가리킴을 확인했다. Vercel deployment 목록에서 dev Preview는 READY, main Production은 QUEUED였다(2026-10-01 04:59–05:00 KST 조회). 운영 새 배포 완료와 두 관리자 계정의 실제 새 로그인·업무 접근은 아직 확인하지 않았다. 이번 커밋은 새 SQL/env 적용을 추가로 요구하지 않는다.
+
+### Preview 팝빌·배송 상태 및 재처리 동작 확인 — 2026-10-01
+
+사용자가 실제 동작 확인을 요청했다. R03/R11 및 EXT02–EXT05의 인수 검증으로 실행했다. 시험 전에 로컬 테스트 구성과 원격 DB를 대조했다: Supabase `zijvqethklunvydtqmak`, Shopify `blank-seoul-dev.myshopify.com`의 partnerDevelopment=true, POPBILL_IS_TEST=true, EPOST_USE_PROD=false. 팝빌 잔액 API가 실제 시험 서버에서 200을 반환했다(잔액 0). Shopify 앱의 write_orders/write_fulfillments 및 관련 fulfillment order 권한을 조회했고, 주문과 앱 webhookSubscriptions가 모두 비어 있음을 확인했다. Production 업무 데이터·팝빌 문서 발행·우체국 접수·고객 알림 호출은 하지 않았다.
+
+Vercel 재조회(2026-09-30 20:28 UTC / 2026-10-01 05:28 KST): Admin dev Preview와 main Production 모두 `b4845a3b69ed18d3a9c7544014a01df25c47f3e6` / READY. Preview 보호 우회 키와 웹훅 키는 요청 헤더에서만 사용하고 보고서에 기록하지 않았다.
+
+시험 데이터는 Shopify 개발 스토어에 test=true·0원 사용자 지정 품목·재고 차감 BYPASS·알림 false·고객/메일/전화번호 없음으로 주문 2개를 생성했다. 등록된 실물 상품 재고를 쓰지 않았다. `EXTCHK26-OK`의 주문/fulfillment는 `18917845074098` / `7265302249650`, `EXTCHK26-RETRY`는 `18917845106866` / `7265302315186`이다. 두 fulfillment의 최초 displayStatus는 MARKED_AS_FULFILLED였다. [시험 데이터 SQL](../../../blank-seoul-admin/scripts/performance/seed-external-delivery-test.sql)은 사용자 직접 실행했고 원격 SELECT로 세금계산서 2건·EMS 2건·failed 작업 1건을 확인했다. 이 failed/attempts=5는 실제 과거 장애 이력이 아니라 소진 상태의 재처리를 위한 초기 조건이다. fixture SQL의 확인값/충돌/NULL 식별자/재실행 상태 보존/활성 작업 삭제 차단/기존 데이터 보존은 별도 로컬 PostgreSQL에서 8개 확인을 통과했다.
+
+실제 원격 DB·Preview HTTP·Shopify 개발 API 및 localhost 관리자 API를 포함한 **19개 확인 통과**. [확인 항목·시각·한계 JSON](../../../blank-seoul-admin/scripts/performance/external-delivery-test-result.json)에 기록했다.
+
+| 대상 | 실행 결과 | 검증 범위 |
+| --- | --- | --- |
+| 팝빌 상태 | requested → issued(300) → NTS 완료(304) → cancelled, 별도 문서 refused를 DB SELECT로 확인 | 시험 프로그램이 만든 콜백을 실제 Preview에 전달. 팝빌에서 발행한 문서는 아님 |
+| 팝빌 중복·역전 | 같은 event ID 재수신·이전 stateDT 수신은 200이며 행/updated_at 불변 | DB 최신 상태 유지 |
+| 팝빌 충돌·미등록 | 같은 시각의 다른 상태 및 미등록 관리키는 503. 충돌 행 불변·미등록 행 생성 없음 | 저장하지 못한 이벤트를 성공으로 숨기지 않음 |
+| NTS 메타데이터 | 승인번호·발행/전송 시각 저장, invoice_status는 issued 유지 | 수령 확인 confirmed 업무 단계와 국세청 전송 완료를 구분 |
+| 정상 배송 | Preview signed callback → EMS delivered → 작업 completed → 실제 Shopify DELIVERED 이벤트 1개 | 개발 스토어 실제 GraphQL mutation과 후속 query 확인 |
+| 배송 재수신 | 다른 완료 시각으로 반복해도 최초 DB 시각·작업·이벤트 수 보존 | 같은 배송 중복 반영 차단 |
+| 소진 작업 | seeded failed 작업의 Preview 콜백은 503, failed 유지. 인증 없는 Preview 재처리는 401 | 소진 작업을 성공으로 표시하지 않고 관리자 권한 필요 |
+| 불확실한 응답 | localhost에서 현재 관리자 Route Handler를 실행. 실제 Shopify 이벤트 생성 성공 응답만 시험 프로그램이 503으로 교체. DB pending·attempts=1·last_error 보존 | 실제 공급자 장애는 발생하지 않았으며 장애 응답을 주입함 |
+| 수동 복구 | localhost 3003 실제 HTTP POST로 completed·last_error=null. Shopify 이미 DELIVERED여서 이벤트 수 1 유지 | localhost의 의도된 개발 인증 우회 사용. Vercel 관리자 세션 시험은 아님 |
+| 복구 후 | Preview 반복 콜백 200, 미완료 목록에서 fixture 제거, 빈 수동 배치 processed=0 | 자동 예약 등록·무한 반복 없음 |
+
+첫 실행은 15개 확인 뒤 localhost 3003 서버 종료로 마지막 HTTP 요청이 ECONNREFUSED였다. 시험 서버를 다시 실행하고 DB에 남은 pending 작업만 재처리해 나머지 4개를 완료했다. 팝빌/정상 배송 앞 단계는 재실행하거나 시험 데이터를 초기화하지 않았다. 애플리케이션 실행 코드·환경변수·원격 설정·배포·SQL 정의는 이번 검증에서 변경하지 않았다.
+
+**남은 검증:** 팝빌 상태 300 이후 국세청 후속 전송과 운영 회원 콜백, 실제 등록 운송장의 17TRACK 상태 변화, 운영의 실제 배송·세무 흐름. 테스트 회원·개발 스토어의 성공을 운영 전체 인수 완료로 해석하지 않는다. D023의 자동 예약 보류와 D024의 기존 팝빌 키 유지 방향은 변경하지 않았다.
+
+시험 결과 검토가 끝나면 사용자가 [cleanup-external-delivery-test.sql](../../../blank-seoul-admin/scripts/performance/cleanup-external-delivery-test.sql)을 테스트 DB에서 직접 실행할 수 있다. 시험 문서·EMS·작업은 현재 유지하며 실제 정산/발행/우체국 접수 대상으로 사용하지 않는다. cleanup은 Supabase의 고정 시험 행만 삭제하며 Shopify 개발 스토어의 두 시험 주문은 별도로 남는다.
+
+### 팝빌 테스트 회원의 실제 요청·취소 콜백 — 2026-10-01
+
+**사용자 push 후 확인 완료:** Admin 양쪽 `d5ab1cf`/READY를 원격 조회했다. 07:30 KST에 인증된 dev Preview 앱 역발행 POST가 HTTP 200·successCount=1·notificationSent=false였고, 새 시험 문서의 실제 Request 콜백 requested/200 확인 후 SDK 취소 및 실제 CancelRequest 콜백 cancelled/500을 확인했다. 별도 MID·공급자 시각을 DB에서 대조했다. 이메일·전화번호를 비웠고 문서는 취소됐다. 아래의 미배포 표시는 최초 SDK 시험 당시 기록이며, 앱 수정의 배포·앱 경로 확인은 이 후속 결과로 완료됐다. [실행 증거](../../../blank-seoul-admin/scripts/performance/external-delivery-test-result.json)의 `popbillApplicationPostDeployTest`를 따른다.
+
+**2026-10-02 실제 Issue 후속 확인:** 팝빌의 테스트 인증서 전용 공급자 `1234567890`을 `MARKETORI` 연동회원으로 가입하고 인증서를 등록했다. 인증된 Preview 앱이 관리번호 `INV-BS-202609-018f0002`, 공급가 1,000원·세액 100원의 역발행 요청을 만들었고 실제 Request 웹훅이 requested/200·상태시각 `20261002190344`로 반영됐다. 사용자가 공급자 화면에서 인증서로 발행한 후 팝빌 조회와 테스트 DB가 issued/300·상태시각 `20261002192124` 및 동일 신규 MID를 반환했다. 연동사 시험 포인트도 3,000원에서 2,900원으로 100원 차감됐다. 연락처를 비워 알림은 발송하지 않았다. TEST 회원·Preview·테스트 DB의 Issue까지 검증했으며 상태 300 이후 국세청 후속 전송과 운영 회원 콜백은 미검증이다. [실행 증거](../../../blank-seoul-admin/scripts/performance/external-delivery-test-result.json)의 `popbillCertifiedSupplierIssueTest`를 따른다.
+
+사용자가 제공한 본인 사업자 정보를 공급자·공급받는자에 사용한 시험 문서의 Request·CancelRequest 콜백을 확인했다. 지인 정보는 불필요했다. 인증된 Preview 역발행 POST에서 필수 `purposeType` 누락으로 팝빌이 거절하는 결함을 발견했고, `purposeType=청구`·`invoiceeType=사업자`를 명시하도록 수정했다. purposeType만 보완한 직접 요청은 일시 오류였고 두 항목을 명시한 뒤 성공했으므로 일시 오류 원인을 단정하지 않는다.
+
+앱 API가 준비한 동일 시험 관리번호에 수정 데이터를 직접 SDK로 등록해 code=1을 받았다. 팝빌의 실제 POST 두 건은 Preview HTTP 200이며 테스트 DB는 requested/200(07:20:25 KST) → cancelled/500(07:21:11 KST), 서로 다른 MID와 공급자 상태시각으로 반영됐다. DB 상태를 수동 변경하지 않았다. 이메일·전화번호를 비웠고 알림톡을 호출하지 않았다. 시험 문서는 취소됐으며 테스트 회원/DB만 사용했다.
+
+최초 SDK 시험에서는 단위 테스트 334개·타입 검사를 통과했지만 앱 POST가 아직 미배포였고 공동인증서도 미등록이었다. 이 당시 Issue·국세청 전송·거부 및 운영 회원의 실제 콜백은 미검증이었다. 이후 앱 배포와 2026-10-02 Issue 확인 결과는 위 후속 기록을 따른다. 구현·실행 근거는 [Admin 세금계산서 SSOT](../../../blank-seoul-admin/doc/notifications/TAX_INVOICE_REVERSE_ISSUANCE_GUIDE.md#실제-테스트-회원-콜백-확인--2026-10-01-07200721-kst), [실행 증거](../../../blank-seoul-admin/scripts/performance/external-delivery-test-result.json)의 `popbillProviderCallbackTest`를 참조한다.
+
+### 로그인 세션을 사용한 Preview 재처리 후속 확인 — 2026-10-01
+
+**17TRACK 공급자 콘솔 시험 확인 완료:** 사용자가 WebHook test의 `Operation done.`을 보고했고, Vercel 요청 로그에서 2026-09-30 22:00:11 UTC / 2026-10-01 07:00:11 KST의 Admin dev Preview `POST /api/webhooks/17track` 응답 200을 확인했다. 앞선 자체 GET 건강 확인(21:53:49 UTC)과 구분했다. 테스트 DB의 EXTCHK26_OK/RETRY 두 작업은 completed/attempts=1/last_error=null/최초 delivered_at을 유지했다. 콘솔 시험의 공급자 발생 요청과 endpoint 수락을 검증했으며, 등록된 실제 운송장의 상태 변화·신규 Shopify mutation·팝빌 직접 이벤트까지 완료한 것으로 확대하지 않는다. 공유 계정의 전체 callback URL과 운영 설정은 변경하지 않았다. 아래 공급자 직접 시험 미실행 표시는 이 콘솔 확인 전 상태다.
+
+**배포·SQL 적용 후 원격 확인 완료:** 사용자가 배포와 fixture reset SQL 실행을 완료했고, Vercel Admin dev alias가 `a6775f1fbfe04c6c95e0d951ff9f14f1ea1579ba` / READY / dev / 비운영 target임을 직접 조회했다. 실제 Preview 관리자 쿠키로 **12개 확인 전부 통과**(2026-09-30 21:51:09–21:51:15 UTC / 2026-10-01 06:51 KST). 테스트 DB의 failed/attempts=5/시험 last_error를 읽고, 개발 스토어·test=true 주문·고정 fulfillment·기존 DELIVERED 이벤트 1개를 확인한 후 시험했다. 인증된 GET에는 실패 작업이 나타났고 비로그인 POST는 401·행 불변, 잘못된 송장 입력은 400 `Invalid tracking number`·행 불변이었다. 올바른 POST는 200/result=completed, DB completed/attempts=1/last_error=null로 복구됐다. 최초 delivered_at·EMS 행·다른 작업은 보존됐고 Shopify 이벤트 ID/내용도 동일했다. 완료 작업은 미처리 목록에서 빠졌으며 반복 POST도 200·DB/Shopify 불변이었다. SQL 적용·push·배포는 사용자가 수행했고 에이전트는 승인된 Preview 관리자 API만 실행했다. [원격 12개 확인 결과](../../../blank-seoul-admin/scripts/performance/external-delivery-test-result.json)의 authenticatedPreviewFollowup을 따른다. 아래 미배포/재시험 필요 기록은 이 확인 전 상태다. 공급자 직접 이벤트는 아직 별도 미검증이다.
+
+사용자가 제공한 테스트 관리자 세션으로 Supabase 사용자 API의 실제 admin 권한과 Preview `GET /api/admin/tracking-deliveries` 200·items=[]를 확인했다. 쿠키·access/refresh/provider token은 Git 밖의 권한 600 파일에서만 사용하며 문서에 기록하지 않았다. 완료된 시험 작업 두 건은 failed 목록에 나타나지 않았다.
+
+하지만 현재 배포 `b4845a3`에서 올바른 JSON의 POST(`trackingNumber=EXTCHK26_RETRY`, 빈 객체, 잘못된 번호 대조군)가 모두 400 `Invalid JSON`을 반환했다. 재처리 RPC/worker 전에 실패하므로 배송 작업은 변경되지 않았다. `requireAdmin`이 native Request를 `new NextRequest(request)`로 감싸면서 원래 요청 본문을 소비하는 경로를 로컬 재현했다. URL과 헤더만 인증용 NextRequest로 전달하도록 수정하여 원래 JSON/multipart 본문을 보존했다. 관리자 역할 검사와 인증 우회 조건은 변경하지 않았다. 개발 서버의 의도된 인증 우회 때문에 이전 localhost 시험에서는 이 경로를 지나지 않았다.
+
+- 신규 실제 NextRequest 기반 회귀 시험 3개는 수정 전 실패·수정 후 통과: JSON 보존, multipart 보존, 401/403 접근 차단 유지.
+- 관련 외부 연동 시험 포함 17/17, 전체 Admin 단위 시험 **333/333**, TypeScript 검사 통과. 로컬 코드 검증이며 원격 수정 적용 증거가 아니다.
+- 이미 완료된 fixture의 Preview 실패 복구 재시험을 위해 [reset-external-delivery-retry-test.sql](../../../blank-seoul-admin/scripts/performance/reset-external-delivery-retry-test.sql)을 준비했다. 고정 배송/주문/fulfillment 검사 후 한 작업만 failed/attempts=5로 변경하며 Shopify DELIVERED 상태는 유지한다. 로컬 PostgreSQL 확인 6개 통과(프로젝트 확인값, 초기화, 반복 실행 보존, 다른 작업 보존, 활성 claim 차단, 식별 충돌 차단). 사용자 수동 실행 전이며 운영 적용 파일이 아니다.
+
+**공급자 직접 조회:** 팝빌 시험 SDK의 회원 접근 URL로 테스트 콘솔 Webhook 설정을 읽었다. callback origin/path가 Admin dev Preview `/api/tax-invoice/webhook`이고 Vercel 보호 우회 query 및 API 인증키가 비공개 보관 설정과 일치했다. 조회 화면에서 보이는 실행 행은 0개였다. 설정 저장·실제 문서 등록/발행·승인·메일은 실행하지 않았다. 실제 공급자 BUY 이벤트 수신 증거는 여전히 없다. [팝빌 공식 Webhook 계약](https://developers.popbill.com/api-reference/taxinvoice/webhook/introduction).
+
+17TRACK `/track/v2.2/getquota`는 HTTP 200/code=0, quota_total=200·used=42·remain=158·today_used=0이었다. 현재 로컬 운영/시험 API key는 동일하며 양쪽 Webhook Secret은 각 API key와 일치한다. 별도 17TRACK 계정 격리가 완료된 것으로 해석하지 않는다. [공식 API 문서](https://api.17track.net/en/doc)의 push는 account callback으로 전달하고 URL override 인자가 없으므로, 운영과 공유하는 전체 callback을 Preview로 변경하거나 불명확한 계정으로 시험 push를 실행하지 않았다. Console의 URL을 직접 지정하는 WebHook Test 또는 별도 시험 계정에서 공급자 발생 이벤트를 검증해야 한다.
+
+**현재 다음 단계:** 사용자가 인증 본문 보존 코드를 push/Preview 배포하고 위 fixture reset SQL을 테스트 DB에서 직접 실행하면, 승인된 세션으로 실패 목록 → 관리자 POST 재처리 → DB completed → Shopify DELIVERED 이벤트 1개 유지를 원격 확인한다. Supabase SQL 적용·Git push·배포와 실제 공급자 콜백 시험은 이번 후속 작업에서 수행하지 않았다. 자동 예약 보류 D023은 유지한다.
+
+### Preview Google 로그인 설정 누락 확인 — 2026-10-01
+
+**사용자 최종 확인:** 테스트 관리자 권한 등록 후 사용자가 dev Preview 로그인이 잘 작동한다고 확인했고, 이후 운영 Google 로그인도 성공했다고 확인했다. 양쪽 Google 로그인 후 관리자 접근의 사용자 인수 확인을 완료했다. 기존 Google Secret 비활성화/삭제, 공급자 직접 콜백 및 Preview 관리자 배송 재처리는 이 로그인 확인에 포함되지 않는다. 아래 미확인 표시는 각 실행 당시 상태다.
+
+**dev Preview 로그인 후 다시 로그인 화면 — 테스트 관리자 권한 등록:** 테스트 Auth 조회에서 앞서 승인된 Google 계정 2개가 생성되어 있고 last_sign_in_at이 Preview callback 요청 시각과 일치하지만 관리자 수는 0이었다. 보호 경로는 `app_metadata.role` 또는 `roles`의 admin만 통과시키므로 이 계정은 인증 후에도 대시보드에서 차단된다. 사용자 이전 승인 대상 2개만 테스트 Auth Admin API로 기존 `app_metadata`를 보존하면서 `role: admin`을 등록하고 재조회했다. Google identity와 다른 app_metadata 불변 확인. 운영·SQL·코드·Vercel 설정은 변경하지 않았다. Preview callback 로그는 307이며 확보한 요청 로그에는 오류 본문이 없으므로 그것만으로 세션 교환 성공을 확정하지 않는다. 새 Google 로그인 뒤 대시보드 접근은 사용자 확인이 남았다. 아래 관리자 0명 기록은 등록 전 상태다.
+
+**사용자 로그인 시작 주소 확인 후 — main alias 복귀 보완:** 사용자는 `git-main` Admin에서 시작했으며 Google 화면에는 운영 Supabase가 표시됐다고 확인했다. Vercel alias/deployment API에서 해당 주소의 target=production·branch=main·READY·Admin 프로젝트·커밋 `b4845a3`를 확인했다. dev alias는 branch=dev·READY이고 실제 브라우저 로그인 버튼은 테스트 Supabase를 사용한다. main 주소에서 운영 DB를 사용하는 것은 정상이며 이 주소를 테스트 Preview로 취급하지 않는다. main callback의 허용 목록 누락으로 운영 프론트 루트 복귀를 재현한 뒤 운영 `uri_allow_list`에 main callback과 `?next=/artist` 2개만 추가했다. 다른 운영 Auth 필드와 테스트 설정 불변 검사 통과. 직후 첫 복귀 검사는 실패했지만 이후 새 요청에서 main Admin·main 작가 next·기존 운영 Admin 3개 모두 정상 callback 복귀를 확인했다. 실제 계정 로그인 완료는 사용자 확인이 남았다. 새 코드 배포는 필요하지 않다.
+
+**Secret 교체 후 로그인 복귀 오류 진단:** 사용자가 Preview의 `redirect_uri_mismatch`와 이후 운영 프론트 루트로 code가 붙어 복귀하는 현상을 보고했다. 양쪽 실제 authorize URL을 Google까지 따라가서 `/v3/signin/identifier` 진입·주소 불일치 없음·프로젝트별 callback을 확인했다. 별도 임시 브라우저에서 현재 dev Preview `/login`의 Google 버튼을 직접 눌렀을 때 테스트 Supabase authorize, dev Preview `/api/auth/callback` 복귀 요청, Google의 테스트 Supabase callback과 로그인 화면을 확인했다. 로그인 취소를 이용한 복귀 주소 검사에서 테스트→Preview 및 운영→운영 Admin은 요청한 callback으로 302 복귀했다. 대조군인 운영 Supabase→Preview 요청은 허용 목록에서 제외되어 `https://blankseoul.com/`으로 복귀하는 현상을 재현했다. 사용자 요청이 오래된 배포/이전 OAuth 요청인지 확인하려면 로그인 시작 전체 주소와 새 dev 로그인 결과가 필요하다. 실제 사용자 계정 로그인·세션 교환은 아직 미검증이다. 코드·원격 설정·허용 목록 변경은 하지 않았다.
+
+**최신 상태 — 운영 Secret 교체:** 사용자 요청으로 운영 `feezosccyvecmrhqrkgl`의 `external_google_secret`만 로컬에 보관한 새 원본값으로 PATCH했다. HTTP 성공 후 다른 운영 Auth 필드 불변 검사를 통과했다. 보호된 Secret 응답의 운영/테스트 일치 검사는 실패했으며, 이 비교로 원문 적용 여부를 판단할 수 없으므로 검증 근거에서 제외했다. 이후 양쪽 Google enabled=true·Secret 존재·새 PKCE authorize 302→Google 및 각 Supabase callback을 확인했다. Google token endpoint에 잘못된 시험 코드를 전송한 검사에서 새 Secret은 HTTP 400 `invalid_grant`, 잘못된 Secret 대조군은 HTTP 401 `invalid_client`였다. 새 자격증명 수락 근거이며 실제 사용자 로그인은 아직 미검증이다. 테스트에는 PATCH하지 않았고 기존 Google Secret도 비활성화/삭제하지 않았다. 운영 로컬 파일 주석과 공통 목차·환경 문서를 갱신했다. 아래는 교체 전부터의 실행 기록이다.
+
+사용자가 Admin dev Preview `/login`에서 `Unsupported provider: provider is not enabled`를 보고했다. 현재 로그인 버튼은 Google을 요청한다. Management API GET으로 운영 Google enabled=true·Client ID/Secret 존재, 테스트 Google enabled=false·두 자격증명 없음, 테스트 Redirect URLs의 Admin dev alias 허용을 재확인했다. 테스트 `/auth/v1/authorize?provider=google` 직접 요청에서도 HTTP 400과 같은 validation_failed 응답을 재현했다. 이는 관리자 role 검사 또는 OAuth callback 코드 실행 전의 공급자 설정 오류다.
+
+운영 OAuth Client ID로 테스트 Supabase callback을 요청한 별도 비로그인 probe에서는 Google signin/oauth/error의 redirect_uri_mismatch를 확인했다. Google 콘솔의 기존 Web OAuth client에 `https://zijvqethklunvydtqmak.supabase.co/auth/v1/callback` 추가가 선행돼야 한다. Google 콘솔 접근 권한이 없어 사용자에게 이 한 단계의 실행을 요청했다. Provider 설정을 변경하는 임시 도구는 이 callback 수락을 확인하지 못하면 PATCH 전에 중단하도록 준비했으며, 이번 요청에서도 중단돼 원격 Auth 설정·코드·Vercel env는 변경하지 않았다. 기존 Google 자격증명은 메모리에서만 읽고 파일·보고서에 저장하지 않았다.
+
+테스트 Auth Admin API 조회에서는 사용자 1명·관리자 0명이며, 앞서 승인된 운영 관리자 이메일의 테스트 계정은 없었다. Google 활성화 이후 로그인 성공과 테스트 관리자 인가는 별도 확인해야 한다. [환경별 Google 설정 계약](../environment-isolation.md#supabase-auth-url-configuration--2026-10-01-적용)을 따른다.
+
+**Google callback 등록 후:** 사용자가 추가 완료를 알렸고 기존 OAuth client로 테스트 callback을 다시 요청했을 때 Google `/v3/signin/identifier`로 진입해 redirect_uri_mismatch 해소를 확인했다. Supabase GET의 Secret을 원본으로 사용할 수 있다는 이전 설명은 잘못된 것으로 정정했다. 그 조회값으로 테스트 Provider 연결을 시도했으나 저장 후 Secret 검증이 불일치하여 Provider를 다시 false로 변경했다. 테스트 Client ID는 기존 OAuth 앱 값으로 준비했으며, Secret은 원본값으로 다시 설정해야 한다. 운영 Google enabled/Client ID 등록 상태는 유지됐고 원격 운영 PATCH는 하지 않았다. 다른 테스트 Auth 설정 필드는 변경하지 않았다. 로컬 두 프로젝트 `.env` 및 Downloads에서 해당 원본 Google 자격증명 파일을 찾지 못해, 사용자에게 Git 밖의 원본 Secret/자격증명 JSON 경로를 요청했다. 실제 계정 인증·세션 교환·테스트 관리자 권한 등록은 아직 수행하지 않았다. 조회 Secret의 보호값을 원본으로 재사용하거나 단순 SHA-256 비교로 검증하도록 가정하지 않는다.
+
+**새 원본 Secret으로 테스트 Provider 연결:** 사용자가 Google 콘솔에서 기존 OAuth client에 새 Secret을 추가한 것이라고 설명하며 원본값을 제공했다. 테스트 프로젝트만 enabled=true·기존 Client ID·제공된 새 Secret으로 PATCH했다. TTY 입력 echo를 끈 표준 입력에서 메모리로 받았으며 Secret을 파일·로그·문서·코드·Vercel에 저장하지 않았다. 저장값 재조회에서 Google enabled/Client ID/Secret 등록 및 다른 테스트 Auth 필드 불변을 확인했고, 운영 config 전체도 변경 전 GET과 동일했다. 실제 `/auth/v1/settings` Google=true·일반 authorize 302→accounts.google.com·PKCE authorize 302→accounts.google.com 및 redirect_uri=`https://zijvqethklunvydtqmak.supabase.co/auth/v1/callback`을 확인했다. 최초 자동 authorize 검증 요청은 400이라 완료로 판정하지 않았고, 이후 실제 응답 본문/설정 재조회와 새로운 PKCE 요청으로 별도 성공을 확인했다. 사용자 Google 계정의 로그인 완료·authorization code 교환·관리자 API 접근까지 검증한 것은 아니다.
+
+사용자가 기존 Google Secret 삭제 가능 여부를 물어 운영 Supabase가 여전히 기존 값을 사용함을 안내했다. 운영 Provider/Secret 교체나 Google 콘솔의 비활성화·삭제는 수행하지 않았다. [Google 공식 절차](https://support.google.com/cloud/answer/15549257?hl=en)에 따라 운영 새 값 적용·실제 로그인 확인 뒤 기존 Secret을 비활성화하고 다시 확인 후 삭제하는 순서가 필요하다.
+
+**사용자 요청에 따른 로컬 보관:** 이후 사용자가 새 Secret을 Admin `.env.local`/`.env.production.local`에 보관하도록 명시했다. `GOOGLE_OAUTH_CLIENT_SECRET`으로 두 파일에 저장하고, Supabase 관리용·Vercel 등록 불필요·원격 자동 반영 없음과 운영은 아직 기존 값 사용 중임을 주석으로 표시했다. Git ignore 및 비추적 여부를 확인했고 권한 600으로 저장했다. `.env.example`에는 비밀값 없이 주석 처리된 변수명과 관리 목적만 추가했다. dotenv 파싱에서 양쪽 값 일치·키 중복 없음·추적 파일 diff에 해당 비밀값 없음 확인. 원격 운영 Provider 교체·Google Secret 삭제·애플리케이션 코드 변경은 하지 않았다.

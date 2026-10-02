@@ -68,3 +68,39 @@ test('invalid backend settings return 503 without forwarding credentials or cont
     assert.equal((await api.proxyInquiryRequest(request('https://front.invalid/api/inquiries'))).status, 503, url);
   }
 });
+
+test('protected inquiry proxy uses its server credential and excludes frontend credentials', async () => {
+  const api = load('app/api/inquiries/proxyHelper.ts', {
+    NODE_ENV: 'production', NEXT_PUBLIC_ADMIN_API_URL: 'https://preview-admin.invalid',
+    ADMIN_API_PROTECTION_BYPASS: 'backend-fixture-secret',
+  }, { fetch: async (url: URL, init: RequestInit) => {
+    assert.equal(url.href, 'https://preview-admin.invalid/api/inquiries/inq_' + 'a'.repeat(32) + '?summary=1&known=12&before=cursor');
+    const headers = new Headers(init.headers);
+    assert.equal(headers.get('x-vercel-protection-bypass'), 'backend-fixture-secret');
+    assert.equal(headers.get('cookie'), null);
+    assert.equal(headers.get('authorization'), null);
+    assert.equal(headers.get('x-vercel-set-bypass-cookie'), null);
+    assert.equal(init.redirect, 'error');
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  } });
+  const url = 'https://front.invalid/api/inquiries/inq_' + 'a'.repeat(32) + '?summary=1&known=12&before=cursor&x-vercel-protection-bypass=frontend-secret&x-vercel-set-bypass-cookie=true';
+  const req = Object.assign(new Request(url, { headers: {
+    cookie: 'guest=private', authorization: 'Bearer private',
+    'x-vercel-protection-bypass': 'client-secret',
+  } }), { nextUrl: new URL(url) });
+  const res = await api.proxyInquiryRequest(req, 'inq_' + 'a'.repeat(32));
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('cache-control'), 'no-store');
+  assert.ok(!(await res.text()).includes('secret'));
+});
+
+test('inquiry proxy does not send a bypass credential to HTTP localhost', async () => {
+  const api = load('app/api/inquiries/proxyHelper.ts', {
+    NODE_ENV: 'development', NEXT_PUBLIC_ADMIN_API_URL: 'http://localhost:3003',
+    ADMIN_API_PROTECTION_BYPASS: 'backend-fixture-secret',
+  }, { fetch: async (_url: URL, init: RequestInit) => {
+    assert.equal(new Headers(init.headers).get('x-vercel-protection-bypass'), null);
+    return new Response('{}');
+  } });
+  assert.equal((await api.proxyInquiryRequest(request('http://localhost:3001/api/inquiries'))).status, 200);
+});

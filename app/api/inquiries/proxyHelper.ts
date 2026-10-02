@@ -19,11 +19,19 @@ export async function proxyInquiryRequest(req: NextRequest, subpath = '') {
     return NextResponse.json({ error: 'Conversation not found.' }, { status: 404 });
   }
   const target = new URL(`/api/inquiries${subpath ? `/${subpath}` : ''}`, base);
-  target.search = req.nextUrl.search;
+  // Only inquiry parameters belong upstream, never frontend protection keys.
+  for (const key of ['summary', 'known', 'before']) {
+    const value = req.nextUrl.searchParams.get(key);
+    if (value !== null) target.searchParams.set(key, value);
+  }
   try {
     const headers = new Headers();
     const contentType = req.headers.get('content-type');
     if (contentType) headers.set('content-type', contentType);
+    // Server-only credential for an independently protected Admin Preview.
+    // Customer cookies and authorization headers remain local.
+    const bypass = process.env.ADMIN_API_PROTECTION_BYPASS?.trim();
+    if (bypass && base.protocol === 'https:') headers.set('x-vercel-protection-bypass', bypass);
     const response = await fetch(target, {
       method: req.method, headers,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : await req.arrayBuffer(),

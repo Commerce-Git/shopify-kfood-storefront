@@ -100,3 +100,47 @@
 - 모든 API의 인증, RLS/Storage 정책, 외부 웹훅·업로드·레이트리밋을 전수 보안 감사한 것은 아니다.
 
 결함 해결 후에는 삭제 대신 해결 상태·변경 경로·검증 ID를 추가한다. 사업 정책을 새로 정해야 하는 내용은 목표 문서의 결정 기록과 연결한다.
+
+## 4. 외부 연동 구현 재검토 — 2026-10-01
+
+R03/R11 및 정산·배송·알림 여정에 연결한다. 아래 재현은 실제 공급자와 운영 DB에 연결하지 않은 모듈 실행이다. 운영 사고 발생 증거와 구분한다. 실행 결과는 [검증 원본](VALIDATION.md#외부-연동-구현-정밀-재검토)을 따른다.
+
+**후속 로컬 조치:** 사용자 실행 요청에 따라 EXT02–EXT05를 코드·SQL·회귀 시험에서 보완했다. 아래 항목은 수정 전 발견 근거이며, 현재 구현과 적용 조건은 [후속 실행 검증](VALIDATION.md#외부-연동-오류-복구-구현)을 따른다. EXT01의 키 교체 제안은 이후 D024에 따라 배포 선행 조건에서 제외됐고, 실제 BUY callback 계약 확인은 미완료다. SQL·배포 전에는 운영 결함이 해소됐다고 판정하지 않는다.
+
+### EXT01 — 이전 소스의 팝빌 연동 키가 현재도 사용됨
+
+- **출시 전 우선 / 로컬 Git 및 원격 값 비교 확인.** Admin HEAD `6058dc9`의 `lib/services/popbill/client.ts`에 내장된 `POPBILL_SECRET_KEY`가 현재 Vercel Preview/Production 값과 동일하다. 로컬 제거 변경은 아직 미커밋이며 운영 배포도 같은 HEAD다.
+- 키가 악용됐거나 저장소가 공개됐다는 판정은 아니다. 소스 제거 후에도 과거 Git 이력·배포 산출물의 키는 유지된다.
+- **검토 당시 권장 조치:** 공급자에서 연동 키 교체·기존 키 폐기 후 사용하는 환경과 배포를 갱신한다. `POPBILL_WEBHOOK_SECRET` 교체로 대체할 수 없다.
+- **현재 방향(D024):** 사용자 설명의 Private 저장소와 기존 키 사용 요청에 따라 키 교체를 배포 필수 선행 조건에서 제외한다. 코드 내장 키 제거·서버 환경변수 관리는 유지하며 외부 노출/악용이 확인됐다는 의미는 아니다. 과거 소스 저장 관찰은 보존하고 키가 노출됐거나 접근 범위가 바뀌면 교체를 다시 검토한다.
+
+### EXT02 — 세금계산서 조회 동기화와 재요청이 최신 상태를 덮어씀
+
+- **P1 / 조회 경로 모듈 재현 + 재요청 정적 확인.** Admin `lib/services/popbill/client.ts:718`은 조회 당시 requested였던 문서를 현재 상태 검사 없이 artist_name/period만으로 issued로 갱신한다. 가상 DB가 cancelled인 동안 이전 조회가 300을 반환하면 issued로 덮어쓰는 경로를 확인했다.
+- `app/api/admin/tax-invoices/reverse-issue/route.ts:155`도 기등록 응답을 성공으로 취급하고 requested/200을 무조건 upsert한다. 웹훅 RPC의 시각·행 잠금 보호가 이 직접 쓰기에는 적용되지 않는다.
+- **조치:** 조회·재요청·수동 수정과 웹훅의 쓰기 계약을 통합한다. 현재 상태·관리키·공급자 시각을 확인하는 조건부 갱신/원자 함수와 순서 경쟁 회귀 시험이 필요하다.
+
+### EXT03 — 역발행 DB 기록 실패를 성공으로 보고함
+
+- **P1 / 모듈 재현.** Admin `app/api/admin/tax-invoices/reverse-issue/route.ts:154`의 upsert 결과 `error`를 확인하지 않는다. Supabase가 반환형 오류를 주면 catch와 fallback이 실행되지 않으며 결과가 SUCCESS/successCount 1로 끝났다.
+- 공급자 등록만 성공하고 로컬 관리키 기록이 누락되면 후속 callback이 missing/503으로 반복될 수 있다. 현재 fallback도 오류를 무시하며 관리키가 없는 축약 행을 저장한다.
+- **조치:** 공급자 처리 결과와 DB 기록 결과를 구분하고 오류를 전파한다. 관리키를 보존하는 복구/재처리 경로를 두고, 알림 발송 성공 문구도 실제 발송 결과와 일치시킨다.
+
+### EXT04 — 17TRACK 부분 실패를 정상 수신으로 확정함
+
+- **P1 / DB 오류 모듈 재현 + Shopify 오류 경로 정적 확인.** Admin `app/api/webhooks/17track/route.ts:92`에서 DB 오류 후 continue하고 최종 200/success true를 반환한다. Shopify 실패도 106줄에서 경고만 남기고 성공 응답한다.
+- [17TRACK 공식 계약](https://api.17track.net/en/doc)은 200을 성공, 그 외 상태를 실패로 취급하며 실패 시 현재 상태에 대해 3회 재시도한다. 현재 200은 공급자 재시도를 중단시키므로 동기화가 누락될 수 있다.
+- 같은 이벤트 재전송마다 Shopify 이벤트를 다시 생성하고 시각 누락 시 현재 시각으로 DB를 다시 쓴다. 응답만 실패로 바꾸면 부분 성공의 중복 문제가 남는다.
+- **조치:** 수신 기록·배송 DB 반영·Shopify 작업을 구분하고, 재처리·중복 방지·대조를 함께 구현한다. 단순 503 교체만으로 완료 처리하지 않는다.
+
+### EXT05 — Preview 팝빌 운영 호출 방어와 로컬 모드 일치가 부족함
+
+- **P1 / 모듈 재현 및 설정 확인.** Admin `lib/services/popbill/client.ts:35`는 Preview에서도 `POPBILL_IS_TEST=false`면 유효한 운영 자격증명으로 반환한다. callback/우체국의 Preview 차단과 다르다. 잘못된 문자열은 시험 모드로 조용히 처리된다.
+- `lib/notifications/popbillKakao.ts:16`도 기본 사업자/사용자/발신인 값과 별도 SDK 설정을 유지한다. 호출 인자의 isTest는 로그 구분이며 SDK 환경을 바꾸는 스위치가 아니다.
+- 현재 Vercel Preview는 true로 정상 설정됐다. 로컬 `.env.production.local`은 운영 DB + 팝빌 true이고 원격 Production은 false다. 동일 관리키로 시험 문서를 운영 DB에 쓰면 callback의 환경 표식과 충돌할 수 있다.
+- **조치:** 팝빌 전체 소비 경로의 모드 검증을 통일하고 Preview 운영 호출을 차단한다. 로컬 운영 구성은 원격 운영과 일치시키거나 시험 행위의 DB도 테스트 DB로 분리한다.
+
+### 추가 통합 확인 — BUY callback의 회사·문서 키
+
+- 팝빌 [공식 이벤트 문서](https://developers.popbill.com/api-reference/taxinvoice/webhook/webhook-event)는 body corpNum을 발행 유형별 작성자 번호로 설명하고 invoiceeMgtKey를 선택 필드로 표시한다. 현재 parser는 header/body 모두 플랫폼 사업자번호이고 BUY 키가 존재하는 callback만 허용한다.
+- 역발행 요청·작가 승인·국세청 결과에서 실제 회원 callback이 이 계약을 만족하는지 아직 확인하지 않았다. 합성 테스트 통과로 이를 확정하지 않는다. 실제 테스트 이벤트 또는 공급자 확인이 필요하며, 확인 없이 회사 번호 검사를 완화하지 않는다.

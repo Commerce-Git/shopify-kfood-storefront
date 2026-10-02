@@ -91,3 +91,33 @@ Status: COMPLETED
 - Admin 308/308 tests, type check, isolated compile build and disposable PGlite SQL checks passed. No independent agent review.
 - User must apply SQL and push. Preview deployment protection bypass, provider console setup and real callback verification remain pending.
 - Evidence: [validation](../docs/platform-analysis/VALIDATION.md#팝빌-테스트-웹훅-구현-및-검증).
+
+## 2026-10-01 direct implementation — Production configuration completion
+
+- Added Admin Production shipping opt-out and dedicated Popbill webhook secret; filled six existing local shipping fields in both Vercel environments. Existing registrations preserved; frontend registrations unchanged.
+- Removed embedded Popbill credentials; enforced 17TRACK signatures and official single-event payload handling; gated real ePost cancellation on production opt-in.
+- Admin 313/313 tests, type check, isolated compile build and diff checks passed. No independent agent review.
+- Remaining: current-code push/deploy, rotate previously embedded Popbill API key, provider webhook/template setup, scheduler configuration, real event verification. No live SQL, provider sends or deployment executed.
+- Evidence: [review and limits](../docs/platform-analysis/VALIDATION.md#production-변수-보완-및-외부-서비스-재검토).
+
+## 2026-10-01 direct review — external integration correctness
+
+- R03/R11: compared current local changes, remote env metadata and Production deployment heads; no runtime or remote configuration changes in this review.
+- Admin 313/313 tests, types, disposable PGlite SQL and both diff checks passed. Synthetic module executions reproduced stale tax status overwrite, ignored reverse-issue persistence failure, Preview production-mode acceptance and 17TRACK DB failure acknowledged as 200.
+- Remaining implementation and provider validation are documented in [EXT01–EXT05](../docs/platform-analysis/FINDINGS.md#4-외부-연동-구현-재검토--2026-10-01). Current deployed Admin 6058dc9 excludes the latest uncommitted protection changes; historical embedded Popbill key still matches remote credentials.
+- No live SQL, financial/shipping/message calls, push or deployments. [Evidence](../docs/platform-analysis/VALIDATION.md#외부-연동-구현-정밀-재검토).
+
+## 2026-10-01 direct request — Supabase Auth URLs and admin login
+
+- Updated only Site URL / redirect allow list in both Supabase projects via Management API, with saved-value reinspection and seven provider-cancellation redirect checks. Runtime SQL and Git push were not performed.
+- Diagnosed successful Google authentication followed by admin rejection: no production users had server-managed admin metadata. The user explicitly selected two existing Google-linked accounts; registered those two as admins and verified remaining metadata/accounts were unchanged.
+- Fixed Google admin callback forwarding provider tokens to Kakao; preserved linked-email Kakao artist profile lookup. OAuth code/token prefixes are excluded from callback debug logs. Related 18 tests, type check and diff checks passed. Callback changes await user push/deployment; fresh login and real business API verification remain pending.
+- [Auth contract](../docs/environment-isolation.md#supabase-auth-url-configuration--2026-10-01-적용), [verification evidence](../docs/platform-analysis/VALIDATION.md#운영-관리자-google-로그인-검토권한-등록--2026-10-01).
+
+## 2026-10-01 direct request — Preview Popbill and shipment recovery
+
+- Tested R03/R11 and EXT02–EXT05 in test Supabase and the Shopify partner development store; rechecked both Admin b4845a3 deployments as READY.
+- Created two notification-free, zero-value Shopify test orders. The user applied the reviewed fixture SQL (two tax records, two EMS records, one seeded exhausted job). Eight local PostgreSQL fixture/safety checks passed.
+- Nineteen live checks passed: synthetic Popbill events through Preview persisted status and rejected replay regressions/conflicts; signed tracking callbacks created real development Shopify DELIVERED events; a real successful Shopify mutation with an injected 503 response left a durable pending job; localhost administrator HTTP retry completed without a duplicate event. Completed jobs vanished from the unresolved list, and an empty batch stopped with processed=0.
+- The final localhost request initially failed because port 3003 stopped; restarted the test server and recovered the pending job without reseeding or replaying earlier test phases. Production data, actual invoice issuance, shipping purchases, customer communications, SQL definitions, deployment settings and Git push were not changed.
+- Actual provider-emitted Popbill/17TRACK events, Preview administrator-session recovery and production business acceptance remain unverified. Fixtures remain for inspection; user-run cleanup SQL is available. [Current evidence and limitations](../docs/platform-analysis/VALIDATION.md#preview-팝빌배송-상태-및-재처리-동작-확인--2026-10-01).
