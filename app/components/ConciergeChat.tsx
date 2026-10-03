@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
-import EmailConsentNotice from './EmailConsentNotice';
+import SupportFaqIntro, { InquiryPrivacyNotice } from './SupportFaqIntro';
 import { createInquiryRequestKey, mergeInquiryMessages } from '../../lib/inquiries/clientDelivery';
 import { useInquirySignals } from '../../lib/inquiries/useInquirySignals';
 import { createInquiryPoller } from '../../lib/inquiries/polling';
@@ -30,7 +30,8 @@ interface InquiryThread {
 }
 
 export interface ProductContext {
-  type?: 'product' | 'artist';
+  type?: 'product' | 'artist' | 'order';
+  orderNumber?: string;
   title: string;
   handle?: string;
   imageUrl?: string;
@@ -45,18 +46,6 @@ export interface ProductContext {
 const STORAGE_TOKEN_KEY = 'blank_seoul_inquiry_token';
 const STORAGE_GUEST_NAME = 'blank_guest_name';
 const STORAGE_GUEST_EMAIL = 'blank_guest_email';
-
-const PRODUCT_PROMPTS = [
-  { label: '📐 Custom Sizing', text: 'Could you please advise if custom sizing or bespoke dimensions are possible for this piece?' },
-  { label: '✈️ Insured Crating', text: 'Could you provide details on overseas insured crating and estimated dispatch to my address?' },
-  { label: '🏺 Material & Care', text: 'I would love to learn more about the authentic craft material and recommended care standards.' },
-];
-
-const ARTIST_PROMPTS = [
-  { label: '🎨 Bespoke Commission', text: 'I am interested in commissioning a bespoke custom artwork directly from the studio. How may we proceed?' },
-  { label: '🏛️ Upcoming Drops', text: 'Could you share details on upcoming exhibitions or newly planned studio collections?' },
-  { label: '📍 Atelier & Provenance', text: 'Could you provide information regarding the artist provenance and certificate of authenticity?' },
-];
 
 export default function ConciergeChat() {
   const pathname = usePathname();
@@ -80,6 +69,12 @@ export default function ConciergeChat() {
 
   // 입력 필드 상태
   const [inputMessage, setInputMessage] = useState('');
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [faqQuestion, setFaqQuestion] = useState<string | null>(null);
+  const inquiryInputRef = useRef<HTMLTextAreaElement>(null);
+  const guestNameRef = useRef<HTMLInputElement>(null);
+  const faqPrefix = faqQuestion ? `FAQ topic: ${faqQuestion}\n\n` : '';
+  const inquiryLimit = 5000 - faqPrefix.length;
   const [isSending, setIsSending] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
@@ -88,10 +83,17 @@ export default function ConciergeChat() {
 
   // PDP / 작가 컨텍스트
   const [productContext, setProductContext] = useState<ProductContext | null>(null);
+  const [pendingContext, setPendingContext] = useState<{ product: ProductContext | null } | null>(null);
+  const [composingNew, setComposingNew] = useState(false);
+  const existingDraftRef = useRef('');
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
-  const suppressScrollRef = useRef(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const olderPositionRef = useRef<{ height: number; top: number } | null>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
+  const nearBottomRef = useRef(true);
+  const lastMessageRef = useRef<string | undefined>(undefined);
+  const [hasNewReplies, setHasNewReplies] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const pollerRef = useRef<ReturnType<typeof createInquiryPoller> | null>(null);
   const openRef = useRef(isOpen);
 
@@ -123,6 +125,7 @@ export default function ConciergeChat() {
 
   // 2. 현재 경로 기반 기본 컨텍스트 자동 감지 (PDP or 작가페이지)
   useEffect(() => {
+    if (activeToken || composingNew) return;
     if (pathname.startsWith('/product/')) {
       const handle = pathname.replace('/product/', '').split('/')[0];
       const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
@@ -150,16 +153,17 @@ export default function ConciergeChat() {
     } else {
       setProductContext(null);
     }
-  }, [pathname]);
+  }, [pathname, activeToken, composingNew]);
 
   // 3. 글로벌 이벤트 브릿지 ('open-concierge') 리스너
   useEffect(() => {
     const handleOpenEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ product?: ProductContext }>;
+      const customEvent = e as CustomEvent<{ product?: ProductContext | null }>;
       const detail = customEvent.detail;
-      if (detail?.product) {
-        setProductContext(detail.product);
-      }
+      if (sendingRef.current) { setIsOpen(true); return; }
+      const requested = detail?.product || null;
+      if (tokenRef.current) setPendingContext({ product: requested });
+      else setProductContext(requested);
       setIsOpen(true);
     };
 
@@ -169,7 +173,7 @@ export default function ConciergeChat() {
 
   // Read receipts acknowledge only messages returned to this visible conversation.
   const markDisplayed = useCallback(async (token: string, rows: InquiryMessage[], signal: AbortSignal) => {
-    if (!openRef.current || document.visibilityState !== 'visible') return;
+    if (!openRef.current || !nearBottomRef.current || document.visibilityState !== 'visible') return;
     const messageIds = rows.filter(row => row.sender_type === 'ADMIN' && !row.is_read).map(row => row.id);
     if (!messageIds.length) return;
     const res = await fetch(`/api/inquiries/${token}`, {
@@ -227,7 +231,8 @@ export default function ConciergeChat() {
       if (!res.ok) throw Error();
       const data = await res.json();
       if (tokenRef.current !== token) return;
-      suppressScrollRef.current = true;
+      const feed = feedRef.current;
+      if (feed) olderPositionRef.current = { height: feed.scrollHeight, top: feed.scrollTop };
       setMessages(prev => mergeInquiryMessages(prev, data.messages || []));
       setOlderCursor(data.nextCursor);
       await markDisplayed(token, data.messages || [], new AbortController().signal);
@@ -236,16 +241,19 @@ export default function ConciergeChat() {
   };
 
   useEffect(() => {
-    openRef.current = isOpen;
-    if (isOpen) versionRef.current = null;
-    pollerRef.current?.setOpen(isOpen);
-  }, [isOpen]);
+    openRef.current = isOpen && !composingNew;
+    if (openRef.current) versionRef.current = null;
+    pollerRef.current?.setOpen(openRef.current);
+  }, [isOpen, composingNew]);
 
   useEffect(() => {
     versionRef.current = null;
     setMessages([]);
     setActiveThread(null);
     loadedAtRef.current = 0;
+    nearBottomRef.current = true;
+    lastMessageRef.current = undefined;
+    setHasNewReplies(false);
     setOlderCursor(null);
     if (!activeToken) return;
     let firstRead = true;
@@ -279,16 +287,57 @@ export default function ConciergeChat() {
     };
   }, [activeToken, fetchThreadAndMessages]);
 
-  const realtimeReady = useInquirySignals(activeToken && isOpen ? `/api/inquiries/${activeToken}/realtime` : null, () => pollerRef.current?.refresh());
+  const realtimeReady = useInquirySignals(activeToken && isOpen && !composingNew ? `/api/inquiries/${activeToken}/realtime` : null, () => pollerRef.current?.refresh());
   useEffect(() => { pollerRef.current?.setRealtimeReady(realtimeReady); }, [realtimeReady, activeToken]);
 
-  // Earlier-page reads preserve the reader's scroll position.
+  // Only scroll the conversation, never the page behind the modeless panel.
   useEffect(() => {
-    if (suppressScrollRef.current) { suppressScrollRef.current = false; return; }
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const feed = feedRef.current;
+    if (!feed || !isOpen || composingNew) return;
+    const last = messages.at(-1)?.id;
+    const newReply = last !== lastMessageRef.current;
+    lastMessageRef.current = last;
+    if (olderPositionRef.current) {
+      const previous = olderPositionRef.current;
+      feed.scrollTop = previous.top + feed.scrollHeight - previous.height;
+      olderPositionRef.current = null;
+    } else if (nearBottomRef.current) {
+      feed.scrollTo({ top: feed.scrollHeight, behavior: 'auto' });
+    } else if (newReply) {
+      setHasNewReplies(true);
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, composingNew]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus({ preventScroll: true });
+    return () => { if (opener?.isConnected) opener.focus({ preventScroll: true }); };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const feed = feedRef.current;
+    if (!feed || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (openRef.current && nearBottomRef.current) feed.scrollTo({ top: feed.scrollHeight, behavior: 'auto' });
+    });
+    observer.observe(feed);
+    return () => observer.disconnect();
+  }, []);
+
+  const acknowledgeBottom = () => {
+    const wasNearBottom = nearBottomRef.current;
+    nearBottomRef.current = true;
+    setHasNewReplies(false);
+    if (!wasNearBottom) {
+      versionRef.current = null;
+      pollerRef.current?.refresh();
+    }
+  };
+  const jumpToLatest = () => {
+    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: 'auto' });
+    acknowledgeBottom();
+  };
 
   // 창 열 때 읽음 처리
   const handleToggleOpen = () => {
@@ -300,11 +349,18 @@ export default function ConciergeChat() {
   // 신규 문의 시작 (회원 또는 비회원)
   const handleStartInquiry = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputMessage.trim() || sendingRef.current) return;
+    if (!inputMessage.trim() || sendingRef.current || pendingContext) return;
 
     sendingRef.current = true;
     setIsSending(true);
     setSendError('');
+
+    if (faqPrefix.length + inputMessage.trim().length > 5000) {
+      setSendError(`Please shorten your message to ${inquiryLimit} characters.`);
+      sendingRef.current = false;
+      setIsSending(false);
+      return;
+    }
 
     const effectiveName = isLoggedIn
       ? customer?.first_name || user?.user_metadata?.full_name || 'Valued Collector'
@@ -315,7 +371,7 @@ export default function ConciergeChat() {
       : guestEmail.trim().toLowerCase() || activeThread?.customer_email || '';
 
     if (!effectiveName || !effectiveEmail) {
-      alert('Please provide your name and email address.');
+      setSendError('Please provide your name and email address.');
       sendingRef.current = false;
       setIsSending(false);
       return;
@@ -354,11 +410,13 @@ export default function ConciergeChat() {
     const payload = {
           customerName: effectiveName,
           customerEmail: effectiveEmail,
-          message: inputMessage.trim(),
+          message: faqPrefix + inputMessage.trim(),
           productTitle: enrichedTitle,
           productHandle: effectiveHandle,
           productImageUrl: productContext?.imageUrl || null,
           artistName: productContext?.artist || (productContext?.type === 'artist' ? productContext.title : null),
+          orderNumber: productContext?.orderNumber || null,
+          inquiryCategory: productContext?.type === 'order' ? 'SHIPPING' : 'GENERAL',
 
     };
     try {
@@ -376,7 +434,17 @@ export default function ConciergeChat() {
       tokenRef.current = data.token;
       versionRef.current = null;
       setActiveToken(data.token);
+      setActiveThread(null);
+      setOlderCursor(null);
+      setUnreadCount(0);
+      setComposingNew(false);
+      setContactFormOpen(false);
+      setFaqQuestion(null);
+      setPendingContext(null);
       localStorage.setItem(STORAGE_TOKEN_KEY, data.token);
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('inquiry_token');
+      window.history.replaceState(window.history.state, '', currentUrl.toString());
       setInputMessage('');
       if (data.message) {
         setMessages([data.message]);
@@ -392,10 +460,10 @@ export default function ConciergeChat() {
 
   // 추가 메시지 전송
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || sendingRef.current) return;
+    if (!inputMessage.trim() || sendingRef.current || pendingContext) return;
 
-    // 만약 기존 스레드가 이미 해결 완료(RESOLVED)되었거나 토큰이 없다면, 맥락 오염을 방지하기 위해 신규 클린 스레드로 자동 분기
-    if (!activeToken || activeThread?.status === 'RESOLVED') {
+    // Follow-ups keep the same conversation; the server reopens resolved inquiries.
+    if (!activeToken) {
       await handleStartInquiry();
       return;
     }
@@ -423,18 +491,60 @@ export default function ConciergeChat() {
     } finally { sendingRef.current = false; setIsSending(false); }
   };
 
+  const continueExistingInquiry = () => {
+    if (sendingRef.current) return;
+    if (composingNew) setInputMessage(existingDraftRef.current);
+    setPendingContext(null);
+    setComposingNew(false);
+    setSendError('');
+  };
+
+  const startSeparateInquiry = () => {
+    if (!pendingContext || sendingRef.current) return;
+    if (!composingNew) {
+      existingDraftRef.current = inputMessage;
+      setInputMessage('');
+    }
+    setContactFormOpen(false);
+    setFaqQuestion(null);
+    setProductContext(pendingContext.product);
+    setGuestName(value => value || activeThread?.customer_name || '');
+    setGuestEmail(value => value || activeThread?.customer_email || '');
+    setComposingNew(true);
+    setPendingContext(null);
+    setSendError('');
+  };
+
+  const openContactForm = (question: string | null) => {
+    setFaqQuestion(question);
+    setContactFormOpen(true);
+    setSendError('');
+    if (feedRef.current) feedRef.current.scrollTop = 0;
+  };
+  useEffect(() => {
+    if (!contactFormOpen || (activeToken && !composingNew)) return;
+    const field = isLoggedIn ? inquiryInputRef.current : guestNameRef.current;
+    field?.focus({ preventScroll: true });
+  }, [contactFormOpen, activeToken, composingNew, isLoggedIn]);
+
+  const displayContext = activeToken && !composingNew
+    ? (activeThread?.product_title ? { title: activeThread.product_title, imageUrl: activeThread.product_image_url || undefined } : null)
+    : productContext;
+
   return (
     <>
       {/* 1. 우측 하단 플로팅 런처 버튼 (모바일 바텀바와 충돌 방지: bottom-20 md:bottom-6) */}
       <button
         onClick={handleToggleOpen}
         aria-label="Open Blank Seoul Concierge"
+        aria-expanded={isOpen}
+        aria-controls="customer-support-panel"
         className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-full bg-[#18181B] text-white shadow-2xl hover:bg-[#27272A] hover:scale-105 active:scale-95 transition-all duration-200 border border-white/10 select-none group"
       >
         <span className="text-sm md:text-base group-hover:rotate-12 transition-transform duration-200">💬</span>
-        <span className="text-xs md:text-[13.5px] font-semibold tracking-wide font-heading">Concierge</span>
+        <span className="text-xs md:text-[13.5px] font-semibold tracking-wide font-heading">Support</span>
         {unreadCount > 0 && (
-          <span className="px-2 py-0.5 text-[10px] md:text-[11px] font-bold bg-rose-500 text-white rounded-full animate-pulse">
+          <span className="px-2 py-0.5 text-[10px] md:text-[11px] font-bold bg-rose-500 text-white rounded-full animate-pulse motion-reduce:animate-none">
             {unreadCount}
           </span>
         )}
@@ -442,9 +552,15 @@ export default function ConciergeChat() {
 
       {/* 2. 컨시어지 메신저: 데스크톱 플로팅 카드 + 모바일 88dvh 바텀 시트 */}
       <div
-        className={`fixed z-50 transition-all duration-300 ease-out flex flex-col bg-white shadow-2xl border border-black/10 overflow-hidden
+        id="customer-support-panel"
+        role="dialog"
+        aria-labelledby="customer-support-title"
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        onKeyDown={e => { if (e.key === 'Escape' && !e.nativeEvent.isComposing) { e.stopPropagation(); setIsOpen(false); } }}
+        className={`fixed z-50 motion-reduce:transition-none transition-all duration-300 ease-out flex flex-col bg-white shadow-2xl border border-black/10 overflow-hidden
           max-md:inset-x-0 max-md:bottom-0 max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-3xl max-md:rounded-b-none
-          md:bottom-20 md:right-6 md:w-[390px] md:h-[580px] md:max-h-[calc(100vh-120px)] md:rounded-2xl
+          md:bottom-20 md:right-6 md:w-[390px] md:h-[580px] md:max-h-[calc(100dvh-120px)] md:rounded-2xl
           ${
             isOpen
               ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
@@ -460,77 +576,66 @@ export default function ConciergeChat() {
         <div className="bg-[#18181B] text-white px-4 py-3 sm:py-3.5 flex items-center justify-between border-b border-white/10">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-heading font-bold text-[14.5px] sm:text-[15px] tracking-tight">Blank Seoul Concierge</h3>
+              <h3 id="customer-support-title" className="font-heading font-bold text-[14.5px] sm:text-[15px] tracking-tight">Blank Seoul Customer Support</h3>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Support · Reply notifications</span>
+              <span>Leave a message · Our team will reply here</span>
             </div>
           </div>
           <button
             onClick={() => setIsOpen(false)}
+            ref={closeRef}
             aria-label="Close Concierge"
-            className="text-zinc-400 hover:text-white p-1.5 rounded-md transition-colors text-lg"
+            className="text-zinc-300 hover:text-white min-w-11 min-h-11 rounded-md transition-colors text-lg focus-visible:outline-2"
           >
             ✕
           </button>
         </div>
 
-        {sendError && <p role="alert" className="px-4 py-2 text-xs text-red-700">{sendError}</p>}
-        {activeToken && olderCursor && <button onClick={loadOlder} disabled={loadingOlder} className="py-2 text-xs underline">{loadingOlder ? 'Loading…' : 'Load earlier messages'}</button>}
-        {/* 컨텍스트 배너 (상품 상세페이지 또는 작가 페이지 연동) */}
-        {productContext && (
-          <div className="bg-[#F8F7F4] border-b border-[#E8DFC8]/60 px-4 py-2.5 flex items-center gap-3">
-            {productContext.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={productContext.imageUrl}
-                alt={productContext.title}
-                className={`w-11 h-11 object-cover border border-[#E8DFC8] shrink-0 bg-white ${
-                  productContext.type === 'artist' ? 'rounded-full' : 'rounded-xl'
-                }`}
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[9.5px] font-bold text-[#C25E38] uppercase tracking-wider">
-                {productContext.type === 'artist' ? 'Inquiring with Atelier' : 'Inquiring About Piece'}
-              </div>
-              <div className="text-xs font-bold text-zinc-900 truncate">{productContext.title}</div>
-              <div className="text-[10.5px] text-zinc-500 truncate flex items-center gap-1.5 mt-0.5">
-                {productContext.variantTitle && (
-                  <span className="font-medium text-zinc-700">{productContext.variantTitle}</span>
-                )}
-                {productContext.price && (
-                  <span className="font-semibold text-zinc-800">
-                    {productContext.currency || 'USD'} {productContext.price}
-                  </span>
-                )}
-                {productContext.artist && productContext.type !== 'artist' && (
-                  <span>· by {productContext.artist}</span>
-                )}
-              </div>
+        {sendError && (!activeToken || composingNew) && <p role="alert" className="px-4 py-2 text-xs text-red-700">{sendError}</p>}
+        {activeToken && !composingNew && olderCursor && <button onClick={loadOlder} disabled={loadingOlder} className="py-2 text-xs underline">{loadingOlder ? 'Loading…' : 'Load earlier messages'}</button>}
+        {pendingContext && (
+          <div role="region" aria-label="Choose conversation" className="p-4 bg-amber-50 border-b text-sm">
+            <p className="mb-2">You already have a conversation. Continue it or start a separate inquiry{pendingContext.product ? ` about ${pendingContext.product.title}` : ''}?</p>
+            <div className="flex flex-wrap gap-3">
+              <button className="underline" onClick={continueExistingInquiry}>Continue existing inquiry</button>
+              <button className="font-semibold underline" onClick={startSeparateInquiry}>Start separate inquiry</button>
             </div>
+          </div>
+        )}
+        {composingNew && activeToken && <button disabled={isSending} className="px-4 py-2 text-xs underline" onClick={continueExistingInquiry}>Back to existing conversation</button>}
+        {activeToken && !composingNew && !pendingContext && <button disabled={isSending} className="px-4 py-2 text-xs underline" onClick={() => setPendingContext({ product: null })}>Start a different inquiry</button>}
+        {displayContext && (
+          <div className="bg-[#F8F7F4] border-b px-4 py-2.5 text-xs">
+            <span className="text-zinc-500">Inquiry about</span>
+            <div className="font-semibold mt-1">{displayContext.title}</div>
           </div>
         )}
 
         {/* 본문 피드 */}
-        <div className="flex-1 overflow-y-auto p-4 bg-[#FAF9F7] flex flex-col gap-3">
-          {!activeToken ? (
-            /* 첫 문의 작성 카드 (회원 자동인식 / 비회원 폼) */
+        <div ref={feedRef}
+          role={activeToken && !composingNew ? 'log' : undefined}
+          aria-label={activeToken && !composingNew ? 'Conversation with Blank Seoul support' : 'New inquiry'}
+          aria-live={isOpen && !composingNew ? 'polite' : 'off'}
+          aria-relevant="additions"
+          tabIndex={(!activeToken || composingNew) && !contactFormOpen ? -1 : 0}
+          onScroll={() => {
+            const feed = feedRef.current;
+            if (!feed) return;
+            if (feed.scrollHeight - feed.scrollTop - feed.clientHeight < 64) acknowledgeBottom();
+            else nearBottomRef.current = false;
+          }}
+          className={`flex-1 min-h-0 bg-[#FAF9F7] flex flex-col ${(!activeToken || composingNew) && !contactFormOpen ? 'overflow-hidden' : 'overflow-y-auto overscroll-contain p-4 gap-3'}`}>
+          {!activeToken || composingNew ? (
+            !contactFormOpen ? <SupportFaqIntro onContact={openContactForm} /> :
             <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-              <div className="font-heading font-bold text-sm text-zinc-900 mb-1">
-                {productContext?.type === 'artist'
-                  ? `Inquire with ${productContext.title}`
-                  : isLoggedIn
-                  ? `Welcome, ${customer?.first_name || 'Collector'}`
-                  : 'Welcome to Blank Seoul'}
-              </div>
+              <button type="button" disabled={isSending} onClick={() => { setContactFormOpen(false); setSendError(''); }} className="mb-2 min-h-11 text-sm text-zinc-600 underline underline-offset-4">← Back to FAQ</button>
+              <div className="font-heading font-bold text-sm text-zinc-900 mb-1">Message Blank Seoul support</div>
               <p className="text-xs text-zinc-600 leading-relaxed mb-3">
-                {productContext?.type === 'artist'
-                  ? `Direct consultation with the ${productContext.title} atelier. Inquire about bespoke commissions, exhibition schedules, or material details.`
-                  : 'Chat directly with our Seoul curation studio. Ask any bespoke requests, custom dimensions, or worldwide insured shipping.'}
+                Blank Seoul Customer Support will handle your inquiry and check with the maker when needed. Replies appear in this conversation.
               </p>
 
+              {faqQuestion && <p className="mb-3 rounded-lg bg-zinc-50 p-3 text-xs leading-relaxed text-zinc-600">Included with your message: {faqQuestion}</p>}
               <form onSubmit={handleStartInquiry} className="space-y-3">
                 {/* 봇 방지 허니팟 */}
                 <input
@@ -547,76 +652,69 @@ export default function ConciergeChat() {
                 {!isLoggedIn && (
                   <>
                     <div>
-                      <label className="block text-[11px] font-semibold text-zinc-700 mb-1">Your Name *</label>
+                      <label htmlFor="support-guest-name" className="block text-xs font-semibold text-zinc-700 mb-1">Your Name *</label>
                       <input
+                        id="support-guest-name"
+                        ref={guestNameRef}
                         type="text"
+                        autoComplete="name"
+                        maxLength={200}
                         required
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
                         placeholder="e.g. Sarah Jenkins"
-                        className="w-full px-3 py-2 text-xs border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                        Your Email * (For offline replies)
+                      <label htmlFor="support-guest-email" className="block text-xs font-semibold text-zinc-700 mb-1">
+                        Your Email *
                       </label>
                       <input
+                        id="support-guest-email"
                         type="email"
+                        autoComplete="email"
+                        maxLength={254}
                         required
                         value={guestEmail}
                         onChange={(e) => setGuestEmail(e.target.value)}
                         placeholder="e.g. sarah@example.com"
-                        className="w-full px-3 py-2 text-xs border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
                       />
                     </div>
                   </>
                 )}
 
-                {/* 원클릭 스마트 문의 칩 (Quick Prompts) */}
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                    Quick Prompts
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(productContext?.type === 'artist' ? ARTIST_PROMPTS : PRODUCT_PROMPTS).map((prompt, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setInputMessage(prompt.text)}
-                        className="text-[10.5px] font-medium px-2.5 py-1 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-400 text-zinc-700 transition-all text-left active:scale-95"
-                      >
-                        {prompt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">Your Inquiry *</label>
+                  <label htmlFor="support-new-message" className="block text-xs font-semibold text-zinc-700 mb-1">Your message *</label>
                   <textarea
+                    id="support-new-message"
+                    ref={inquiryInputRef}
                     required
+                    disabled={isSending}
                     rows={3}
-                    maxLength={5000}
+                    maxLength={inquiryLimit}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder={
                       productContext?.type === 'artist'
-                        ? `Ask ${productContext.title} about custom commissions, dimensions, or atelier visits...`
-                        : 'Ask about custom crafting, material, or worldwide delivery...'
+                        ? `Ask our support team about ${productContext.title}...`
+                        : 'Tell us what you need help with…'
                     }
-                    className="w-full px-3 py-2 text-xs border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800 resize-none"
+                    aria-describedby="support-message-limit"
+                    className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800 resize-none"
                   />
+                  <p id="support-message-limit" className={`mt-1 text-xs ${inputMessage.trim().length > inquiryLimit ? 'text-red-700' : 'text-zinc-500'}`}>{inputMessage.length}/{inquiryLimit} characters</p>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSending}
-                  className="w-full py-2.5 bg-[#18181B] text-white rounded-lg text-xs font-semibold hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
+                  disabled={isSending || !!pendingContext || !inputMessage.trim() || inputMessage.trim().length > inquiryLimit}
+                  className="w-full min-h-11 py-2.5 bg-[#18181B] text-white rounded-lg text-xs font-semibold hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
                 >
-                  {isSending ? 'Connecting...' : 'Start Conversation ➔'}
+                  {isSending ? 'Sending…' : 'Send to support'}
                 </button>
-                <EmailConsentNotice compact />
+                <InquiryPrivacyNotice />
               </form>
             </div>
           ) : messages.length === 0 ? (
@@ -643,7 +741,7 @@ export default function ConciergeChat() {
                   }`}
                 >
                   <span className="text-[10.5px] text-zinc-400 px-1 font-medium">
-                    {isCustomer ? 'You' : 'Studio Artisan & Concierge'}
+                    {isCustomer ? 'You' : 'Blank Seoul Customer Support'}
                   </span>
                   <div
                     className={`p-3 rounded-2xl text-[13px] leading-relaxed shadow-sm break-words ${
@@ -657,7 +755,7 @@ export default function ConciergeChat() {
                         {failedImages[detectedImageUrl] ? (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 border border-dashed border-zinc-300 text-[11px] text-zinc-500">
                             <span>📁</span>
-                            <span>Studio photo expired (90-day archive)</span>
+                            <span>Photo unavailable. Please ask our team to resend it.</span>
                           </div>
                         ) : (
                           <a
@@ -679,7 +777,7 @@ export default function ConciergeChat() {
                         )}
                       </div>
                     )}
-                    {cleanText && <div>{cleanText}</div>}
+                    {cleanText && <div className="whitespace-pre-wrap">{cleanText}</div>}
                   </div>
                   <span className="text-[9.5px] text-zinc-400 px-1">
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -688,52 +786,55 @@ export default function ConciergeChat() {
               );
             })
           )}
-          {activeThread?.status === 'RESOLVED' && (
+          {!composingNew && activeThread?.status === 'RESOLVED' && (
             <div className="my-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center select-none">
               <div className="text-[12px] font-semibold text-emerald-800 flex items-center justify-center gap-1.5">
                 <span>✨</span>
                 <span>This consultation has been resolved.</span>
               </div>
               <div className="text-[10.5px] text-emerald-600 mt-0.5">
-                Sending a new message below will automatically start a fresh inquiry session.
+                Reply below to follow up on the same issue, or start a different inquiry.
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
+        {hasNewReplies && !composingNew && <button type="button" onClick={jumpToLatest} className="min-h-11 py-2 text-sm font-semibold bg-blue-50 text-blue-800 border-t border-blue-100">New replies ↓</button>}
 
         {/* 하단 메시지 입력창 (활성 대화 스레드가 있는 경우) */}
-        {activeToken && (
-          <div className="p-3 bg-white border-t border-zinc-200 flex flex-col gap-1.5">
+        {activeToken && !composingNew && (
+          <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-zinc-200 flex flex-col gap-1.5">
+            {sendError && <p role="alert" className="text-sm text-red-700">{sendError}</p>}
             <div className="flex gap-2">
-              <input
-                type="text"
+              <textarea
+                rows={2}
+                aria-label="Message to Blank Seoul support"
                 maxLength={5000}
                     value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                  if (e.key === 'Enter' && !e.shiftKey && !window.matchMedia?.('(pointer: coarse)').matches) {
                     e.preventDefault();
                     handleSendMessage();
                   }
                 }}
                 placeholder={
                   activeThread?.status === 'RESOLVED'
-                    ? 'Start a fresh inquiry with a new message...'
+                    ? 'Follow up on this issue...'
                     : 'Type your reply in English...'
                 }
-                className="flex-1 px-3 py-2 text-xs border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
+                className="flex-1 min-w-0 resize-y max-h-36 px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-800"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={isSending || !inputMessage.trim()}
-                className="px-4 py-2 bg-[#18181B] text-white text-xs font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
+                disabled={isSending || !!pendingContext || !inputMessage.trim()}
+                className="min-h-11 self-end px-4 py-2 bg-[#18181B] text-white text-xs font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
               >
                 {isSending ? 'Sending…' : 'Send'}
               </button>
             </div>
             <div className="text-[10px] text-zinc-400 text-center">
-              Send your inquiry here. Our team will reply as soon as possible.
+              To Blank Seoul support · Shift+Enter for a new line on desktop
             </div>
           </div>
         )}

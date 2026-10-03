@@ -227,3 +227,8 @@ Admin의 `BIZ_REG_NO`, `EPOST_KPACKET_APPR_NO`, `EPOST_EMS_APPR_NO`, `SHIPPER_NA
 - Storefront의 `NEXT_PUBLIC_STORE_LAUNCH_STATUS`는 양쪽 preview다. 배포 환경 이름과 독립된 판매 정책이다. `RESEND_WEBHOOK_SECRET`은 양쪽 미등록으로 메일 이벤트 웹훅을 사용하려면 공급자가 발급한 서명키 등록이 필요하다. 일반 메일 발송 키와 다르며 일일 주문 알림 크론의 필수 변수는 아니다.
 - **주문 예약 보존·요약 분리 완료(코드는 미배포):** 기존 `8031098`은 `/api/cron/send-artist-emails`를 종일 30분마다 호출하며, Shopify 동기화 `8440379`와 함께 설정을 그대로 유지했다. 사용자 3시간 공개 요구에 따라 로컬의 기존 GET은 공개만 수행하고, 새 `/api/cron/process-artist-order-digests`가 요약 집계·발송·결과 조회를 수행한다. cron-job.org API로 `8567586` (`BLANK SEOUL Artist Daily Order Digest`)을 Asia/Seoul 09:00~10:59 매분·비활성으로 생성하고 인증 헤더·시간·기존 예약 보존을 재조회했다. 후속 09:00 집계 시작용 03 SQL의 운영·테스트 실행 완료는 사용자 확인으로 기록했고, 사용자 배포·템플릿 승인과 연결·실제 수신 시험 후 활성화한다. [현재 등록값](../../blank-seoul-admin/doc/notifications/KAKAO_POPBILL_SETUP_AND_OPERATIONS_GUIDE.md#cron-joborg-등록값)을 따른다.
 - cron-job.org 계정 관리 키는 사용자 요청으로 Admin `.env.local`과 `.env.production.local`에 같은 `CRON_JOB_ORG_API_KEY` 값으로 보관했다. Next.js 실행용 변수가 아니므로 Vercel에는 등록하지 않는다. 예약이 우리 API를 호출할 때 쓰는 `PIPELINE_SECRET`과 구분한다. 계정 관리 키로 실제 예약 목록·상세 읽기 조회를 성공했다.
+
+
+### 2026-10-03 주문 요약 코드 배포 확인
+
+사용자 push 후 Admin Production/main (`dpl_Beo8sfjqDoH1ipty4HB5bLKmWuvi`)과 Preview/dev (`dpl_6CbZxwjZeM2FrKWuPW8hD7y3UUAQ`) 모두 커밋 `ad29ecb30f047516395048202dbae8317c9ed51d`·READY를 관리 API로 확인했다. 양쪽 새 `/api/cron/process-artist-order-digests?status=1`은 인증 누락·불일치에 401, 정상 배포용 키에 200을 반환했고 작업·묶음은 0건이다. Preview에는 Vercel 보호 우회 헤더를 함께 사용했다. 현재 원격 `PIPELINE_SECRET`은 양쪽 공통 등록이다. 로컬 Preview 키는 원격과 달라 인증에 실패했고 기존 예약의 정상 비공개 헤더로 성공을 확인했다. 키나 원격 설정을 바꾸지 않았다. 주문 공개 API 실행·발송·포인트 사용은 없었다. 요약 예약 `8567586`은 비활성, 기존 두 예약은 활성 상태다. 다음 작업은 [Admin TODO](../../blank-seoul-admin/TODO.md)를 따른다.

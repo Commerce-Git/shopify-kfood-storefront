@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import SupportTrigger from "@/app/components/SupportTrigger";
 import OrderStatusBar from "@/app/components/OrderStatusBar";
 import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderPackageCard";
 import { getOrderStep } from "@/lib/shopify/order-utils";
@@ -296,12 +297,11 @@ function OrderLookupContent() {
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <p className="text-xs text-gray-400">
                     Still need help? Contact us at{" "}
-                    <a
-                      href="mailto:support@blankseoul.com"
+                    <SupportTrigger
                       className="text-orange-500 hover:underline"
                     >
-                      support@blankseoul.com
-                    </a>
+                      customer support
+                    </SupportTrigger>
                   </p>
                 </div>
               </div>
@@ -591,6 +591,9 @@ function OrderLookupContent() {
                       </div>
 
                       {/* Expanded 17Track iframe */}
+                      <div className="px-5 py-3 border-t border-gray-100">
+                        <SupportTrigger orderNumber={order.name} className="text-sm text-orange-600 underline">Ask about this order</SupportTrigger>
+                      </div>
                       {expandedTracking === order.name && order.tracking && (
                         <div className="border-t border-gray-100">
                           <iframe

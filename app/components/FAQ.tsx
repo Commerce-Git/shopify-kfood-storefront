@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import SupportTrigger from "./SupportTrigger";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 
 type FAQCategory = "all" | "shipping" | "guarantee" | "crafts" | "orders";
@@ -261,173 +262,19 @@ export default function FAQ({ showAll = false }: { showAll?: boolean }) {
 // ---- Unified Contact & Feedback Section ----
 
 function ContactSupportSection() {
-  const [content, setContent] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [honeypot, setHoneypot] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copiedEmail, setCopiedEmail] = useState(false);
-
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText("support@blankseoul.com");
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) return;
-
-    setSending(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: content.trim(),
-          name: name.trim() || undefined,
-          email: email.trim() || undefined,
-          _hp: honeypot || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Something went wrong. Please try again.");
-        return;
-      }
-
-      setSent(true);
-    } catch {
-      setError("Network error. Please email us directly at support@blankseoul.com.");
-    } finally {
-      setSending(false);
-    }
-  };
-
   return (
-    <div className="mt-16 pt-12 border-t border-[#E8DFC8]/70" id="contact">
-      {/* Contact Cards Header */}
-      <div className="text-center mb-8">
-        <span className="text-[#C25E38] text-xs font-bold uppercase tracking-widest mb-2 block">
-          24/7 Concierge Support
-        </span>
-        <h3
-          className="text-2xl font-extrabold text-[#18181B] tracking-tight mb-2"
-          style={{ fontFamily: "var(--font-heading)" }}
-        >
-          Still Have a Question or Request?
-        </h3>
-        <p className="text-sm text-text-muted max-w-md mx-auto">
-          Our Seoul & US concierge team responds to every inquiry within 12–24 business hours (Monday–Friday).
-        </p>
-      </div>
-
-      {/* Quick Email Direct Card */}
-      <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-xl mx-auto shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white border border-[#E8DFC8] flex items-center justify-center text-lg shadow-2xs">
-            ✉️
-          </div>
-          <div>
-            <span className="text-xs font-bold text-[#18181B] block">Direct Priority Email</span>
-            <span className="text-xs text-text-muted">support@blankseoul.com</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleCopyEmail}
-            className="px-3 py-1.5 rounded-lg bg-white border border-[#E8DFC8] text-xs font-bold text-[#18181B] hover:border-[#C25E38] hover:text-[#C25E38] transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-          >
-            <span>{copiedEmail ? "Copied! 📋" : "Copy Email 📋"}</span>
-          </button>
-          <a
-            href="mailto:support@blankseoul.com?subject=Inquiry%20from%20Blank%20Seoul%20Storefront"
-            className="px-3 py-1.5 rounded-lg bg-[#C25E38] text-white text-xs font-bold hover:bg-[#a84d2c] transition-all shadow-2xs"
-          >
-            Open Mail ↗
-          </a>
-        </div>
-      </div>
-
-      {/* Web Message Form */}
-      {sent ? (
-        <div className="p-8 rounded-2xl bg-[#FAF9F6] border border-emerald-200 text-center max-w-lg mx-auto">
-          <div className="text-4xl mb-3">💌</div>
-          <p className="text-base font-bold text-[#18181B] mb-1">
-            Thank you! Your message has been delivered.
-          </p>
-          <p className="text-xs text-text-muted">
-            Our Seoul concierge team will review your inquiry and get back to you shortly.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-3.5 max-w-lg mx-auto">
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="How can we help you today? (Order questions, artisan inquiries, custom requests...)"
-            maxLength={5000}
-            rows={4}
-            required
-            className="w-full px-4 py-3 bg-white border border-[#E8DFC8] rounded-xl focus:ring-2 focus:ring-[#C25E38] focus:border-transparent outline-none transition-all text-[#18181B] resize-none text-sm placeholder:text-gray-400 shadow-2xs"
-          />
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your Name (Optional)"
-              maxLength={200}
-              className="flex-1 px-4 py-2.5 bg-white border border-[#E8DFC8] rounded-xl focus:ring-2 focus:ring-[#C25E38] focus:border-transparent outline-none transition-all text-[#18181B] text-sm placeholder:text-gray-400 shadow-2xs"
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your Email (For reply)"
-              required
-              maxLength={320}
-              className="flex-1 px-4 py-2.5 bg-white border border-[#E8DFC8] rounded-xl focus:ring-2 focus:ring-[#C25E38] focus:border-transparent outline-none transition-all text-[#18181B] text-sm placeholder:text-gray-400 shadow-2xs"
-            />
-          </div>
-
-          {/* Honeypot */}
-          <input
-            type="text"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-            tabIndex={-1}
-            autoComplete="off"
-            style={{ position: "absolute", left: "-9999px", opacity: 0 }}
-            aria-hidden="true"
-          />
-
-          {error && (
-            <p className="text-red-600 text-xs font-medium text-center">{error}</p>
-          )}
-
-          <div className="text-center pt-2">
-            <button
-              type="submit"
-              disabled={sending || !content.trim()}
-              className="w-full sm:w-auto px-8 py-3 bg-[#C25E38] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#a84d2c] transition-all shadow-sm shadow-[#C25E38]/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {sending ? "Sending Message..." : "Send Message to Concierge 💌"}
-            </button>
-          </div>
-
-          <p className="text-[11px] text-text-muted text-center pt-1">
-            🔒 Protected by 256-bit SSL encryption. Operated by Blank Palette LLC (Sheridan, WY, USA).
-          </p>
-        </form>
-      )}
+    <div className="mt-16 pt-12 border-t border-[#E8DFC8]/70 text-center" id="contact">
+      <h3 className="text-2xl font-bold mb-3">How can we help?</h3>
+      <p className="text-sm text-text-muted max-w-lg mx-auto mb-5">
+        Contact Blank Seoul Customer Support about a product, an order, or a delivery.
+        Our team will check with the maker when needed and reply in your conversation.
+      </p>
+      <SupportTrigger className="inline-block rounded-xl bg-[#18181B] text-white px-6 py-3 text-sm font-semibold">
+        Contact customer support
+      </SupportTrigger>
+      <p className="text-xs text-text-muted mt-4">
+        If you cannot use the support window, email <a className="underline" href="mailto:support@blankseoul.com">support@blankseoul.com</a>.
+      </p>
     </div>
   );
 }

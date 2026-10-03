@@ -36,8 +36,9 @@ When designing commercial landing pages or promotional copy, use Russell Brunson
 <!-- BEGIN:compliance-email-rules -->
 # ⚖️ Legal & Privacy Compliance (CAN-SPAM / CCPA / GDPR)
 
-When creating or modifying ANY email capture form, newsletter box, or waitlist component:
+For newsletter subscriptions, marketing email capture forms, and waitlist components:
 1. You MUST ALWAYS include the standardized `<EmailConsentNotice />` component directly below the submit button or input.
 2. The disclosure must explicitly state "No spam. Unsubscribe anytime." and contain a clickable link to `/policies/privacy` opening in a new tab (`target="_blank" rel="noopener noreferrer"`).
 3. NEVER write plain text spam assurances without the Privacy Policy link.
+4. Customer support inquiries are not newsletter subscriptions. Per the user decision on 2026-10-03, use `InquiryPrivacyNotice` for support forms: explain that information is used to handle the inquiry and retain the Privacy Policy link. Do not show unsubscribe or marketing promises in the inquiry flow.
 <!-- END:compliance-email-rules -->

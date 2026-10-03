@@ -64,10 +64,10 @@ export default function ConciergeTriggerButton({
         type="button"
         onClick={handleClick}
         className={`group px-5 py-2 sm:py-2.5 text-xs sm:text-sm rounded-full font-bold border border-[#E8DFC8] bg-white hover:bg-[#18181B] text-[#18181B] hover:text-white shadow-2xs hover:border-[#18181B] transition-all cursor-pointer inline-flex items-center justify-center gap-2 active:scale-95 select-none ${className}`}
-        aria-label={`Message ${artistName || 'Studio'}`}
+        aria-label={`Ask customer support about ${artistName || 'this maker'}`}
       >
         <span className="text-sm group-hover:scale-110 transition-transform">✉️</span>
-        <span>Message Atelier</span>
+        <span>Ask About This Maker</span>
       </button>
     );
   }
@@ -78,10 +78,10 @@ export default function ConciergeTriggerButton({
         type="button"
         onClick={handleClick}
         className={`px-4 py-2 sm:py-2.5 text-xs rounded-full font-bold border border-[#E8DFC8] bg-white hover:bg-[#18181B] text-[#18181B] hover:text-white shadow-2xs hover:border-[#18181B] transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-95 shrink-0 select-none ${className}`}
-        aria-label={`Inquire with ${artistName || 'Studio'}`}
+        aria-label={`Ask customer support about ${artistName || 'this maker'}`}
       >
         <span className="text-xs">💬</span>
-        <span>Inquire with Studio</span>
+        <span>Ask About This Maker</span>
       </button>
     );
   }
@@ -94,7 +94,7 @@ export default function ConciergeTriggerButton({
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-[#E8DFC8] bg-white/90 hover:bg-[#18181B] hover:text-white text-[#18181B] transition-all cursor-pointer shadow-2xs active:scale-95 select-none ${className}`}
       >
         <span className="text-xs">💬</span>
-        <span>Ask Concierge</span>
+        <span>Ask Customer Support</span>
       </button>
     );
   }
@@ -113,13 +113,13 @@ export default function ConciergeTriggerButton({
         </div>
         <div className="min-w-0">
           <div className="text-xs font-bold text-[#18181B] group-hover:text-[#18181B] flex items-center gap-1.5">
-            <span>Inquire About This Piece</span>
+            <span>Ask About This Product</span>
             <span className="hidden sm:inline-block text-[9.5px] font-bold uppercase tracking-wider text-[#C25E38] bg-[#F4EFE6] px-1.5 py-0.5 rounded-md border border-[#E8DFC8]">
-              Live Translation
+              Customer Support
             </span>
           </div>
           <p className="text-[10.5px] text-[#71717A] truncate">
-            Custom sizing, insured shipping, or bespoke artisan requests
+            Product details, options, or delivery questions
           </p>
         </div>
       </div>

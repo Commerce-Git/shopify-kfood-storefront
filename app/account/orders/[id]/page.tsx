@@ -10,6 +10,7 @@ import OrderPackageCard, { PartialDeliveryNotice } from "@/app/components/OrderP
 import CancelButton from "@/app/components/CancelButton";
 import { useCart } from "@/app/components/CartProvider";
 import Link from "next/link";
+import SupportTrigger from "@/app/components/SupportTrigger";
 import { useParams } from "next/navigation";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 import { useRouter } from "next/navigation";
@@ -321,12 +322,12 @@ export default function OrderDetailPage() {
         <p className="text-sm text-gray-500 mb-1">
           Issue with your order?
         </p>
-        <a
-          href="mailto:support@blankseoul.com"
+        <SupportTrigger
+          orderNumber={order.name}
           className="text-sm text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
         >
-          Contact us and we&apos;ll help you out →
-        </a>
+          Contact customer support →
+        </SupportTrigger>
         <p className="text-xs text-gray-400 mt-3">
           Free cancellation is available within {CANCEL_WINDOW_HOURS} hour
           {CANCEL_WINDOW_HOURS !== 1 ? "s" : ""} of placing your order.
