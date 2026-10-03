@@ -2,6 +2,19 @@
 
 공통 기준: [플랫폼 목차](platform-analysis/README.md), [운영 확인 항목](platform-analysis/OPERATIONS.md). Admin 구현은 [Shopify 연동 가이드](../../blank-seoul-admin/doc/Shopify_API_2026_Guide.md)를 참조한다.
 
+### Admin 상품 공개 채널 — 2026-10-03
+
+Admin 서버의 `SHOPIFY_PUBLICATION_IDS`는 쉼표로 구분한 판매 채널 GID 목록이며 필수다. `SHOPIFY_STORE_URL`에 속한 ID만 허용하고 프론트 Storefront 토큰에 연결된 Headless 채널을 포함한다. 상품 생성 전에 현재 스토어에서 채널을 조회·검증하고, 공개 mutation의 오류와 각 채널의 실제 공개 상태까지 확인한 뒤 `registered`로 저장한다. 중간 공개 실패 후 재시도할 때 같은 상품을 업데이트하도록 생성된 Shopify 상품 ID를 먼저 저장한다. ID 저장 자체가 실패하면 원격 상품 ID를 포함한 오류를 반환하므로 재등록 전에 수동 연결 확인이 필요하다.
+
+| Admin 환경 | 스토어 | 공개 대상 Publication ID (각 값에 `gid://shopify/Publication/` 접두사) |
+| --- | --- | --- |
+| `.env.local` / Vercel Preview | `blank-seoul-dev.myshopify.com` | `225834336434`, `225834369202`, `225834401970`, `225834533042` |
+| `.env.production.local` / Vercel Production | `tv7r0x-zn.myshopify.com` | `293098946872`, `293098979640`, `295843135800`, `298715676984` |
+
+테스트 Headless 채널은 `Blank Seoul Dev Headless` (`225834533042`), 운영은 `kfood-storefront` (`295843135800`)다. 새 채널을 임의로 모두 공개하지 않으며 위 설정은 기존 운영 네 채널 정책과 테스트 대응 채널을 명시한다. 스토어/채널 변경 시 목록을 함께 변경해야 한다. Storefront 프로젝트에는 이 서버 변수를 추가하지 않는다.
+
+로컬 두 파일과 Vercel Admin Production/Preview 등록·저장값 재조회 대조를 완료했다. 새 코드는 사용자 push/배포 후 반영된다. 추가 SQL은 없다. 기존 테스트 상품 `15406484291762`만 공개 복구했으며 운영 상품 변경은 하지 않았다. 검증 상세는 [검증 기록](platform-analysis/VALIDATION.md#2026-10-03-shopify-테스트-판매-채널-공개-복구)을 따른다.
+
 ## 연결값
 
 **보호된 Admin Preview의 문의 연결(2026-10-02):** 프론트 dev Preview는 서버 전용 `ADMIN_API_PROTECTION_BYPASS`에 **Admin 프로젝트의** 자동화 접근키를 사용한다. dev 브랜치 Preview 범위에 encrypted 변수로 등록·재조회했고 프론트 문의 프록시에서 HTTPS 업스트림 헤더로만 전달한다. 프론트의 보호 키나 로그인 쿠키로 대체하지 않는다. `NEXT_PUBLIC_` 접두사는 붙이지 않으며 현재 localhost/보호되지 않은 Production에는 등록할 필요 없다. 사용자 재배포 후 `e76ddc2`의 실제 고객 Preview에서 문의 작성·회신·실시간 수신·연결 복구를 확인해 기존 503의 해결을 검증했다. 프론트 브라우저 시험에만 쓴 임시 접근키는 폐기했으며 Admin 기존 접근키를 사용하는 서버 변수는 유지한다. [실제 시험·후속 단계](platform-analysis/INQUIRY_DELIVERY.md#2026-10-02-실제-문의-시험과-preview-연결-보완).

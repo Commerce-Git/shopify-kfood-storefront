@@ -894,3 +894,18 @@ Vercel 재조회(2026-09-30 20:28 UTC / 2026-10-01 05:28 KST): Admin dev Preview
 사용자가 기존 Google Secret 삭제 가능 여부를 물어 운영 Supabase가 여전히 기존 값을 사용함을 안내했다. 운영 Provider/Secret 교체나 Google 콘솔의 비활성화·삭제는 수행하지 않았다. [Google 공식 절차](https://support.google.com/cloud/answer/15549257?hl=en)에 따라 운영 새 값 적용·실제 로그인 확인 뒤 기존 Secret을 비활성화하고 다시 확인 후 삭제하는 순서가 필요하다.
 
 **사용자 요청에 따른 로컬 보관:** 이후 사용자가 새 Secret을 Admin `.env.local`/`.env.production.local`에 보관하도록 명시했다. `GOOGLE_OAUTH_CLIENT_SECRET`으로 두 파일에 저장하고, Supabase 관리용·Vercel 등록 불필요·원격 자동 반영 없음과 운영은 아직 기존 값 사용 중임을 주석으로 표시했다. Git ignore 및 비추적 여부를 확인했고 권한 600으로 저장했다. `.env.example`에는 비밀값 없이 주석 처리된 변수명과 관리 목적만 추가했다. dotenv 파싱에서 양쪽 값 일치·키 중복 없음·추적 파일 diff에 해당 비밀값 없음 확인. 원격 운영 Provider 교체·Google Secret 삭제·애플리케이션 코드 변경은 하지 않았다.
+
+
+## 2026-10-03 Shopify 테스트 판매 채널 공개 복구
+
+사용자 요청으로 운영/테스트 상품 공개를 비교하고 Admin 코드 및 환경변수를 수정했다. 운영 채널 ID 네 개가 코드에 고정되어 테스트 상품은 ACTIVE이나 공개 채널이 0개였고 Storefront API는 상품 0개를 반환했다. 운영 조회 상품 두 개는 실제 네 채널에 공개되어 있었다.
+
+- `lib/shopify/publications.ts`: `SHOPIFY_PUBLICATION_IDS` 구문·스토어 소속 사전 검증, 공개 응답 userErrors 확인, 모든 지정 채널의 `publishedOnPublication` 및 ACTIVE 사후 검증. 타 스토어 ID·누락 설정은 상품 생성 전에 거절한다.
+- `publishProduct.ts`: 생성 ID를 `ready` 상태로 선저장하여 공개 실패 후 재시도가 같은 상품을 업데이트하도록 했다. 공개 확인 후에만 `registered`로 변경한다. ID 저장 실패 자체는 원격 상품 ID와 함께 오류를 반환하며 수동 대조가 필요하다. 원격 생성 후 응답 유실 등 모든 분산 트랜잭션 중복 문제를 해결한 것은 아니다.
+- 관리 목록 API·상태 탭·작가/물류 통계·작가 판매 여부 판단에서 `ready` 상품의 Shopify ID를 전송완료로 오인하지 않도록 보완했다. 기존 상품의 상태를 일괄 재분류하지 않았다.
+- 로컬 Admin `.env.local`/`.env.production.local`, Vercel `blank-seoul-admin` Preview/Production에 `SHOPIFY_PUBLICATION_IDS` 등록. CLI로 원격 값을 다시 내려받아 스토어 도메인·채널 목록이 로컬과 일치함을 확인했다. Storefront 앱에는 변수를 추가하지 않았다. 사용자 push/배포는 미실행이다.
+- 운영 채널은 read-only로 재검증했다. 테스트 상품 `gid://shopify/Product/15406484291762`만 새 helper로 네 채널에 공개하고 사후 검증했다. 상품 재생성·운영 상품 변경·SQL 실행은 하지 않았다.
+- 테스트 Storefront API에서 `Jade Norigae Knot Bag Charm` 반환을 확인했다. 로컬 프론트 3001은 정지되어 있어 별도 `.next-offline` 출력으로 잠시 기동, 실제 HTTP 200 및 headless Chrome에서 `#shelf-jewelry-charms`와 `/product/jade-norigae-knot-bag-charm` 링크의 표시를 확인했다. 사용자 운영 로컬 3000/3002는 중단하지 않았다.
+- Admin 신규 회귀 시험 9개(설정 누락/다른 스토어/부분 공개/비활성/오류 응답/ID 저장 실패/재시도/화면 완료 판정), 전체 단위 시험 421개, TypeScript 검사, 새 helper 두 파일 ESLint, diff 공백 검사 통과. 새 상품 전체 파이프라인의 원격 생성 시험과 새 배포 E2E는 수행하지 않았다.
+
+**남은 제한:** 테스트 상품의 `availableForSale=false` 및 재고 0, 기존 재고 동기화 실패 작업은 그대로다. 이번 변경은 공개/노출 복구이며 실제 구매 시험 전 재고 동기화를 별도로 복구해야 한다. 기존 상품의 `registered` 상태가 모두 공개 사실을 보장한다고 소급 판정하지 않는다. 후속 작업은 [Admin TODO](../../../blank-seoul-admin/TODO.md)에 기록했다.
