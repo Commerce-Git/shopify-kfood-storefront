@@ -106,7 +106,7 @@ export default async function ProductPage({ params }: PageProps) {
       "@type": "Brand",
       name: product.vendor || "BLANK SEOUL",
     },
-    category: product.productType || "Artisanal Home & Living",
+    category: product.productType || "Korean Products",
     countryOfOrigin: {
       "@type": "Country",
       name: "South Korea",

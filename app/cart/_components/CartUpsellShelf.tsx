@@ -64,7 +64,7 @@ export default function CartUpsellShelf({
   }
 
   // 4. Studio Companion Products (+ Optional Compact Follow Banner for Multi-Artist Carts)
-  const primaryArtistName = companions[0]?.artist?.name || "Artisan";
+  const primaryArtistName = companions[0]?.artist?.name || "Blank Seoul";
 
   return (
     <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 shadow-2xs">
@@ -75,7 +75,7 @@ export default function CartUpsellShelf({
             Complete Your {primaryArtistName} Collection
           </h2>
           <p className="text-[11px] text-[#71717A]">
-            Handcrafted companion pieces from the same studio in Korea — 1-click addition.
+            More products from the same maker or brand, made in Korea.
           </p>
         </div>
       </div>

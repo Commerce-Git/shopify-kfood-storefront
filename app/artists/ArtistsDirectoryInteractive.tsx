@@ -63,7 +63,7 @@ export default function ArtistsDirectoryInteractive({
       {/* Results Header */}
       <div className="flex items-center justify-between text-xs font-bold text-[#6B7280] max-w-6xl mx-auto px-2">
         <span>
-          Showing <span className="text-[#18181B] font-extrabold">{filteredArtists.length}</span> verified ateliers
+          Showing <span className="text-[#18181B] font-extrabold">{filteredArtists.length}</span> makers and brands
         </span>
         {searchQuery && (
           <button
@@ -79,9 +79,9 @@ export default function ArtistsDirectoryInteractive({
       {filteredArtists.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-3xl border border-[#E8DFC8] max-w-xl mx-auto">
           <span className="text-4xl mb-3 block">🔍</span>
-          <h3 className="text-lg font-bold text-[#18181B]">No Ateliers Found</h3>
+          <h3 className="text-lg font-bold text-[#18181B]">No Makers or Brands Found</h3>
           <p className="text-xs text-[#6B7280] mt-1">
-            Try searching with a different studio name.
+            Try searching with a different maker or brand name.
           </p>
         </div>
       ) : (

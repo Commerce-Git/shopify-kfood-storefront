@@ -306,7 +306,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                   contextType="product"
                   productTitle={product.title}
                   productHandle={product.handle}
-                  productImageUrl={images[0]?.url}
+                  productImageUrl={selectedVariant?.image?.url || images[0]?.url}
                   artistName={artistDisplayName}
                   artistSlug={getArtistSlug(product.vendor || "")}
                   variantTitle={selectedVariant?.title}
@@ -399,7 +399,12 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
             />
             <ConciergeTriggerButton
               variant="pdp-atelier"
-              contextType="artist"
+              contextType="product"
+              productTitle={product.title}
+              productHandle={product.handle}
+              productImageUrl={selectedVariant?.image?.url || images[0]?.url}
+              variantTitle={selectedVariant?.title}
+              selectedOptions={selectedOptions}
               artistName={artistDisplayName}
               artistSlug={getArtistSlug(product.vendor || "")}
               artistAvatar={artistProfile.avatar}

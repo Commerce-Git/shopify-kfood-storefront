@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { triggerHaptic } from '@/lib/haptics';
+import { openSupport } from '../../lib/inquiries/openSupport';
 
 export interface ConciergeTriggerButtonProps {
   variant?: 'pdp-buybox' | 'pdp-atelier' | 'artist-hero' | 'chip';
@@ -54,7 +55,7 @@ export default function ConciergeTriggerButton({
     };
 
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('open-concierge', { detail }));
+      openSupport(detail);
     }
   };
 
@@ -67,7 +68,7 @@ export default function ConciergeTriggerButton({
         aria-label={`Ask customer support about ${artistName || 'this maker'}`}
       >
         <span className="text-sm group-hover:scale-110 transition-transform">✉️</span>
-        <span>Ask About This Maker</span>
+        <span>Ask About the Work</span>
       </button>
     );
   }
@@ -81,7 +82,7 @@ export default function ConciergeTriggerButton({
         aria-label={`Ask customer support about ${artistName || 'this maker'}`}
       >
         <span className="text-xs">💬</span>
-        <span>Ask About This Maker</span>
+        <span>Ask About the Work</span>
       </button>
     );
   }
@@ -99,33 +100,9 @@ export default function ConciergeTriggerButton({
     );
   }
 
-  // Default: 'pdp-buybox'
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className={`w-full py-2.5 px-3.5 sm:px-4 rounded-2xl border border-[#E8DFC8] bg-[#FAF8F5]/80 hover:bg-white hover:border-[#18181B] transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-2xs active:scale-[0.99] text-left select-none ${className}`}
-      aria-label="Inquire about this piece with Blank Seoul Concierge"
-    >
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="w-8 h-8 rounded-full bg-white border border-[#E8DFC8] flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:border-[#18181B] transition-all shadow-2xs text-sm">
-          💬
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs font-bold text-[#18181B] group-hover:text-[#18181B] flex items-center gap-1.5">
-            <span>Ask About This Product</span>
-            <span className="hidden sm:inline-block text-[9.5px] font-bold uppercase tracking-wider text-[#C25E38] bg-[#F4EFE6] px-1.5 py-0.5 rounded-md border border-[#E8DFC8]">
-              Customer Support
-            </span>
-          </div>
-          <p className="text-[10.5px] text-[#71717A] truncate">
-            Product details, options, or delivery questions
-          </p>
-        </div>
-      </div>
-      <div className="text-xs font-bold text-[#71717A] group-hover:text-[#18181B] group-hover:translate-x-0.5 transition-all shrink-0 pl-2">
-        →
-      </div>
-    </button>
-  );
+  return <button type="button" onClick={handleClick}
+    aria-label="Ask customer support about this item"
+    className={`inline-flex min-h-11 items-center gap-2 px-1 text-sm text-zinc-600 underline underline-offset-4 hover:text-zinc-900 focus-visible:outline-2 ${className}`}>
+    Ask about this item <span aria-hidden="true">→</span>
+  </button>;
 }

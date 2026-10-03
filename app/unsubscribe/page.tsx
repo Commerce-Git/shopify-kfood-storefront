@@ -113,7 +113,7 @@ function UnsubscribeContent() {
             </p>
             {artistSlug && (
               <p className="text-xs text-[#71717A] mb-4">
-                Note: You will still remain subscribed to other Korean artisan drops and Blank Seoul news.
+                Note: You will still remain subscribed to updates from other Korean makers and brands and Blank Seoul news.
               </p>
             )}
             <p className="text-sm text-gray-400 mb-8">

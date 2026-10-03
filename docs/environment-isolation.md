@@ -2,6 +2,14 @@
 
 공통 기준: [플랫폼 목차](platform-analysis/README.md), [운영 확인 항목](platform-analysis/OPERATIONS.md). Admin 구현은 [Shopify 연동 가이드](../../blank-seoul-admin/doc/Shopify_API_2026_Guide.md)를 참조한다.
 
+### Admin 재고 위치 — 2026-10-03
+
+`getPrimaryLocationId()`는 운영·테스트 모두 같은 코드로 Shopify `location(id: null)`의 기본 위치를 조회한다. `locations(first: 1)`은 정렬상 첫 위치일 뿐 기본 위치가 아니므로 사용하지 않는다. 서버 전역 위치 캐시를 제거하여 다른 스토어/설정의 ID를 재사용하지 않는다. `SHOPIFY_LOCATION_ID`를 명시한 경우 해당 스토어의 활성·온라인 주문 가능 위치인지 검증하며, 잘못된 ID를 기본 위치로 조용히 대체하지 않는다.
+
+현재 운영 기본 위치는 `112811835704`, 테스트 기본 위치는 `89747128498` (`Shop location`)으로 확인했다. 둘 다 별도 override는 필요하지 않아 로컬/Vercel에 새 위치 변수를 추가하지 않았다. 테스트의 `My Custom Location`은 상품 연결이 없는 다른 위치로, 거기에 재고를 복제하거나 자동 활성화하지 않았다.
+
+상품 신규 등록과 이후 재고 변경은 공통 `setBatchInventoryQuantities`로 `available` 수량을 반영한다. 오류·응답 누락은 완료로 처리하지 않는다. 이 수정은 작가 판매 가능 수량의 Shopify 반영이며 물류 실물 입출고 원장을 변경하지 않는다. [복구·검증](platform-analysis/VALIDATION.md#2026-10-03-shopify-테스트-재고-동기화-복구).
+
 ### Admin 상품 공개 채널 — 2026-10-03
 
 Admin 서버의 `SHOPIFY_PUBLICATION_IDS`는 쉼표로 구분한 판매 채널 GID 목록이며 필수다. `SHOPIFY_STORE_URL`에 속한 ID만 허용하고 프론트 Storefront 토큰에 연결된 Headless 채널을 포함한다. 상품 생성 전에 현재 스토어에서 채널을 조회·검증하고, 공개 mutation의 오류와 각 채널의 실제 공개 상태까지 확인한 뒤 `registered`로 저장한다. 중간 공개 실패 후 재시도할 때 같은 상품을 업데이트하도록 생성된 Shopify 상품 ID를 먼저 저장한다. ID 저장 자체가 실패하면 원격 상품 ID를 포함한 오류를 반환하므로 재등록 전에 수동 연결 확인이 필요하다.

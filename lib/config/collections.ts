@@ -27,7 +27,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Bags & Pouches",
     navEmoji: "👜",
     shelfSubtitle:
-      "Artisan handcrafted pouches, daily totes & heritage Korean textiles",
+      "Bags, pouches and everyday carry, made in Korea",
     aliases: ["bags-purses", "bags-wallets", "bags", "pouches", "wallets"],
     keywords: ["bag", "purse", "pouch", "wallet", "tote", "hopae", "drawstring"],
     productTypeConditions: ["Bags & Pouches", "Bag", "Pouch", "Wallet", "Tote"],
@@ -40,7 +40,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Jewelry & Charms",
     navEmoji: "✨",
     shelfSubtitle:
-      "Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots",
+      "Jewelry, charms and accessories made in Korea",
     aliases: ["charms-keyrings", "jewelry-hair", "charms", "keyrings", "jewelry"],
     keywords: ["charm", "keyring", "strap", "daenggi", "gat", "tassel", "ornament"],
     productTypeConditions: ["Jewelry & Charms", "Keyring", "Charm", "Jewelry"],
@@ -66,7 +66,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Modern Hanbok & Apparel",
     navEmoji: "👘",
     shelfSubtitle:
-      "Contemporary reinterpretations of classic Korean silhouette, atelier apparel & Jeogori jackets",
+      "Contemporary Korean silhouettes, apparel and Jeogori jackets made in Korea",
     aliases: ["modern-hanbok-apparel", "modern-hanbok", "hanbok", "clothing", "apparel", "fashion"],
     keywords: [
       "hanbok", "jeogori", "chima", "robe", "jacket", "korean fashion",
@@ -85,7 +85,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Hanji & Stationery",
     navEmoji: "📜",
     shelfSubtitle:
-      "Mulberry Hanji paper notebooks, calligraphy brush sets, and artisan bookmarks",
+      "Paper goods, notebooks and bookmarks made in Korea",
     aliases: ["stationery-paper", "stationery", "paper", "hanji"],
     keywords: ["stationery", "paper", "hanji", "notebook", "pen", "bookmark", "letter"],
     productTypeConditions: ["Hanji & Stationery", "Stationery", "Paper"],
@@ -137,7 +137,7 @@ export const MASTER_COLLECTIONS: CollectionConfig[] = [
     shortLabel: "Woodcraft & Mother-of-Pearl",
     navEmoji: "🪞",
     shelfSubtitle:
-      "Master-crafted mother-of-pearl lacquerware (Najeon) jewelry boxes and carved wooden trays",
+      "Mother-of-pearl lacquerware (Najeon) jewelry boxes and wooden trays made in Korea",
     aliases: ["woodcraft-mother-of-pearl", "mother-of-pearl", "woodcraft-najeon", "woodcraft", "najeon", "najeonchilgi", "lacquerware"],
     keywords: ["wood", "mother of pearl", "najeon", "lacquer", "box", "tray", "soban"],
     productTypeConditions: ["Woodcraft & Mother-of-Pearl", "Woodcraft & Najeon", "Woodcraft", "Najeon"],
@@ -194,10 +194,10 @@ export const SUPER_CATEGORIES: SuperCategoryConfig[] = [
     slug: "wear-adornment",
     title: "Wear & Adornment",
     shortLabel: "Wear & Adornment",
-    subtitle: "Korean fashion accents, handcrafted daily carry & wearable heritage crafts",
+    subtitle: "Clothing, accessories and everyday carry made in Korea",
     editorial: {
       title: "Palace Dancheong Jade Norigae",
-      subtitle: "Hand-knotted silk Daenggi cords & natural jade charms",
+      subtitle: "Explore Korean knot designs and bag charms",
       image: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/1789036545240.jpg?v=1789036840",
       href: "/collections/jewelry-charms",
       badgeText: "Curator's Pick · In Stock",
@@ -215,7 +215,7 @@ export const SUPER_CATEGORIES: SuperCategoryConfig[] = [
       subtitle: "Goryeo dynasty traditional celadon glazing & bamboo teaware",
       image: "https://cdn.shopify.com/s/files/1/0989/8927/7496/files/1789048015622.jpg?v=1789048263",
       href: "/collections/ceramics-dining",
-      badgeText: "Master Studio · In Stock",
+      badgeText: "Collection Highlight · In Stock",
     },
     categoryHandles: ["ceramics-dining", "woodcraft-najeon", "fabric-living", "lighting-mood"],
   },
@@ -227,10 +227,10 @@ export const SUPER_CATEGORIES: SuperCategoryConfig[] = [
     subtitle: "Natural temple agarwood scents, forged acoustic brass chimes, and mulberry paper",
     editorial: {
       title: "Temple Agarwood & Acoustic Chimes",
-      subtitle: "Natural Korean meditative incense & hand-forged brass bells",
+      subtitle: "Incense and decorative bells made in Korea",
       image: "/assets/brand-story-craft.png",
       href: "/collections/incense-wellness",
-      badgeText: "Artisan Drop · Coming Soon",
+      badgeText: "New Collection · Coming Soon",
     },
     categoryHandles: ["incense-wellness", "metal-decor", "hanji-stationery"],
   },
@@ -349,7 +349,7 @@ export function getNavLinks(): { href: string; label: string }[] {
   return [
     ...topCategories,
     { href: "/collections", label: "Shop All" },
-    { href: "/artists", label: "Ateliers" },
+    { href: "/artists", label: "Makers & Brands" },
   ];
 }
 
@@ -380,7 +380,7 @@ export function getCategoryFilterPills(): { handle: string; label: string }[] {
   }));
 
   return [
-    { handle: "all", label: "✨ All Crafts" },
+    { handle: "all", label: "✨ All Products" },
     ...activeCategories,
   ];
 }
@@ -397,7 +397,7 @@ function mapProductToEtsyItem(sp: ShopifyProduct): EtsyCardItem {
     id: sp.id,
     title: sp.title,
     handle: sp.handle,
-    artist: sp.vendor || "Korean Master Artisan",
+    artist: sp.vendor || "Blank Seoul",
     price: priceVal ? Number(priceVal).toFixed(2) : "0.00",
     originalPrice: compareVal ? Number(compareVal).toFixed(2) : undefined,
     image: imageUrl,

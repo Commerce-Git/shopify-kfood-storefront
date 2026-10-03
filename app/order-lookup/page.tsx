@@ -336,13 +336,13 @@ function OrderLookupContent() {
                       <div className="flex items-start gap-2">
                         <span className="text-orange-500">✨</span>
                         <p>
-                          <strong>First alerts</strong>{" "}on new masterpiece drops by Korea&apos;s master artisans.
+                          <strong>First alerts</strong>{" "}on new products from Korean makers and brands.
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-orange-500">📜</span>
                         <p>
-                          <strong>Exclusive stories</strong>{" "}straight from their private workshops.
+                          <strong>Product stories</strong>{" "}from Korean makers and brands.
                         </p>
                       </div>
                     </div>
@@ -472,10 +472,10 @@ function OrderLookupContent() {
                               </div>
                             )}
 
-                            {/* Live Handcrafting Progress Stepper */}
+                            {/* Order Preparation Progress Stepper */}
                             <div className="mt-6 mb-6 pt-4 pb-2 border-t border-gray-50">
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6">
-                                Live Crafting & Delivery Status
+                                Order Preparation &amp; Delivery Status
                               </p>
                               <OrderStatusBar step={step} theme="light" />
                             </div>
@@ -493,7 +493,7 @@ function OrderLookupContent() {
                                     Package Delivered Successfully!
                                   </h4>
                                   <p className="text-xs text-emerald-700 mt-0.5">
-                                    Your Korean artisan box has arrived safely!
+                                    Your order from Korea has arrived!
                                   </p>
                                   {order.deliveredAt && (
                                     <p className="text-[11px] font-semibold text-emerald-800 mt-1 flex items-center gap-1.5">

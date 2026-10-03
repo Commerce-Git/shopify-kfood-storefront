@@ -52,18 +52,18 @@ export default function ShippingPolicyPage() {
         </div>
       </div>
 
-      <h2>1. Shipping Origin & Verified Ateliers</h2>
+      <h2>1. Shipping Origin & Korean Products</h2>
       <p>
         All orders are dispatched directly from our international fulfillment hub in South Korea. We partner with reputable national and international carriers, including Korea Post EMS, USPS Priority, and DHL Express, to provide end-to-end barcode tracked international postal and express courier services:
       </p>
       <ul>
         <li>
           <strong>Korea Post K-Packet (Tracked International Airmail):</strong> Fast, reliable airmail service
-          with end-to-end barcode tracking for lightweight artisan accessories, textiles, and craft goods.
+          with end-to-end barcode tracking for accessories, textiles, and lifestyle goods.
         </li>
         <li>
           <strong>Korea Post EMS (Express Mail Service):</strong> Expedited courier priority service for
-          larger parcels and high-value atelier collections.
+          larger parcels and high-value products.
         </li>
       </ul>
 
@@ -94,7 +94,7 @@ export default function ShippingPolicyPage() {
 
       <h2>3. Order Preparation & Quality Inspection</h2>
       <p>
-        Each order features curated pieces from verified Korean craft studios and independent ateliers.
+        Each order features Korean-manufactured products from our makers and brands.
         Every piece undergoes careful quality inspection and secure protective packaging in Korea before dispatch.
         Orders are typically processed and handed over to the carrier within <strong>1–2 business days</strong>.
         Once dispatched, you will automatically receive a shipping confirmation email containing your active tracking number.

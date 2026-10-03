@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SupportTrigger from "./SupportTrigger";
 import { getFooterLinks } from "@/lib/config/collections";
 
 const TRUST_PILLARS = [
@@ -181,12 +182,12 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {FOOTER_SUPPORT.map((link) => (
                   <li key={link.label}>
-                    <Link
+                    {link.label === "Contact Support" ? <SupportTrigger className="text-xs text-white/70 hover:text-[#C25E38] transition-colors duration-150 block">Contact Support</SupportTrigger> : <Link
                       href={link.href}
                       className="text-xs text-white/70 hover:text-[#C25E38] transition-colors duration-150 block"
                     >
                       {link.label}
-                    </Link>
+                    </Link>}
                   </li>
                 ))}
               </ul>

@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import SupportFaqIntro, { InquiryPrivacyNotice } from './SupportFaqIntro';
 import { createInquiryRequestKey, mergeInquiryMessages } from '../../lib/inquiries/clientDelivery';
 import { useInquirySignals } from '../../lib/inquiries/useInquirySignals';
 import { createInquiryPoller } from '../../lib/inquiries/polling';
+import { takePendingSupportRequest, type SupportRequest } from '../../lib/inquiries/openSupport';
 
 interface InquiryMessage {
   id: string;
@@ -48,11 +49,34 @@ const STORAGE_GUEST_NAME = 'blank_guest_name';
 const STORAGE_GUEST_EMAIL = 'blank_guest_email';
 
 export default function ConciergeChat() {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, customer, isLoggedIn } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState<{ height: number; bottom: number } | null>(null);
+
+  // Mobile keyboards resize the visual viewport, which may differ from the layout viewport.
+  useEffect(() => {
+    if (!isOpen) { setExpanded(false); return; }
+    const viewport = window.visualViewport;
+    const update = () => {
+      if (!viewport || !window.matchMedia?.('(max-width: 767px)').matches || viewport.scale !== 1) {
+        setMobileViewport(null);
+        return;
+      }
+      setMobileViewport({ height: viewport.height, bottom: Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) });
+    };
+    update();
+    viewport?.addEventListener('resize', update);
+    viewport?.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    return () => {
+      viewport?.removeEventListener('resize', update);
+      viewport?.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [isOpen]);
   const [activeToken, setActiveToken] = useState<string | null>(null);
   const [activeThread, setActiveThread] = useState<InquiryThread | null>(null);
   const [messages, setMessages] = useState<InquiryMessage[]>([]);
@@ -71,6 +95,7 @@ export default function ConciergeChat() {
   const [inputMessage, setInputMessage] = useState('');
   const [contactFormOpen, setContactFormOpen] = useState(false);
   const [faqQuestion, setFaqQuestion] = useState<string | null>(null);
+  const [faqSession, setFaqSession] = useState(0);
   const inquiryInputRef = useRef<HTMLTextAreaElement>(null);
   const guestNameRef = useRef<HTMLInputElement>(null);
   const faqPrefix = faqQuestion ? `FAQ topic: ${faqQuestion}\n\n` : '';
@@ -111,11 +136,13 @@ export default function ConciergeChat() {
     const queryInquire = searchParams.get('inquire') || searchParams.get('chat');
 
     if (queryToken) {
+      tokenRef.current = queryToken;
       setActiveToken(queryToken);
       localStorage.setItem(STORAGE_TOKEN_KEY, queryToken);
       setIsOpen(true);
     } else {
       const savedToken = localStorage.getItem(STORAGE_TOKEN_KEY);
+      tokenRef.current = savedToken;
       if (savedToken) setActiveToken(savedToken);
       if (queryInquire === 'true' || queryInquire === 'open') {
         setIsOpen(true);
@@ -123,53 +150,47 @@ export default function ConciergeChat() {
     }
   }, [searchParams]);
 
-  // 2. 현재 경로 기반 기본 컨텍스트 자동 감지 (PDP or 작가페이지)
-  useEffect(() => {
-    if (activeToken || composingNew) return;
-    if (pathname.startsWith('/product/')) {
-      const handle = pathname.replace('/product/', '').split('/')[0];
-      const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
-      const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
-
-      setProductContext((prev) => {
-        if (prev?.handle === handle) return prev;
-        return {
-          type: 'product',
-          handle,
-          title: ogTitle || document.title || 'Inquired Piece',
-          imageUrl: ogImage || undefined,
-        };
-      });
-    } else if (pathname.startsWith('/artists/')) {
-      const slug = pathname.replace('/artists/', '').split('/')[0];
-      setProductContext((prev) => {
-        if (prev?.artistSlug === slug) return prev;
-        return {
-          type: 'artist',
-          artistSlug: slug,
-          title: document.title.split('—')[0]?.trim() || 'Korean Artisan Atelier',
-        };
-      });
-    } else {
-      setProductContext(null);
-    }
-  }, [pathname, activeToken, composingNew]);
-
   // 3. 글로벌 이벤트 브릿지 ('open-concierge') 리스너
   useEffect(() => {
     const handleOpenEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ product?: ProductContext | null }>;
+      const customEvent = e as CustomEvent<SupportRequest>;
+      takePendingSupportRequest();
       const detail = customEvent.detail;
       if (sendingRef.current) { setIsOpen(true); return; }
       const requested = detail?.product || null;
-      if (tokenRef.current) setPendingContext({ product: requested });
-      else setProductContext(requested);
+      if (detail?.intent === 'general') {
+        setExpanded(false);
+        // A general inquiry is a separate draft, never a relabeled product thread.
+        if (tokenRef.current && !composingNew) {
+          existingDraftRef.current = inputMessage;
+          setInputMessage('');
+        }
+        setComposingNew(Boolean(tokenRef.current));
+        setPendingContext(null);
+        setProductContext(null);
+        setFaqQuestion(null);
+        setFaqSession(value => value + 1);
+        setContactFormOpen(false);
+        setSendError('');
+      }
+      else if (tokenRef.current && requested) setPendingContext({ product: requested });
+      else if (tokenRef.current) {
+        if (composingNew) setInputMessage(existingDraftRef.current);
+        setPendingContext(null); setComposingNew(false);
+      }
+      else if (requested) {
+        setProductContext(requested);
+        setFaqQuestion(null);
+        setFaqSession(value => value + 1);
+      }
       setIsOpen(true);
     };
 
     window.addEventListener('open-concierge', handleOpenEvent);
+    const pending = takePendingSupportRequest();
+    if (pending) handleOpenEvent(new CustomEvent('open-concierge', { detail: pending }));
     return () => window.removeEventListener('open-concierge', handleOpenEvent);
-  }, []);
+  }, [composingNew, inputMessage]);
 
   // Read receipts acknowledge only messages returned to this visible conversation.
   const markDisplayed = useCallback(async (token: string, rows: InquiryMessage[], signal: AbortSignal) => {
@@ -351,6 +372,7 @@ export default function ConciergeChat() {
     e?.preventDefault();
     if (!inputMessage.trim() || sendingRef.current || pendingContext) return;
 
+    if (!isLoggedIn && !contactFormOpen) { setContactFormOpen(true); return; }
     sendingRef.current = true;
     setIsSending(true);
     setSendError('');
@@ -387,12 +409,12 @@ export default function ConciergeChat() {
     let enrichedTitle = productContext?.title || null;
     if (productContext) {
       if (productContext.type === 'artist') {
-        enrichedTitle = `Atelier: ${productContext.title}`;
+        enrichedTitle = `Maker / Brand: ${productContext.title}`;
       } else {
         const parts: string[] = [productContext.title];
-        if (productContext.variantTitle) {
-          parts.push(`(${productContext.variantTitle})`);
-        }
+        const options = Object.entries(productContext.selectedOptions || {}).map(([name, value]) => `${name}: ${value}`).join(', ');
+        const variant = productContext.variantTitle || options;
+        if (variant) parts.push(`(${variant})`);
         if (productContext.artist) {
           parts.push(`by ${productContext.artist}`);
         }
@@ -405,7 +427,7 @@ export default function ConciergeChat() {
 
     const effectiveHandle =
       productContext?.handle ||
-      (productContext?.artistSlug ? `artists/${productContext.artistSlug}` : null);
+      (productContext?.type === 'artist' && productContext?.artistSlug ? `artists/${productContext.artistSlug}` : null);
 
     const payload = {
           customerName: effectiveName,
@@ -507,7 +529,9 @@ export default function ConciergeChat() {
     }
     setContactFormOpen(false);
     setFaqQuestion(null);
+    setExpanded(false);
     setProductContext(pendingContext.product);
+    setFaqSession(value => value + 1);
     setGuestName(value => value || activeThread?.customer_name || '');
     setGuestEmail(value => value || activeThread?.customer_email || '');
     setComposingNew(true);
@@ -515,52 +539,78 @@ export default function ConciergeChat() {
     setSendError('');
   };
 
-  const openContactForm = (question: string | null) => {
-    setFaqQuestion(question);
-    setContactFormOpen(true);
-    setSendError('');
-    if (feedRef.current) feedRef.current.scrollTop = 0;
-  };
   useEffect(() => {
     if (!contactFormOpen || (activeToken && !composingNew)) return;
     const field = isLoggedIn ? inquiryInputRef.current : guestNameRef.current;
     field?.focus({ preventScroll: true });
   }, [contactFormOpen, activeToken, composingNew, isLoggedIn]);
 
-  const displayContext = activeToken && !composingNew
-    ? (activeThread?.product_title ? { title: activeThread.product_title, imageUrl: activeThread.product_image_url || undefined } : null)
+  const displayContext: ProductContext | null = activeToken && !composingNew
+    ? (activeThread?.product_title ? {
+      title: activeThread.product_title,
+      imageUrl: activeThread.product_image_url || undefined,
+      handle: activeThread.product_handle || undefined,
+    } : null)
     : productContext;
+  const contextHandle = displayContext?.handle;
+  const contextHref = contextHandle?.startsWith('orders/') ? '/order-lookup'
+    : contextHandle?.startsWith('artists/') ? `/artists/${encodeURIComponent(contextHandle.slice(8))}`
+    : contextHandle ? `/product/${encodeURIComponent(contextHandle)}`
+    : displayContext?.artistSlug ? `/artists/${encodeURIComponent(displayContext.artistSlug)}` : null;
+  // Only catalog images; stored client-provided URLs must not become tracking pixels.
+  const contextImage = (() => {
+    try {
+      if (!displayContext?.imageUrl) return null;
+      const url = new URL(displayContext.imageUrl, 'https://blankseoul.com');
+      return url.protocol === 'https:' && (url.hostname === 'cdn.shopify.com' || url.hostname === 'blankseoul.com') ? url.href : null;
+    } catch { return null; }
+  })();
+  const newInquiry = !activeToken || composingNew;
+  const panelExpanded = expanded || !newInquiry || contactFormOpen || Boolean(pendingContext);
+  const panelStyle = {
+    '--support-height': `${panelExpanded ? 640 : displayContext ? 520 : 460}px`,
+    ...(mobileViewport ? {
+      '--support-viewport-height': `${mobileViewport.height}px`,
+      '--support-viewport-bottom': `${mobileViewport.bottom}px`,
+    } : {}),
+  } as React.CSSProperties;
+  const selectFaq = (question: string | null) => {
+    setFaqQuestion(question);
+    if (question) setExpanded(true);
+  };
 
   return (
     <>
-      {/* 1. 우측 하단 플로팅 런처 버튼 (모바일 바텀바와 충돌 방지: bottom-20 md:bottom-6) */}
-      <button
+      {/* Resume an existing conversation; browsing alone never shows a launcher. */}
+      {activeToken && <button
+        hidden={isOpen}
         onClick={handleToggleOpen}
         aria-label="Open Blank Seoul Concierge"
         aria-expanded={isOpen}
         aria-controls="customer-support-panel"
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-full bg-[#18181B] text-white shadow-2xl hover:bg-[#27272A] hover:scale-105 active:scale-95 transition-all duration-200 border border-white/10 select-none group"
+        className={`${isOpen ? 'hidden' : 'flex'} fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-full bg-[#18181B] text-white shadow-2xl hover:bg-[#27272A] hover:scale-105 active:scale-95 transition-all duration-200 border border-white/10 select-none group`}
       >
         <span className="text-sm md:text-base group-hover:rotate-12 transition-transform duration-200">💬</span>
-        <span className="text-xs md:text-[13.5px] font-semibold tracking-wide font-heading">Support</span>
+        <span className="text-xs md:text-[13.5px] font-semibold tracking-wide font-heading">Messages</span>
         {unreadCount > 0 && (
           <span className="px-2 py-0.5 text-[10px] md:text-[11px] font-bold bg-rose-500 text-white rounded-full animate-pulse motion-reduce:animate-none">
             {unreadCount}
           </span>
         )}
-      </button>
+      </button>}
 
-      {/* 2. 컨시어지 메신저: 데스크톱 플로팅 카드 + 모바일 88dvh 바텀 시트 */}
+      {/* 2. 컨시어지 메신저: 데스크톱 플로팅 카드 + 모바일 키보드에 맞추는 바텀 시트 */}
       <div
         id="customer-support-panel"
+        style={panelStyle}
         role="dialog"
         aria-labelledby="customer-support-title"
         aria-hidden={!isOpen}
         inert={!isOpen}
         onKeyDown={e => { if (e.key === 'Escape' && !e.nativeEvent.isComposing) { e.stopPropagation(); setIsOpen(false); } }}
-        className={`fixed z-50 motion-reduce:transition-none transition-all duration-300 ease-out flex flex-col bg-white shadow-2xl border border-black/10 overflow-hidden
-          max-md:inset-x-0 max-md:bottom-0 max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-3xl max-md:rounded-b-none
-          md:bottom-20 md:right-6 md:w-[390px] md:h-[580px] md:max-h-[calc(100dvh-120px)] md:rounded-2xl
+        className={`fixed z-50 motion-reduce:transition-none transition-[transform,opacity] duration-300 ease-out flex flex-col bg-white shadow-2xl border border-black/10 overflow-hidden
+          max-md:inset-x-0 max-md:bottom-[var(--support-viewport-bottom,0px)] max-md:h-[min(var(--support-height),calc(var(--support-viewport-height,100dvh)-12px))] max-md:rounded-t-3xl max-md:rounded-b-none
+          md:bottom-6 md:right-6 md:w-[400px] md:h-[min(var(--support-height),calc(100dvh-48px))] md:rounded-2xl
           ${
             isOpen
               ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
@@ -573,13 +623,13 @@ export default function ConciergeChat() {
         </div>
 
         {/* 헤더 */}
-        <div className="bg-[#18181B] text-white px-4 py-3 sm:py-3.5 flex items-center justify-between border-b border-white/10">
+        <div className="shrink-0 bg-[#18181B] text-white px-4 py-3 sm:py-3.5 flex items-center justify-between border-b border-white/10">
           <div>
             <div className="flex items-center gap-2">
               <h3 id="customer-support-title" className="font-heading font-bold text-[14.5px] sm:text-[15px] tracking-tight">Blank Seoul Customer Support</h3>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-400">
-              <span>Leave a message · Our team will reply here</span>
+              <span>Leave a message · Replies appear here</span>
             </div>
           </div>
           <button
@@ -606,9 +656,17 @@ export default function ConciergeChat() {
         {composingNew && activeToken && <button disabled={isSending} className="px-4 py-2 text-xs underline" onClick={continueExistingInquiry}>Back to existing conversation</button>}
         {activeToken && !composingNew && !pendingContext && <button disabled={isSending} className="px-4 py-2 text-xs underline" onClick={() => setPendingContext({ product: null })}>Start a different inquiry</button>}
         {displayContext && (
-          <div className="bg-[#F8F7F4] border-b px-4 py-2.5 text-xs">
-            <span className="text-zinc-500">Inquiry about</span>
-            <div className="font-semibold mt-1">{displayContext.title}</div>
+          <div aria-label="Inquiry context" className="shrink-0 flex items-center gap-3 border-b border-zinc-200 bg-[#F8F7F4] px-4 py-2">
+            {contextImage && !failedImages[contextImage] ? <img src={contextImage} alt="" referrerPolicy="no-referrer"
+              onError={() => setFailedImages(prev => ({ ...prev, [contextImage]: true }))}
+              className="h-12 w-12 shrink-0 rounded-lg border border-zinc-200 object-cover" />
+              : <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-200 text-zinc-600">◇</span>}
+            <div className="min-w-0 flex-1 text-xs">
+              <span className="text-zinc-500">Inquiry about</span>
+              {contextHref ? <a href={contextHref} target="_blank" rel="noopener noreferrer" className="mt-0.5 line-clamp-2 font-semibold text-zinc-900 underline underline-offset-2">{displayContext.title}<span className="sr-only"> (opens in a new tab)</span></a>
+                : <p className="mt-0.5 line-clamp-2 font-semibold">{displayContext.title}</p>}
+              {newInquiry && displayContext.variantTitle && <p className="truncate text-zinc-600">{displayContext.variantTitle}</p>}
+            </div>
           </div>
         )}
 
@@ -618,105 +676,17 @@ export default function ConciergeChat() {
           aria-label={activeToken && !composingNew ? 'Conversation with Blank Seoul support' : 'New inquiry'}
           aria-live={isOpen && !composingNew ? 'polite' : 'off'}
           aria-relevant="additions"
-          tabIndex={(!activeToken || composingNew) && !contactFormOpen ? -1 : 0}
+          tabIndex={0}
           onScroll={() => {
             const feed = feedRef.current;
             if (!feed) return;
             if (feed.scrollHeight - feed.scrollTop - feed.clientHeight < 64) acknowledgeBottom();
             else nearBottomRef.current = false;
           }}
-          className={`flex-1 min-h-0 bg-[#FAF9F7] flex flex-col ${(!activeToken || composingNew) && !contactFormOpen ? 'overflow-hidden' : 'overflow-y-auto overscroll-contain p-4 gap-3'}`}>
-          {!activeToken || composingNew ? (
-            !contactFormOpen ? <SupportFaqIntro onContact={openContactForm} /> :
-            <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-              <button type="button" disabled={isSending} onClick={() => { setContactFormOpen(false); setSendError(''); }} className="mb-2 min-h-11 text-sm text-zinc-600 underline underline-offset-4">← Back to FAQ</button>
-              <div className="font-heading font-bold text-sm text-zinc-900 mb-1">Message Blank Seoul support</div>
-              <p className="text-xs text-zinc-600 leading-relaxed mb-3">
-                Blank Seoul Customer Support will handle your inquiry and check with the maker when needed. Replies appear in this conversation.
-              </p>
-
-              {faqQuestion && <p className="mb-3 rounded-lg bg-zinc-50 p-3 text-xs leading-relaxed text-zinc-600">Included with your message: {faqQuestion}</p>}
-              <form onSubmit={handleStartInquiry} className="space-y-3">
-                {/* 봇 방지 허니팟 */}
-                <input
-                  type="text"
-                  name="website_url"
-                  value={honeypot}
-                  onChange={(e) => setHoneypot(e.target.value)}
-                  style={{ display: 'none' }}
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-
-                {/* 비회원인 경우에만 이름 및 이메일 입력창 노출 */}
-                {!isLoggedIn && (
-                  <>
-                    <div>
-                      <label htmlFor="support-guest-name" className="block text-xs font-semibold text-zinc-700 mb-1">Your Name *</label>
-                      <input
-                        id="support-guest-name"
-                        ref={guestNameRef}
-                        type="text"
-                        autoComplete="name"
-                        maxLength={200}
-                        required
-                        value={guestName}
-                        onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="e.g. Sarah Jenkins"
-                        className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="support-guest-email" className="block text-xs font-semibold text-zinc-700 mb-1">
-                        Your Email *
-                      </label>
-                      <input
-                        id="support-guest-email"
-                        type="email"
-                        autoComplete="email"
-                        maxLength={254}
-                        required
-                        value={guestEmail}
-                        onChange={(e) => setGuestEmail(e.target.value)}
-                        placeholder="e.g. sarah@example.com"
-                        className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label htmlFor="support-new-message" className="block text-xs font-semibold text-zinc-700 mb-1">Your message *</label>
-                  <textarea
-                    id="support-new-message"
-                    ref={inquiryInputRef}
-                    required
-                    disabled={isSending}
-                    rows={3}
-                    maxLength={inquiryLimit}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder={
-                      productContext?.type === 'artist'
-                        ? `Ask our support team about ${productContext.title}...`
-                        : 'Tell us what you need help with…'
-                    }
-                    aria-describedby="support-message-limit"
-                    className="w-full px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-800 resize-none"
-                  />
-                  <p id="support-message-limit" className={`mt-1 text-xs ${inputMessage.trim().length > inquiryLimit ? 'text-red-700' : 'text-zinc-500'}`}>{inputMessage.length}/{inquiryLimit} characters</p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSending || !!pendingContext || !inputMessage.trim() || inputMessage.trim().length > inquiryLimit}
-                  className="w-full min-h-11 py-2.5 bg-[#18181B] text-white rounded-lg text-xs font-semibold hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
-                >
-                  {isSending ? 'Sending…' : 'Send to support'}
-                </button>
-                <InquiryPrivacyNotice />
-              </form>
-            </div>
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-[#FAF9F7] flex flex-col p-4 gap-3">
+          {newInquiry ? (
+            <SupportFaqIntro key={faqSession}
+              contextType={productContext?.type} onContact={selectFaq} />
           ) : messages.length === 0 ? (
             <div className="text-center py-10 text-xs text-zinc-400">Loading conversation history...</div>
           ) : (
@@ -800,11 +770,34 @@ export default function ConciergeChat() {
         </div>
         {hasNewReplies && !composingNew && <button type="button" onClick={jumpToLatest} className="min-h-11 py-2 text-sm font-semibold bg-blue-50 text-blue-800 border-t border-blue-100">New replies ↓</button>}
 
+        {newInquiry && <form onSubmit={handleStartInquiry} className="min-h-0 max-h-[75%] overflow-y-auto border-t border-zinc-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
+          <input type="text" name="website_url" value={honeypot} onChange={e => setHoneypot(e.target.value)} hidden tabIndex={-1} autoComplete="off" />
+          {!isLoggedIn && contactFormOpen && <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-zinc-600">Your name *<input id="support-guest-name" ref={guestNameRef} required autoComplete="name" maxLength={200} value={guestName} onChange={e => setGuestName(e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-2 text-base md:text-sm" /></label>
+            <label className="text-xs text-zinc-600">Your email *<input id="support-guest-email" type="email" required autoComplete="email" maxLength={254} value={guestEmail} onChange={e => setGuestEmail(e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-2 text-base md:text-sm" /></label>
+          </div>}
+          <div className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-white p-2 focus-within:border-zinc-800 focus-within:ring-1 focus-within:ring-zinc-800">
+            <label htmlFor="support-new-message" className="sr-only">Your message</label>
+            <textarea id="support-new-message" ref={inquiryInputRef} required disabled={isSending} rows={2} maxLength={inquiryLimit}
+              value={inputMessage} onChange={e => setInputMessage(e.target.value)} placeholder="Message support…"
+              aria-describedby={inputMessage.length >= inquiryLimit - 500 ? 'support-new-limit' : undefined}
+              className="block min-w-0 flex-1 resize-none bg-transparent px-1 py-1 text-base md:text-sm focus:outline-none" />
+            <button type="submit" disabled={isSending || !!pendingContext || !inputMessage.trim() || inputMessage.trim().length > inquiryLimit}
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white disabled:bg-zinc-100 disabled:text-zinc-400 focus-visible:outline-2 focus-visible:outline-offset-2">
+              {!isLoggedIn && !contactFormOpen && !isSending ? 'Continue' : <>
+                <span className="sr-only">{isSending ? 'Sending…' : 'Send to support'}</span>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={isSending ? 'animate-pulse motion-reduce:animate-none' : ''}><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
+              </>}
+            </button>
+          </div>
+          {inputMessage.length >= inquiryLimit - 500 && <p id="support-new-limit" className="text-right text-xs text-zinc-500">{inputMessage.length}/{inquiryLimit}</p>}
+          <InquiryPrivacyNotice />
+        </form>}
         {/* 하단 메시지 입력창 (활성 대화 스레드가 있는 경우) */}
         {activeToken && !composingNew && (
-          <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-zinc-200 flex flex-col gap-1.5">
+          <div className="min-h-0 max-h-[65%] overflow-y-auto p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-zinc-200 flex flex-col gap-1.5">
             {sendError && <p role="alert" className="text-sm text-red-700">{sendError}</p>}
-            <div className="flex gap-2">
+            <div className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-white p-2 focus-within:border-zinc-800 focus-within:ring-1 focus-within:ring-zinc-800">
               <textarea
                 rows={2}
                 aria-label="Message to Blank Seoul support"
@@ -823,19 +816,19 @@ export default function ConciergeChat() {
                     ? 'Follow up on this issue...'
                     : 'Type your reply in English...'
                 }
-                className="flex-1 min-w-0 resize-y max-h-36 px-3 py-2 text-base md:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-800"
+                className="flex-1 min-w-0 resize-none bg-transparent px-1 py-1 text-base md:text-sm focus:outline-none"
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isSending || !!pendingContext || !inputMessage.trim()}
-                className="min-h-11 self-end px-4 py-2 bg-[#18181B] text-white text-xs font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 transition-all font-heading"
+                className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white disabled:bg-zinc-100 disabled:text-zinc-400 focus-visible:outline-2 focus-visible:outline-offset-2"
               >
-                {isSending ? 'Sending…' : 'Send'}
+                <span className="sr-only">{isSending ? 'Sending…' : 'Send'}</span>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
               </button>
             </div>
-            <div className="text-[10px] text-zinc-400 text-center">
-              To Blank Seoul support · Shift+Enter for a new line on desktop
-            </div>
+            {inputMessage.length >= 4500 && <p className="text-right text-xs text-zinc-500">{inputMessage.length}/5000</p>}
+            <InquiryPrivacyNotice />
           </div>
         )}
       </div>

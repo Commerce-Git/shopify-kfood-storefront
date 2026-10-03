@@ -105,11 +105,11 @@ export async function GET(request: Request) {
 
         const productTags = Array.isArray(product.tags) ? product.tags : [];
         // Craft tailored pitch
-        let pitch = `Handcrafted companion piece by ${artist.name}`;
+        let pitch = `A complementary product from ${artist.name}`;
         if (productTags.includes("Ceramic") || productTags.includes("Porcelain")) {
           pitch = `Pair with matching studio celadon glaze by ${artist.name}`;
         } else if (productTags.includes("Fabric") || productTags.includes("Keyrings & Bag Charms")) {
-          pitch = `Authentic studio creation handcrafted by ${artist.name}`;
+          pitch = `Explore more products from ${artist.name}`;
         }
 
         companions.push({

@@ -68,7 +68,7 @@ export default function CartArtistFollowCard({
             {isBlankSeoul ? (
               <Image
                 src="/assets/blank_seoul_symbol.png"
-                alt="Blank Seoul Master Studio Seal"
+                alt="Blank Seoul Symbol"
                 fill
                 className="object-contain p-1"
                 sizes="40px"
@@ -96,7 +96,7 @@ export default function CartArtistFollowCard({
               Follow {artist.name} for upcoming drops
             </h3>
             <p className="text-[11px] text-[#8C827A] mt-0.5 leading-tight">
-              Curated Korean master studio releases.
+              New products from Korean makers and brands.
             </p>
           </div>
         </div>

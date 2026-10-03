@@ -71,7 +71,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "orders",
     question: "Can I cancel or modify my order after placing it?",
     answer:
-      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate automatic refund. After ${CANCEL_WINDOW_HOURS} hours, our master partner studios begin personalized packaging and international dispatch.`,
+      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate automatic refund. After ${CANCEL_WINDOW_HOURS} hours, we begin preparing orders for packaging and international dispatch.`,
     actionButton: {
       label: "Go to My Account (/account) →",
       href: "/account",
@@ -91,7 +91,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "crafts",
     question: "How do I care for mother-of-pearl, brass, and traditional fabrics?",
     answer:
-      "Natural mother-of-pearl and hand-finished brass should be gently wiped with a clean, dry microfiber cloth. Avoid harsh chemical cleaners or submersion in water. For traditional jacquard fabrics, daenggi keyrings, and pouches, gentle spot-cleaning with cold water and mild detergent is recommended.",
+      "Mother-of-pearl and brass should be gently wiped with a clean, dry microfiber cloth. Avoid harsh chemical cleaners or submersion in water. For traditional jacquard fabrics, daenggi keyrings, and pouches, gentle spot-cleaning with cold water and mild detergent is recommended.",
     actionButton: {
       label: "View Terms & Care Guidelines →",
       href: "/policies/terms",

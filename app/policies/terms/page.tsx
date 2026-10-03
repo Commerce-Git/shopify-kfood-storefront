@@ -59,16 +59,16 @@ export default function TermsPage() {
         you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not access or use our store.
       </p>
 
-      <h2>2. Products, Pricing & Natural Craft Characteristics</h2>
+      <h2>2. Products, Pricing & Materials</h2>
       <p>
-        Blank Seoul curates authentic artisan accessories, traditional textiles, lifestyle items, and craft goods directly from verified independent Korean craft studios and ateliers:
+        Blank Seoul offers products manufactured in Korea and shipped from Korea, including accessories, textiles and lifestyle goods from makers, designers, brands and manufacturers:
       </p>
       <ul>
         <li>All product prices are listed in US Dollars (USD) and exclude local taxes where applicable.</li>
         <li>We reserve the right to update product availability, collections, and pricing without prior notice.</li>
         <li>
-          <strong>Organic & Natural Variations:</strong> Many of our items incorporate natural materials such as genuine mother-of-pearl, hand-loomed or jacquard fabrics, natural horn, and hand-finished brass.
-          Subtle organic variations in color tone, wood grain, or texture are inherent hallmarks of artisanal craftsmanship and make each piece unique.
+          <strong>Organic & Natural Variations:</strong> Some products use natural materials, textiles or brass. Please refer to each product description for its specific materials and manufacturing details.
+          Where natural materials are used, variations in color tone, wood grain or texture may occur.
         </li>
       </ul>
 
@@ -96,10 +96,10 @@ export default function TermsPage() {
         Please review our dedicated <Link href="/policies/returns">Return & Refund Policy</Link> for full resolution procedures for damaged or delayed parcels.
       </p>
 
-      <h2>6. Intellectual Property & Master Atelier Rights</h2>
+      <h2>6. Intellectual Property & Partner Rights</h2>
       <p>
-        All original artwork, handcrafted designs, pattern motifs, atelier trademarks, photographs, and branding on this website
-        are the protected intellectual property of Blank Palette LLC and its partnering Korean master studios (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson).
+        All original artwork, designs, pattern motifs, trademarks, photographs, and branding on this website
+        are the protected intellectual property of Blank Palette LLC and its partnering Korean makers and brands (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson).
         Unauthorized reproduction, scraping, copying, or commercial distribution of any visual or textual assets without written permission is strictly prohibited.
       </p>
 

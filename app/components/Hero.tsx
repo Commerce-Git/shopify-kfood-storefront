@@ -101,7 +101,7 @@ export default function Hero({ products = [] }: HeroProps) {
           className="text-sm sm:text-lg md:text-xl font-bold tracking-widest text-white/90 uppercase leading-relaxed"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          <span className="block">AUTHENTIC HANDCRAFTED MASTERPIECES</span>
+          <span className="block">MADE IN KOREA. SHIPPED FROM KOREA.</span>
           <span className="block mt-1 bg-gradient-to-r from-[#F5D0A9] via-[#E8AA70] to-[#C77B4A] bg-clip-text text-transparent">
             DIRECT FROM KOREA.
           </span>

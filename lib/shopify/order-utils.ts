@@ -3,7 +3,7 @@
  *
  * 5-Stage Delivery Pipeline:
  *  0: Ordered    📝  (주문 접수)
- *  1: Crafting   🎨  (수제작 중)
+ *  1: Preparing  🎨  (상품 준비 중)
  *  2: Packaging  📦  (검수/포장 중)
  *  3: In Transit ✈️  (해외 배송 중)
  *  4: Delivered  🏠  (배달 완료)
@@ -21,7 +21,7 @@ export function getOrderStep(
       case "packaging":
         return { step: 2, label: "Packaging" };
       case "crafting":
-        return { step: 1, label: "Crafting" };
+        return { step: 1, label: "Preparing" };
       case "placed":
       default:
         return { step: 0, label: "Order Placed" };

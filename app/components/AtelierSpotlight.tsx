@@ -33,16 +33,16 @@ export default function AtelierSpotlight({ artists }: AtelierSpotlightProps) {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
           <div>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#C77B4A] mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C77B4A]" /> Verified Independent Studios
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C77B4A]" /> Korean Makers &amp; Brands
             </span>
             <h2
               className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              Meet the Korean Masters
+              Meet Our Makers &amp; Brands
             </h2>
             <p className="text-xs sm:text-sm text-[#6B7280] mt-0.5">
-              Tap any studio to explore their dedicated authentic Korean craft collection.
+              Discover the people and brands behind our products made in Korea.
             </p>
           </div>
 
@@ -50,7 +50,7 @@ export default function AtelierSpotlight({ artists }: AtelierSpotlightProps) {
             href="/artists"
             className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full border border-[#18181B] text-xs font-bold text-[#18181B] hover:bg-[#18181B] hover:text-white transition-all shadow-2xs self-start sm:self-end shrink-0"
           >
-            <span>Explore All Studios</span>
+            <span>Explore Makers &amp; Brands</span>
             <span>→</span>
           </Link>
         </div>
@@ -104,7 +104,7 @@ export default function AtelierSpotlight({ artists }: AtelierSpotlightProps) {
 
             <div className="mt-2.5 max-w-[110px] sm:max-w-[130px]">
               <h3 className="text-xs sm:text-sm font-bold text-[#18181B] group-hover:text-[#C25E38] transition-colors truncate">
-                All Studios
+                All Makers
               </h3>
             </div>
           </Link>

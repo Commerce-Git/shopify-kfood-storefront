@@ -1,0 +1,1082 @@
+{
+  "date": "2026-10-03",
+  "head": "10a4ba7",
+  "scope": "read-only source, published HTML and Storefront catalog audit; match count includes comments and internal names",
+  "source": {
+    "entries": 51,
+    "files": 153,
+    "hits": 133,
+    "reachableFiles": [
+      "app/about/page.tsx",
+      "app/api/artists/broadcast/route.ts",
+      "app/api/artists/follow/route.ts",
+      "app/api/cart-companions/route.ts",
+      "app/artists/[slug]/page.tsx",
+      "app/artists/page.tsx",
+      "app/cart/_components/CartUpsellShelf.tsx",
+      "app/components/BuyButton.tsx",
+      "app/components/EtsyEditorialSplitBanner.tsx",
+      "app/components/FAQ.tsx",
+      "app/components/Header.tsx",
+      "app/components/ProductTrustAccordions.tsx",
+      "app/order-lookup/page.tsx",
+      "app/policies/returns/page.tsx",
+      "app/policies/shipping/page.tsx",
+      "app/policies/terms/page.tsx",
+      "app/product/[handle]/page.tsx",
+      "app/unsubscribe/page.tsx",
+      "app/wishlist/layout.tsx",
+      "app/wishlist/page.tsx",
+      "lib/artists.ts",
+      "lib/config/categoryMaster.ts",
+      "lib/config/collections.ts",
+      "lib/shopify/admin.ts",
+      "lib/shopify/order-utils.ts",
+      "lib/shopify/preview-adapter.ts",
+      "lib/snack-options.ts"
+    ],
+    "unreachableFiles": [
+      "app/components/ArtisanRecruitmentCTA.tsx",
+      "app/components/ArtisanSpotlight.tsx",
+      "app/components/BrandStory.tsx",
+      "app/components/EtsyHeroBanner.tsx",
+      "app/components/Hero.tsx",
+      "app/components/HowItWorks.tsx",
+      "app/components/NewsletterCTA.tsx",
+      "app/components/PlatformHero.tsx",
+      "app/components/PlatformHeroBanners.tsx"
+    ],
+    "matches": [
+      {
+        "file": "app/about/page.tsx",
+        "line": 23,
+        "text": "\"We partner exclusively with authentic South Korean manufacturers, independent designers, and certified domestic studios committed to superior materials and enduring craftsmanship. Every piece is designed and made in South Korea.\",",
+        "reachable": true
+      },
+      {
+        "file": "app/about/page.tsx",
+        "line": 191,
+        "text": "The Enduring Standard of Genuine Korean Craftsmanship.",
+        "reachable": true
+      },
+      {
+        "file": "app/api/artists/broadcast/route.ts",
+        "line": 79,
+        "text": "\"Artisan Studio\";",
+        "reachable": true
+      },
+      {
+        "file": "app/api/artists/follow/route.ts",
+        "line": 12,
+        "text": "const artistName = body.artistName?.trim() || \"Artisan\";",
+        "reachable": true
+      },
+      {
+        "file": "app/api/cart-companions/route.ts",
+        "line": 108,
+        "text": "let pitch = `Handcrafted companion piece by ${artist.name}`;",
+        "reachable": true
+      },
+      {
+        "file": "app/api/cart-companions/route.ts",
+        "line": 112,
+        "text": "pitch = `Authentic studio creation handcrafted by ${artist.name}`;",
+        "reachable": true
+      },
+      {
+        "file": "app/artists/[slug]/page.tsx",
+        "line": 30,
+        "text": "description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,",
+        "reachable": true
+      },
+      {
+        "file": "app/artists/[slug]/page.tsx",
+        "line": 33,
+        "text": "description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,",
+        "reachable": true
+      },
+      {
+        "file": "app/artists/page.tsx",
+        "line": 23,
+        "text": "<span className=\"w-1.5 h-1.5 rounded-full bg-[#C77B4A]\" /> The Korean Artisan Collective",
+        "reachable": true
+      },
+      {
+        "file": "app/cart/_components/CartUpsellShelf.tsx",
+        "line": 67,
+        "text": "const primaryArtistName = companions[0]?.artist?.name || \"Artisan\";",
+        "reachable": true
+      },
+      {
+        "file": "app/cart/_components/CartUpsellShelf.tsx",
+        "line": 78,
+        "text": "Handcrafted companion pieces from the same studio in Korea — 1-click addition.",
+        "reachable": true
+      },
+      {
+        "file": "app/components/ArtisanRecruitmentCTA.tsx",
+        "line": 3,
+        "text": "export default function ArtisanRecruitmentCTA() {",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanRecruitmentCTA.tsx",
+        "line": 5,
+        "text": "<section className=\"py-20 sm:py-24 bg-[#1A2F25] text-white relative overflow-hidden\" id=\"join-artisan\">",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanRecruitmentCTA.tsx",
+        "line": 25,
+        "text": "Are You a Korean Heritage Artisan?{\" \"}",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanRecruitmentCTA.tsx",
+        "line": 64,
+        "text": "href=\"mailto:contact@blankseoul.com?subject=[Artisan Partnership] 입점 문의\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 5,
+        "text": "export default function ArtisanSpotlight() {",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 7,
+        "text": "<section className=\"py-24 bg-transparent text-white relative\" id=\"artisan-spotlight\">",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 16,
+        "text": "Korean Craftsmanship,{\" \"}",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 25,
+        "text": "Connecting your space directly with Korea&apos;s master artisans. <strong className=\"text-white font-semibold\">Individually handcrafted with care</strong>.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 31,
+        "text": "<span>🏛️</span> Master Korean Artisans",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ArtisanSpotlight.tsx",
+        "line": 35,
+        "text": "<span>✨</span> Handcrafted Heritage",
+        "reachable": false
+      },
+      {
+        "file": "app/components/BrandStory.tsx",
+        "line": 14,
+        "text": "alt=\"Korean artisan crafts — Blank Seoul\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/BrandStory.tsx",
+        "line": 42,
+        "text": "I discovered incredible artisans who pour their hearts into every stitch, every knot, and every carving. They are preserving centuries of Korean heritage, yet their work remains hidden from the global stage.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/BrandStory.tsx",
+        "line": 45,
+        "text": "That is why I created <strong>Blank Seoul</strong>. We are not a factory. Every piece you see here is <strong>made in Korea</strong> by independent artisans, and <strong>shipped directly from Korea</strong> to your door.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/BuyButton.tsx",
+        "line": 27,
+        "text": "productHandle = \"artisan-product\",",
+        "reachable": true
+      },
+      {
+        "file": "app/components/EtsyEditorialSplitBanner.tsx",
+        "line": 74,
+        "text": "? \"Every piece on Blank Seoul is authentically crafted by verified Korean artisans and local workshops. Our official direct international express dispatch will open soon.\"",
+        "reachable": true
+      },
+      {
+        "file": "app/components/EtsyHeroBanner.tsx",
+        "line": 15,
+        "text": "<span>🇰🇷</span> Curated Korean Artisan Collective",
+        "reachable": false
+      },
+      {
+        "file": "app/components/EtsyHeroBanner.tsx",
+        "line": 22,
+        "text": "Discover Extraordinary Handcrafted Pieces,{\" \"}",
+        "reachable": false
+      },
+      {
+        "file": "app/components/EtsyHeroBanner.tsx",
+        "line": 27,
+        "text": "Connect directly with Korea&apos;s independent master craft studios. Every single piece is personally handmade by verified artisans, inspected for excellence, and dispatched directly from Korea with tracked international shipping.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/EtsyHeroBanner.tsx",
+        "line": 51,
+        "text": "src=\"/assets/korean_artisan_crafts_hero.jpg\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/EtsyHeroBanner.tsx",
+        "line": 52,
+        "text": "alt=\"Handcrafted Korean Artisan Masterpiece Collection\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/FAQ.tsx",
+        "line": 94,
+        "text": "\"Natural mother-of-pearl and hand-finished brass should be gently wiped with a clean, dry microfiber cloth. Avoid harsh chemical cleaners or submersion in water. For traditional jacquard fabrics, daenggi keyrings, and pouches, gentle spot-cleaning with cold water and mild detergent is recommended.\",",
+        "reachable": true
+      },
+      {
+        "file": "app/components/Header.tsx",
+        "line": 192,
+        "text": "{/* Left: Brand Logo (2026 Luxury Artisan House Mark) */}",
+        "reachable": true
+      },
+      {
+        "file": "app/components/Header.tsx",
+        "line": 510,
+        "text": "{/* 4-Column Quiet Luxury Artisan Grid (Symmetric & Slim) */}",
+        "reachable": true
+      },
+      {
+        "file": "app/components/Header.tsx",
+        "line": 511,
+        "text": "{/* Quiet Luxury Artisan Grid (Adaptive 3 or 4 Columns) */}",
+        "reachable": true
+      },
+      {
+        "file": "app/components/Hero.tsx",
+        "line": 104,
+        "text": "<span className=\"block\">AUTHENTIC HANDCRAFTED MASTERPIECES</span>",
+        "reachable": false
+      },
+      {
+        "file": "app/components/Hero.tsx",
+        "line": 162,
+        "text": "href=\"#artisan-spotlight\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/HowItWorks.tsx",
+        "line": 6,
+        "text": "From the Artisan&apos;s Hands to Your Door",
+        "reachable": false
+      },
+      {
+        "file": "app/components/HowItWorks.tsx",
+        "line": 9,
+        "text": "We handle the logistics so our artisans can focus on what they do best: creating beautiful things. Here is how your order reaches you safely.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/HowItWorks.tsx",
+        "line": 22,
+        "text": "1. Handcrafted",
+        "reachable": false
+      },
+      {
+        "file": "app/components/HowItWorks.tsx",
+        "line": 25,
+        "text": "Made with care in the artisan&apos;s local studio. No factories, no mass production.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/NewsletterCTA.tsx",
+        "line": 30,
+        "text": "setMessage(data.message || \"Thank you for joining the Artisan Guild.\");",
+        "reachable": false
+      },
+      {
+        "file": "app/components/NewsletterCTA.tsx",
+        "line": 53,
+        "text": "<span>🏛️</span> ARTISAN GUILD JOURNAL",
+        "reachable": false
+      },
+      {
+        "file": "app/components/NewsletterCTA.tsx",
+        "line": 68,
+        "text": "Be the first to hear when our verified studios release new handcrafted collections. Receive an exclusive 10% welcome gift on your first piece.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/NewsletterCTA.tsx",
+        "line": 78,
+        "text": "{message || \"You are on the Artisan Guild List.\"}",
+        "reachable": false
+      },
+      {
+        "file": "app/components/NewsletterCTA.tsx",
+        "line": 81,
+        "text": "We&apos;ll notify you first when new limited handcrafted collections drop.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 28,
+        "text": "Curated Korean Artisan Collective",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 49,
+        "text": "Artisans.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 54,
+        "text": "Discover authentic, handcrafted treasures curated in Seoul and crafted across Korea&apos;s heritage studios.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 101,
+        "text": "src=\"/assets/korean_artisan_crafts_hero.jpg\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 102,
+        "text": "alt=\"Blank Seoul Handcrafted Korean Artisan Masterpiece Collection\"",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 118,
+        "text": "Curated Artisan Collection",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHero.tsx",
+        "line": 124,
+        "text": "Personally handmade in Korean studios with pure silk knots, leather, and fine embroidery.",
+        "reachable": false
+      },
+      {
+        "file": "app/components/PlatformHeroBanners.tsx",
+        "line": 38,
+        "text": "\"/assets/korean_artisan_crafts_hero.jpg\",",
+        "reachable": false
+      },
+      {
+        "file": "app/components/ProductTrustAccordions.tsx",
+        "line": 218,
+        "text": "{/* Real Artisan Description & Story from Shopify DB */}",
+        "reachable": true
+      },
+      {
+        "file": "app/order-lookup/page.tsx",
+        "line": 339,
+        "text": "<strong>First alerts</strong>{\" \"}on new masterpiece drops by Korea&apos;s master artisans.",
+        "reachable": true
+      },
+      {
+        "file": "app/order-lookup/page.tsx",
+        "line": 475,
+        "text": "{/* Live Handcrafting Progress Stepper */}",
+        "reachable": true
+      },
+      {
+        "file": "app/order-lookup/page.tsx",
+        "line": 496,
+        "text": "Your Korean artisan box has arrived safely!",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/returns/page.tsx",
+        "line": 112,
+        "text": "We want you to feel confident in every artisan purchase. We accept returns and exchanges within <strong>30 days of delivery</strong> under the following standard terms:",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/returns/page.tsx",
+        "line": 119,
+        "text": "<strong>Condition of Returned Items:</strong> Items must be returned in their original, unused condition, complete with all original artisan packaging, tags, and protective wraps. If the item is not returned in its original condition, the buyer is responsible for any loss in value.",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/shipping/page.tsx",
+        "line": 62,
+        "text": "with end-to-end barcode tracking for lightweight artisan accessories, textiles, and craft goods.",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/terms/page.tsx",
+        "line": 64,
+        "text": "Blank Seoul curates authentic artisan accessories, traditional textiles, lifestyle items, and craft goods directly from verified independent Korean craft studios and ateliers:",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/terms/page.tsx",
+        "line": 70,
+        "text": "<strong>Organic & Natural Variations:</strong> Many of our items incorporate natural materials such as genuine mother-of-pearl, hand-loomed or jacquard fabrics, natural horn, and hand-finished brass.",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/terms/page.tsx",
+        "line": 71,
+        "text": "Subtle organic variations in color tone, wood grain, or texture are inherent hallmarks of artisanal craftsmanship and make each piece unique.",
+        "reachable": true
+      },
+      {
+        "file": "app/policies/terms/page.tsx",
+        "line": 101,
+        "text": "All original artwork, handcrafted designs, pattern motifs, atelier trademarks, photographs, and branding on this website",
+        "reachable": true
+      },
+      {
+        "file": "app/product/[handle]/page.tsx",
+        "line": 109,
+        "text": "category: product.productType || \"Artisanal Home & Living\",",
+        "reachable": true
+      },
+      {
+        "file": "app/unsubscribe/page.tsx",
+        "line": 116,
+        "text": "Note: You will still remain subscribed to other Korean artisan drops and Blank Seoul news.",
+        "reachable": true
+      },
+      {
+        "file": "app/wishlist/layout.tsx",
+        "line": 6,
+        "text": "\"Review your personal curation of authentic Korean handcrafted pieces and manage VIP priority drop alerts for verified artisan studios.\",",
+        "reachable": true
+      },
+      {
+        "file": "app/wishlist/page.tsx",
+        "line": 230,
+        "text": "Review your personal collection of saved Korean artisan pieces and manage VIP priority drop alerts for verified craft studios.",
+        "reachable": true
+      },
+      {
+        "file": "app/wishlist/page.tsx",
+        "line": 454,
+        "text": "You haven&apos;t saved any artisan pieces yet. Browse our curated Korean master craft collections and tap the heart icon on any work you&apos;d like to save.",
+        "reachable": true
+      },
+      {
+        "file": "lib/artists.ts",
+        "line": 133,
+        "text": "coverImage: \"/assets/korean_artisan_crafts_hero.jpg\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/artists.ts",
+        "line": 220,
+        "text": "bio: dbAcc.bio || \"Independent Korean artisan studio verified by Blank Seoul.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/artists.ts",
+        "line": 222,
+        "text": "coverImage: \"/assets/korean_artisan_crafts_hero.jpg\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 102,
+        "text": "shelfSubtitle: \"High-fire Joseon porcelain and artisanal Buncheong teaware\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 110,
+        "text": "\"Artisanal Plate & Dish (접시 및 대접)\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 160,
+        "text": "\"Handcrafted in Korean ateliers · Conforms to US FDA 21 CFR Food Contact standards & EU GPSR safety guidelines.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 175,
+        "text": "shelfSubtitle: \"Heritage tree-sap lacquer and shimmering mother-of-pearl craftsmanship\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 232,
+        "text": "\"Handcrafted in Korean ateliers · 100% Natural Botanical Lacquer · Conforms to EU GPSR environmental benchmarks.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 247,
+        "text": "shelfSubtitle: \"Artisanal quilted Bojagi bags and traditional silk drawstring pouches\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 271,
+        "text": "id: \"badge_artisan_quilted\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 272,
+        "text": "label: \"Artisan Quilted Weave\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 296,
+        "text": "\"Machine Washing: Do not machine wash or tumble dry. Structured silhouettes and handmade quilting maintain their form through gentle hand care.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 305,
+        "text": "\"Handcrafted in Korean ateliers · AZO Dye-Free Textile Certification · Conforms to US FTC Care Labeling rules.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 375,
+        "text": "\"Gently straighten the hand-woven silk cords with your fingers before attaching your charm. In Korean tradition, tying a Norigae knot represents weaving longevity, harmony, and good fortune into your everyday presence.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 378,
+        "text": "\"Handcrafted in Korean ateliers · 100% Nickel-Free Hypoallergenic Certification · EU REACH & US CPSIA compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 393,
+        "text": "shelfSubtitle: \"Sculptural wooden Binyeo hairpins and artisan-dyed silk scrunchies\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 450,
+        "text": "\"Handcrafted in Korean ateliers · Snag-Free Polished Finish · EU REACH Skin Safety compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 514,
+        "text": "\"Handcrafted in Korean ateliers · Solid Cast Acoustic Brass · Conforms to EU GPSR safety standards.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 529,
+        "text": "shelfSubtitle: \"Artisanal Ramie table runners, Jogakbo patchwork, and Bojagi living textiles\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 561,
+        "text": "subtitle: \"Preserves Hand Stitching\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 586,
+        "text": "\"Handcrafted in Korean ateliers · 100% Natural Fiber Certification · US FTC & EU Textile Regulation compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 625,
+        "text": "subtitle: \"Artisanal Draped Weave\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 657,
+        "text": "\"Handcrafted in Korean ateliers · 100% Natural Fiber Tailoring · US FTC & EU Textile Compliance.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 728,
+        "text": "\"Handcrafted in Korean ateliers · Low-Voltage CE/FCC Safety Certified · EU GPSR compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 799,
+        "text": "\"Handcrafted in Korean ateliers · 100% Natural Botanical Ingredients · IFRA & EU Safety compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 814,
+        "text": "shelfSubtitle: \"Artisanal Damyang bamboo folding fans, mulberry journals, and calligraphy objects\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 820,
+        "text": "\"Handcrafted Bamboo Hapjukseon (담양 합죽선 전통 부채)\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 845,
+        "text": "subtitle: \"Hand-Carved Flexibility\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 858,
+        "text": "\"Handmade using 100% unbleached Korean mulberry fibers and aged Damyang bamboo ribs. Acid-free pH neutral paper engineered to last over one thousand years without yellowing or brittle degradation.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 870,
+        "text": "\"Handcrafted in Korean ateliers · Acid-Free Archival Paper · EU GPSR compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 879,
+        "text": "// ── ★ Safe-by-Default Fallback (한국 정통 수공예품 럭셔리 기본값) ──",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 883,
+        "text": "title: \"Authentic Korean Handcrafted Goods\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 885,
+        "text": "shelfSubtitle: \"Authentic Korean heritage handcrafted objects created by master ateliers\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 891,
+        "text": "\"Unclassified Korean Master Craftwork (한국 정통 수공예품 공통)\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 901,
+        "text": "categoryTitle: \"Authentic Korean Handcrafted Goods\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 911,
+        "text": "id: \"badge_artisan_handcrafted\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 912,
+        "text": "label: \"Artisan Handcrafted\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 926,
+        "text": "\"Crafted by verified artisan ateliers across South Korea. Created with non-toxic, sustainable materials honoring ancient Korean heritage craftsmanship and global product safety benchmarks.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 930,
+        "text": "\"Individual Uniqueness: Subtle variations in glaze, wood grain, or weave are the authentic hallmarks of human craftsmanship.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 935,
+        "text": "\"Inspect the subtle variations in texture and tone—the true signatures of human hands and heritage mastery. Welcome this piece of Korean heritage into your daily life and sacred space.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/categoryMaster.ts",
+        "line": 938,
+        "text": "\"Handcrafted in Korean ateliers · Dispatched direct from Korea · EU GPSR & US Product Safety compliant.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 30,
+        "text": "\"Artisan handcrafted pouches, daily totes & heritage Korean textiles\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 43,
+        "text": "\"Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 88,
+        "text": "\"Mulberry Hanji paper notebooks, calligraphy brush sets, and artisan bookmarks\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 197,
+        "text": "subtitle: \"Korean fashion accents, handcrafted daily carry & wearable heritage crafts\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 200,
+        "text": "subtitle: \"Hand-knotted silk Daenggi cords & natural jade charms\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 230,
+        "text": "subtitle: \"Natural Korean meditative incense & hand-forged brass bells\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 233,
+        "text": "badgeText: \"Artisan Drop · Coming Soon\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/config/collections.ts",
+        "line": 400,
+        "text": "artist: sp.vendor || \"Korean Master Artisan\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/admin.ts",
+        "line": 714,
+        "text": "artistName: string = \"Artisan\"",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/order-utils.ts",
+        "line": 6,
+        "text": "*  1: Crafting   🎨  (수제작 중)",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/order-utils.ts",
+        "line": 133,
+        "text": "// Resolve artisan-specific status using exact name, trimmed name, and normalized slug",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 22,
+        "text": "title: \"Korean Traditional Artisan Craft\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 23,
+        "text": "description: \"Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 24,
+        "text": "descriptionHtml: \"<p>Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.</p>\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 25,
+        "text": "tags: [\"preview\", \"artisan-craft\"],",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 26,
+        "text": "vendor: \"Master Artisan\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 27,
+        "text": "productType: \"Artisan Craft\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 56,
+        "text": "const title = text(payload.title_en) || text(payload.title) || \"Korean Traditional Artisan Craft\";",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 57,
+        "text": "const vendor = text(payload.artist) || text(payload.vendor) || \"Master Artisan\";",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 168,
+        "text": "tags: [\"preview\", \"artisan-craft\"],",
+        "reachable": true
+      },
+      {
+        "file": "lib/shopify/preview-adapter.ts",
+        "line": 170,
+        "text": "productType: text(payload.category) || \"Artisan Craft\",",
+        "reachable": true
+      },
+      {
+        "file": "lib/snack-options.ts",
+        "line": 26,
+        "text": "{ id: \"more-artisans\", label: \"More Artisan Collabs!\", emoji: \"🤝\" },",
+        "reachable": true
+      }
+    ]
+  },
+  "catalog": [
+    {
+      "environment": "production",
+      "products": 5,
+      "pages": 1,
+      "complete": true,
+      "imageAltLimit": 20,
+      "matches": [
+        {
+          "handle": "maedeup-knot-jade-bag-charm",
+          "field": "description",
+          "matches": [
+            {
+              "term": "hand-woven",
+              "context": "An intricately hand-woven Maedeup flower knot in rich crimson and sage green cords, centered with a polished jade b"
+            },
+            {
+              "term": "Handcrafted",
+              "context": " sage green cords, centered with a polished jade bead. Handcrafted from lustrous silk-blend threads, featuring cascading braided tassels that sway graceful"
+            }
+          ]
+        },
+        {
+          "handle": "celadon-bamboo-handle-teaware-set",
+          "field": "description",
+          "matches": [
+            {
+              "term": "artisanal",
+              "context": "An artisanal celadon tea set featuring a relief-carved teapot crowned with an arched natural bamboo han"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "environment": "development",
+      "products": 1,
+      "pages": 1,
+      "complete": true,
+      "imageAltLimit": 20,
+      "matches": [
+        {
+          "handle": "jade-norigae-knot-bag-charm",
+          "field": "description",
+          "matches": [
+            {
+              "term": "hand-knotted",
+              "context": "A meticulously hand-knotted charm featuring interlaced sage-green and crimson silk cords centered with a lustrous p"
+            },
+            {
+              "term": "artisanal",
+              "context": "lhouette. Versatile brass hardware brings an authentic artisanal accent to leather handbags, tote handles, and daily keyrings. Store hanging to maintain th"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publicPages": [
+    {
+      "path": "/",
+      "status": 200,
+      "visibleMatches": [
+        {
+          "term": "artisan",
+          "context": "lank Seoul is authentically crafted by verified Korean artisans and local workshops. Our official direct international express dispatch will open soon. 🏛️ Ve"
+        },
+        {
+          "term": "master studios",
+          "context": " Korean Workshops Curated directly from verified local master studios. ✈️ Global Dispatch Opening Soon Insured worldwide express launching shortly. Made in Korea - "
+        },
+        {
+          "term": "Artisan",
+          "context": "a - Natural Korean Silk Woven Taegeukgi Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversib"
+        },
+        {
+          "term": "handcrafted",
+          "context": "ral Korean Silk Woven Taegeukgi Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversible Tote Bag "
+        },
+        {
+          "term": "hand-woven",
+          "context": " Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots View all › Maedeup Knot Jade Bag Charm Maedeup Knot Jade Bag Charm USD 33.0"
+        },
+        {
+          "term": "Korean Masters",
+          "context": "re Set USD 34.00 Verified Independent Studios Meet the Korean Masters Tap any studio to explore their dedicated authentic Korean craft collection. Explore All Studi"
+        }
+      ],
+      "meta": [
+        {
+          "name": "description",
+          "content": "Discover authentic Made in Korea lifestyle goods, design pouches, and accessories. Curated in Seoul, inspected, and dispatched direct from Korea with tracked air express."
+        },
+        {
+          "property": "og:title",
+          "content": "Blank Seoul — Curated in Seoul | Made in Korea 🇰🇷"
+        },
+        {
+          "property": "og:description",
+          "content": "Curated in Seoul, Made in Korea — authentic lifestyle pouches, accessories, and design goods. Dispatched direct from Korea."
+        },
+        {
+          "name": "twitter:description",
+          "content": "Authentic products Made in Korea — dispatched direct from Korea to your door with tracked global express."
+        }
+      ]
+    },
+    {
+      "path": "/?mode=preview",
+      "status": 200,
+      "visibleMatches": [
+        {
+          "term": "artisan",
+          "context": "lank Seoul is authentically crafted by verified Korean artisans and local workshops. Our official direct international express dispatch will open soon. 🏛️ Ve"
+        },
+        {
+          "term": "master studios",
+          "context": " Korean Workshops Curated directly from verified local master studios. ✈️ Global Dispatch Opening Soon Insured worldwide express launching shortly. Made in Korea - "
+        },
+        {
+          "term": "Artisan",
+          "context": "a - Natural Korean Silk Woven Taegeukgi Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversib"
+        },
+        {
+          "term": "handcrafted",
+          "context": "ral Korean Silk Woven Taegeukgi Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversible Tote Bag "
+        },
+        {
+          "term": "hand-woven",
+          "context": " Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots View all › Maedeup Knot Jade Bag Charm Maedeup Knot Jade Bag Charm USD 33.0"
+        },
+        {
+          "term": "Korean Masters",
+          "context": "re Set USD 34.00 Verified Independent Studios Meet the Korean Masters Tap any studio to explore their dedicated authentic Korean craft collection. Explore All Studi"
+        }
+      ],
+      "meta": [
+        {
+          "name": "description",
+          "content": "Discover authentic Made in Korea lifestyle goods, design pouches, and accessories. Curated in Seoul, inspected, and dispatched direct from Korea with tracked air express."
+        },
+        {
+          "property": "og:title",
+          "content": "Blank Seoul — Curated in Seoul | Made in Korea 🇰🇷"
+        },
+        {
+          "property": "og:description",
+          "content": "Curated in Seoul, Made in Korea — authentic lifestyle pouches, accessories, and design goods. Dispatched direct from Korea."
+        },
+        {
+          "name": "twitter:description",
+          "content": "Authentic products Made in Korea — dispatched direct from Korea to your door with tracked global express."
+        }
+      ]
+    },
+    {
+      "path": "/?mode=live",
+      "status": 200,
+      "visibleMatches": [
+        {
+          "term": "Artisan",
+          "context": "estyle — Curated in Seoul | BLANK SEOUL Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversib"
+        },
+        {
+          "term": "handcrafted",
+          "context": " Curated in Seoul | BLANK SEOUL Bags & Pouches Artisan handcrafted pouches, daily totes & heritage Korean textiles View all › Hunminjeongeum Reversible Tote Bag "
+        },
+        {
+          "term": "master studios",
+          "context": " Korean Workshops Curated directly from verified local master studios. ✈️ Tracked International Air Insured express straight to your door. Made in Korea - Natural K"
+        },
+        {
+          "term": "hand-woven",
+          "context": " Palace Dancheong pigments, mother-of-pearl inlay, and hand-woven silk Daenggi knots View all › Maedeup Knot Jade Bag Charm Maedeup Knot Jade Bag Charm USD 33.0"
+        },
+        {
+          "term": "Korean Masters",
+          "context": "re Set USD 34.00 Verified Independent Studios Meet the Korean Masters Tap any studio to explore their dedicated authentic Korean craft collection. Explore All Studi"
+        }
+      ],
+      "meta": [
+        {
+          "name": "description",
+          "content": "Discover authentic Made in Korea lifestyle goods, design pouches, and accessories. Curated in Seoul, inspected, and dispatched direct from Korea with tracked air express."
+        },
+        {
+          "property": "og:title",
+          "content": "Blank Seoul — Curated in Seoul | Made in Korea 🇰🇷"
+        },
+        {
+          "property": "og:description",
+          "content": "Curated in Seoul, Made in Korea — authentic lifestyle pouches, accessories, and design goods. Dispatched direct from Korea."
+        },
+        {
+          "name": "twitter:description",
+          "content": "Authentic products Made in Korea — dispatched direct from Korea to your door with tracked global express."
+        }
+      ]
+    },
+    {
+      "path": "/artists",
+      "status": 200,
+      "visibleMatches": [
+        {
+          "term": "Artisan",
+          "context": "g & Objects Ritual & Mood Ateliers Shop All The Korean Artisan Collective Meet Our Verified Master Studios We partner directly with independent craft studios"
+        },
+        {
+          "term": "Master Studios",
+          "context": "op All The Korean Artisan Collective Meet Our Verified Master Studios We partner directly with independent craft studios and master workshops across Korea. Authenti"
+        }
+      ],
+      "meta": [
+        {
+          "name": "description",
+          "content": "Explore our directory of verified independent Korean craft studios. Authentic silk embroidery, mother-of-pearl inlay, palace Dancheong art, and Joseon heritage textiles delivered direct from Korea."
+        },
+        {
+          "property": "og:title",
+          "content": "Blank Seoul — Curated in Seoul | Made in Korea 🇰🇷"
+        },
+        {
+          "property": "og:description",
+          "content": "Curated in Seoul, Made in Korea — authentic lifestyle pouches, accessories, and design goods. Dispatched direct from Korea."
+        },
+        {
+          "name": "twitter:description",
+          "content": "Authentic products Made in Korea — dispatched direct from Korea to your door with tracked global express."
+        }
+      ]
+    }
+  ]
+}

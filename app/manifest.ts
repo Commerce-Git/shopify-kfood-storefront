@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Blank Seoul — Curated in Seoul",
     short_name: "Blank Seoul",
     description:
-      "Curated in Seoul, Made in Korea. Authentic lifestyle goods and K-Food dispatched direct from Korea with tracked air express.",
+      "Curated in Seoul, Made in Korea. Products made in Korea and shipped directly from Korea with tracked air express.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

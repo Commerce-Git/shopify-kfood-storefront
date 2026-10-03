@@ -27,7 +27,7 @@ export default function NewsletterCTA() {
 
       if (res.ok) {
         setStatus("success");
-        setMessage(data.message || "Thank you for joining the Artisan Guild.");
+        setMessage(data.message || "Thank you for joining the Blank Seoul newsletter.");
         if (typeof window !== "undefined") {
           const lowerEmail = email.trim().toLowerCase();
           localStorage.setItem(`blank_seoul_subscribed_${lowerEmail}`, "true");
@@ -50,7 +50,7 @@ export default function NewsletterCTA() {
       <div className="max-w-2xl mx-auto text-center bg-white rounded-3xl p-8 sm:p-12 border border-[#E8E2D6] shadow-md">
         {/* Micro Badge */}
         <span className="text-[#C25E38] text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4EFE6] border border-[#E8E2D6]">
-          <span>🏛️</span> ARTISAN GUILD JOURNAL
+          <span>🏛️</span> BLANK SEOUL NEWS
         </span>
 
         {/* Heading */}
@@ -65,7 +65,7 @@ export default function NewsletterCTA() {
         </h2>
 
         <p className="text-xs sm:text-sm text-[#6B7280] max-w-md mx-auto mb-6 leading-relaxed">
-          Be the first to hear when our verified studios release new handcrafted collections. Receive an exclusive 10% welcome gift on your first piece.
+          Discover new collections made in Korea from our makers and brands. Receive an exclusive 10% welcome gift on your first piece.
         </p>
 
         {/* Form or Subscribed State */}
@@ -75,10 +75,10 @@ export default function NewsletterCTA() {
               ✓
             </div>
             <p className="text-[#1A2F25] font-bold text-base sm:text-lg" style={{ fontFamily: "var(--font-heading)" }}>
-              {message || "You are on the Artisan Guild List."}
+              {message || "You are on the Blank Seoul mailing list."}
             </p>
             <p className="text-[#6B7280] text-xs sm:text-sm mt-1">
-              We&apos;ll notify you first when new limited handcrafted collections drop.
+              We&apos;ll notify you first when new collections made in Korea arrive.
             </p>
           </div>
         ) : (
@@ -101,7 +101,7 @@ export default function NewsletterCTA() {
               {status === "loading" ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                "Join Guild →"
+                "Subscribe →"
               )}
             </button>
           </form>

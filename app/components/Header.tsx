@@ -170,7 +170,7 @@ export default function Header() {
           {!isStoreLive() ? (
             <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95 flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-              <span>Atelier Preview &middot; Official International Dispatch Opening Soon</span>
+              <span>Collection Preview &middot; Official International Dispatch Opening Soon</span>
             </p>
           ) : (
             <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
@@ -446,7 +446,7 @@ export default function Header() {
                   onMouseEnter={handleImmediateClose}
                   onFocus={handleImmediateClose}
                 >
-                  Ateliers
+                  Makers &amp; Brands
                   <span
                     className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E38] rounded-full transition-all duration-200 ${
                       pathname === "/artists" ? "w-full" : "w-0 group-hover:w-full"
@@ -580,7 +580,7 @@ export default function Header() {
             {/* Quick Discovery Tags */}
             <div className="pt-3 pb-2">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF] block mb-2">
-                Popular Crafts
+                Popular Products
               </span>
               <div className="flex flex-wrap gap-1.5">
                 <Link

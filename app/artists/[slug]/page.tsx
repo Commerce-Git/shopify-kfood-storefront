@@ -27,10 +27,10 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 
   return {
     title: `${displayName} — Studio Works | Blank Seoul`,
-    description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,
+    description: `Explore products from ${displayName} made in Korea and dispatched direct from Korea.`,
     openGraph: {
       title: `${displayName} — Blank Seoul`,
-      description: `Explore authentic Korean artisan works by ${displayName} made in Korea and dispatched direct from Korea.`,
+      description: `Explore products from ${displayName} made in Korea and dispatched direct from Korea.`,
       images: [artist.avatar],
     },
   };
@@ -76,7 +76,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
           </Link>
           <span>/</span>
           <Link href="/artists" className="hover:text-[#18181B] transition-colors">
-            Ateliers
+            Makers &amp; Brands
           </Link>
           <span>/</span>
           <span className="text-[#18181B] font-bold">{artist.name || artist.nameEn}</span>
@@ -230,14 +230,14 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
                 className="text-base sm:text-lg font-bold text-[#18181B]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Explore Other Ateliers
+                Explore Other Makers &amp; Brands
               </h2>
             </div>
             <Link
               href="/artists"
               className="text-xs font-bold text-[#C25E38] hover:underline"
             >
-              All Ateliers Directory →
+              All Makers &amp; Brands →
             </Link>
           </div>
 

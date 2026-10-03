@@ -19,12 +19,12 @@ export function adaptPreviewToShopifyProduct(input: unknown): ShopifyProduct {
     return {
       id: "preview-product-id",
       handle: "preview",
-      title: "Korean Traditional Artisan Craft",
-      description: "Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.",
-      descriptionHtml: "<p>Authentic Korean Handicraft carefully created by master artisans. Ships direct from Korea.</p>",
-      tags: ["preview", "artisan-craft"],
-      vendor: "Master Artisan",
-      productType: "Artisan Craft",
+      title: "Korean Product Preview",
+      description: "Explore products made in Korea and shipped from Korea.",
+      descriptionHtml: "<p>Explore products made in Korea and shipped from Korea.</p>",
+      tags: ["preview"],
+      vendor: "Blank Seoul",
+      productType: "Korean Products",
       availableForSale: true,
       images: {
         edges: defaultPlaceholderPhotos.map((url, idx) => ({
@@ -53,8 +53,8 @@ export function adaptPreviewToShopifyProduct(input: unknown): ShopifyProduct {
     };
   }
 
-  const title = text(payload.title_en) || text(payload.title) || "Korean Traditional Artisan Craft";
-  const vendor = text(payload.artist) || text(payload.vendor) || "Master Artisan";
+  const title = text(payload.title_en) || text(payload.title) || "Korean Product Preview";
+  const vendor = text(payload.artist) || text(payload.vendor) || "Blank Seoul";
   
   // Use valid USD price if provided and non-zero; otherwise default to clean $79.00 USD
   let priceAmount = "79.00";
@@ -65,7 +65,7 @@ export function adaptPreviewToShopifyProduct(input: unknown): ShopifyProduct {
   const rawDescription = text(payload.description_en) || text(payload.description) || "";
   let descriptionText = rawDescription.trim().length > 0
     ? rawDescription
-    : `Authentic Korean Handicraft from ${vendor}. Carefully crafted and shipped directly from Korea. Free worldwide shipping included.`;
+    : `Products made in Korea from ${vendor}. Shipped directly from Korea.`;
 
   // Append specs if available
   if (payload.weight_grams && Number(payload.weight_grams) > 0) {
@@ -165,9 +165,9 @@ export function adaptPreviewToShopifyProduct(input: unknown): ShopifyProduct {
     title,
     description: descriptionText,
     descriptionHtml: `<p>${descriptionText.replace(/\n/g, "<br/>")}</p>`,
-    tags: ["preview", "artisan-craft"],
+    tags: ["preview"],
     vendor,
-    productType: text(payload.category) || "Artisan Craft",
+    productType: text(payload.category) || "Korean Products",
     availableForSale: true,
     images: { edges: imagesEdges },
     variants: { edges: variantEdges },

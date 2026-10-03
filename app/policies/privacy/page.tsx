@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Privacy Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: August 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: October 3, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -192,6 +192,20 @@ export default function PrivacyPolicyPage() {
           potential violations of our terms or policies.
         </li>
       </ul>
+
+      <h2 id="support-messages">Customer Support Messages</h2>
+      <p>
+        When you contact us, we use your contact details, messages, attachments and
+        related product or order references to respond and follow up on your inquiry.
+        Blank Seoul Customer Support receives and reviews these messages. This is
+        a conversation with our support team, not a private chat directly with a maker.
+      </p>
+      <p>
+        When a maker’s input is needed, our support team may share relevant question
+        details and product references with that maker. Makers are not given access
+        to your full customer conversation through this support feature. Please do
+        not include passwords or payment card details in your messages.
+      </p>
 
       <h2>How We Disclose Personal Information</h2>
       <p>

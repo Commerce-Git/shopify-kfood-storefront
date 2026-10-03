@@ -27,7 +27,7 @@ export default function EtsyEditorialSplitBanner({ isHero = false, isLive }: Ets
                 {!live ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    <span>OFFICIAL LAUNCH &middot; ATELIER PREVIEW</span>
+                    <span>OFFICIAL LAUNCH &middot; COLLECTION PREVIEW</span>
                   </>
                 ) : (
                   <>
@@ -71,8 +71,8 @@ export default function EtsyEditorialSplitBanner({ isHero = false, isLive }: Ets
               {/* Refined Single-Sentence Narrative (Zero Repetition, Pure Transparency) */}
               <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
                 {!live
-                  ? "Every piece on Blank Seoul is authentically crafted by verified Korean artisans and local workshops. Our official direct international express dispatch will open soon."
-                  : "Every product on Blank Seoul is authentically crafted in Korea—curated in Seoul from skilled local workshops and verified studios, dispatched directly with tracked global express."}
+                  ? "Discover products made in Korea and curated in Seoul. Direct international shipping from Korea is coming soon."
+                  : "Explore products made in Korea, curated in Seoul and shipped directly from Korea with international tracking."}
               </p>
 
               {/* Refined Dual Assurance Bar (Quiet Luxury & Clutter-Free) */}
@@ -80,9 +80,9 @@ export default function EtsyEditorialSplitBanner({ isHero = false, isLive }: Ets
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0">🏛️</span>
                   <div>
-                    <h3 className="text-xs font-bold text-[#D4A373]">Verified Korean Workshops</h3>
+                    <h3 className="text-xs font-bold text-[#D4A373]">Made in Korea</h3>
                     <p className="text-[11px] text-white/70 leading-snug mt-0.5">
-                      Curated directly from verified local master studios.
+                      Products from Korean makers, brands and manufacturers.
                     </p>
                   </div>
                 </div>

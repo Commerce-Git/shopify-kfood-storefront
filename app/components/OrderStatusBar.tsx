@@ -1,13 +1,13 @@
 "use client";
 
 interface OrderStatusBarProps {
-  step: number; // 0 = Ordered, 1 = Crafting, 2 = Packaging, 3 = In Transit, 4 = Delivered
+  step: number; // 0 = Ordered, 1 = Preparing, 2 = Packaging, 3 = In Transit, 4 = Delivered
   theme?: "dark" | "light";
 }
 
 const STEPS = [
   { label: "Ordered" },
-  { label: "Crafting" },
+  { label: "Preparing" },
   { label: "Packaging" },
   { label: "In Transit" },
   { label: "Delivered" },

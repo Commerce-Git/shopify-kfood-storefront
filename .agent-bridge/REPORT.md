@@ -1,5 +1,39 @@
 # Gemini report
 
+## 2026-10-03 direct Codex task: footer support typography
+
+- Matched Contact Support to adjacent Customer Care links: `text-sm` → `text-xs`, identical block layout and hover styling. Support action preserved.
+- Local Chrome at 390px confirmed all five links use 12px font, 16px line height, weight 400 and block display. File diff check passed. Local change only; no deployment.
+
+## 2026-10-03 direct Codex task: authenticated Preview follow-up
+
+- Verified Production/Preview metadata: Storefront `10a4ba7`, Admin `84b3bf8`, all READY. Latest chat edits remain local; no deployment performed.
+- Deployed Preview denied anonymous access (401) and a signed-in ordinary QA user (403), and allowed a temporary QA administrator (200). Actual Preview admin UI reply reached the latest local customer UI; read receipts and touch-emulated mobile reopening passed.
+- Used Supabase password-authenticated QA sessions, not development bypass or the user's Google/Kakao OAuth. Removed temporary users, inquiries/messages and queued email jobs; no external notifications, SQL or production data writes.
+- Physical phone keyboard checks, user OAuth login and verification after the user's latest-code deployment remain. [Evidence](../docs/platform-analysis/INQUIRY_DELIVERY.md#2026-10-03-상품-맥락-문의창선택형-faq메시지-안내).
+
+## 2026-10-03 direct Codex task: customer support live verification
+
+- Ran real localhost Storefront/Admin browser flows against the test DB: guest general/product inquiry, HQ UI reply, customer receipt/read acknowledgment, reopening/reloading, context separation and 390px viewport.
+- Fixed a first-click loss while the chat lazy chunk mounts; pending support intent now survives mounting and is consumed once. UI regressions 18/18, Storefront typecheck and changed-file ESLint (0 errors, 2 existing image warnings) passed.
+- Verified artist API isolation using a disposable real Auth session with development bypass disabled. Removed fixture accounts, conversations, messages and queued email rows. No external email/Kakao dispatch, SQL, push or deployment.
+- Direct Codex execution, not delegated. HQ UI used localhost auth bypass; deployed staff login and physical mobile keyboards remain unverified. [Evidence and remaining work](../docs/platform-analysis/INQUIRY_DELIVERY.md#2026-10-03-상품-맥락-문의창선택형-faq메시지-안내).
+
+## 2026-10-03 direct Codex task: origin copy implementation
+
+- Applied user follow-up to D031 across Storefront public copy, category defaults, fallback metadata, preview, email templates and related Admin product/support generators. Preserved category IDs, order status codes, registered supplier names and explicit product descriptions.
+- Removed blanket handmade/factory-exclusion language. ArtistDropEmail no longer inserts product-independent artisan certificates, kiln scarcity and gift claims; fixed its existing Tailwind/Head render error discovered during verification.
+- Both type checks passed. Storefront 28/28 and targeted Admin 34/34 tests passed. Changed Storefront files: ESLint 0 errors / 12 warnings; whole-project lint retains an unchanged test-file error and 25 warnings. Four local Chrome home viewport/mode combinations returned 200 with expected copy, no horizontal overflow or page errors. Category/preview defaults and email HTML rendering checked.
+- Direct Codex execution, not a Gemini bridge run. No product-data writes, live messages, SQL, push or deployment. User deployment and per-product fact checks remain. [Full implementation, verification and limits](../docs/platform-analysis/ORIGIN_COPY_AUDIT.md#9-후속-구현-및-검증--2026-10-03).
+
+## 2026-10-03 direct Codex task: Korean manufacturing and shipping copy audit
+
+- User requested a thorough review of handmade wording and confirmed Korean manufacturing and shipping as the platform positioning (D031; M03/M04/M09/M10).
+- Read storefront source and import dependencies, deployed public homepage modes and artist directory, published production/development Storefront catalogs, and relevant Admin product/support text generators.
+- Found blanket handmade claims in homepage collection copy, all 12 category-care footers and the unclassified product fallback, cart recommendations, metadata and auxiliary screens. Recorded unused legacy components separately.
+- Evidence and change candidates: [origin copy audit](../docs/platform-analysis/ORIGIN_COPY_AUDIT.md), [source/public-page/catalog evidence](../docs/platform-analysis/ORIGIN_COPY_AUDIT_EVIDENCE.json).
+- This was a direct Codex review, not a Gemini bridge run. Updated documentation and D031 only; no application copy, product data, environment, SQL, Git push, deployment or message dispatch changes. Product manufacturing facts and all deployed screens remain unverified beyond the documented scope.
+
 ## 2026-10-01 direct Codex task: environment consolidation
 
 - User authorized both code and environment cleanup (R11: reduce configuration burden and cross-environment mistakes).

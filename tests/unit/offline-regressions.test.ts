@@ -15,7 +15,7 @@ test("error handling accepts Error and API objects without trusting arbitrary th
 test("preview normalizes malformed fields and preserves valid option images", () => {
   const p = adaptPreviewToShopifyProduct({ title_en: 7, material: {}, photos: [null, 3, "https://example.invalid/a.jpg"],
     options: [{ name: "Finish", variants: [null, {name:"Blue", photo:"https://example.invalid/blue.jpg"}] }] });
-  assert.equal(p.title, "Korean Traditional Artisan Craft");
+  assert.equal(p.title, "Korean Product Preview");
   assert.equal(p.images.edges.length, 1);
   assert.equal(p.variants.edges[0].node.title, "Blue");
   assert.equal(p.variants.edges[0].node.image?.url, "https://example.invalid/blue.jpg");

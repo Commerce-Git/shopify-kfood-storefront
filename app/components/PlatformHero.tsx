@@ -25,7 +25,7 @@ export default function PlatformHero() {
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F4EFE6] border border-[#E8E2D6] w-fit mx-auto lg:mx-0 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-[#C25E38] animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-widest text-[#1A2F25]" style={{ fontFamily: "var(--font-heading)" }}>
-                Curated Korean Artisan Collective
+                Made in Korea · Shipped from Korea
               </span>
             </div>
 
@@ -36,7 +36,7 @@ export default function PlatformHero() {
             >
               The Global Stage for{" "}
               <span className="text-[#C25E38] relative inline-block">
-                Korea&apos;s Independent
+                Korea&apos;s Makers
                 <svg
                   className="absolute -bottom-2 left-0 w-full h-3 text-[#C25E38]/20"
                   viewBox="0 0 100 20"
@@ -46,13 +46,13 @@ export default function PlatformHero() {
                   <path d="M0 15 Q 50 0, 100 15 L 100 20 Q 50 5, 0 20 Z" />
                 </svg>
               </span>{" "}
-              Artisans.
+              &amp; Brands.
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-[#6B7280] max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Discover authentic, handcrafted treasures curated in Seoul and crafted across Korea&apos;s heritage studios. 
-              Each piece is personally crafted with centuries-old tradition, verified for excellence, and delivered straight from Korea.
+              Discover products made in Korea, curated in Seoul and shipped from Korea.
+              Explore collections from Korean makers, designers, brands and manufacturers.
             </p>
 
             {/* Dual CTAs */}
@@ -61,13 +61,13 @@ export default function PlatformHero() {
                 href="/#masterpieces"
                 className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#1A2F25] text-white font-bold text-sm tracking-wide shadow-md hover:bg-[#112019] hover:shadow-lg transition-all text-center"
               >
-                Explore 12 Masterpieces →
+                Explore Our Products →
               </Link>
               <Link
                 href="/#ateliers"
                 className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#FFFFFF] text-[#18181B] font-bold text-sm tracking-wide border border-[#E8E2D6] hover:bg-[#F4EFE6] hover:border-[#D8D0C0] transition-all text-center"
               >
-                Meet Our Master Studios →
+                Meet Our Makers &amp; Brands →
               </Link>
             </div>
 
@@ -99,7 +99,7 @@ export default function PlatformHero() {
             <div className="relative mx-auto max-w-[480px] aspect-4/5 rounded-3xl overflow-hidden border border-[#E8E2D6] shadow-xl bg-white group">
               <Image
                 src="/assets/korean_artisan_crafts_hero.jpg"
-                alt="Blank Seoul Handcrafted Korean Artisan Masterpiece Collection"
+                alt="Products Made in Korea — Blank Seoul"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 480px"
@@ -115,13 +115,13 @@ export default function PlatformHero() {
               {/* Bottom Caption Card */}
               <div className="absolute bottom-5 left-5 right-5 text-white">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#D4A373]">
-                  Curated Artisan Collection
+                  Products Made in Korea
                 </p>
                 <p className="text-base sm:text-lg font-bold leading-snug mt-1" style={{ fontFamily: "var(--font-heading)" }}>
                   Authentic Crafts, Preserving Joseon Heritage
                 </p>
                 <p className="text-xs text-white/80 mt-1">
-                  Personally handmade in Korean studios with pure silk knots, leather, and fine embroidery.
+                  Discover Korean-made accessories and lifestyle goods, shipped directly from Korea.
                 </p>
               </div>
             </div>

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const email = body.email?.trim()?.toLowerCase();
     const artistSlug = (body.artistSlug || "blank-seoul").trim().toLowerCase();
-    const artistName = body.artistName?.trim() || "Artisan";
+    const artistName = body.artistName?.trim() || "Blank Seoul";
     const action: "follow" | "unfollow" = body.action === "unfollow" ? "unfollow" : "follow";
 
     if (!email || !EMAIL_REGEX.test(email)) {

@@ -37,7 +37,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     <div className="relative w-full flex-1 bg-[#FFFFFF] text-[#18181B] overflow-hidden">
       {/* 2026 Semantic Topic Anchor for Search Engines & Screen Readers */}
       <h1 className="sr-only">
-        Authentic Korean Craft &amp; Modern Lifestyle — Curated in Seoul | BLANK SEOUL
+        Made in Korea. Shipped from Korea. | BLANK SEOUL
       </h1>
 
       {/* 1. Preview Mode: Opening Soon Manifesto Banner placed at the very top (Hero Hook & Story) */}

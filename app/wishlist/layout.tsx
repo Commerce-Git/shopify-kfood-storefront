@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "My Curation & Followed Studios | Blank Seoul Atelier",
+  title: "Saved Products & Followed Makers | Blank Seoul",
   description:
-    "Review your personal curation of authentic Korean handcrafted pieces and manage VIP priority drop alerts for verified artisan studios.",
+    "Explore your saved products made in Korea and manage updates from the makers and brands you follow.",
   robots: {
     index: false,
     follow: true,

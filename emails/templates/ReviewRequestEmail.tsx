@@ -57,7 +57,7 @@ export const ReviewRequestEmail = ({
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
               Your Blank Seoul order arrived a few weeks ago — we&apos;d love to
-              hear what you think! Every review helps us curate better artisan goods for
+              hear what you think! Every review helps us curate better Korean-made products for
               our collection. Your honest opinion matters! 🙌
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">

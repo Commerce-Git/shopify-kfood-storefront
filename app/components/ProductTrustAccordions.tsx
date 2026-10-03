@@ -190,7 +190,7 @@ export default function ProductTrustAccordions({
                   <span className="text-sm shrink-0">🏛️</span>
                   <div>
                     <span className="text-[10px] text-[#71717A] font-medium block uppercase tracking-wider">Studio</span>
-                    <span className="text-xs font-bold text-[#18181B]">Verified Korean Atelier</span>
+                    <span className="text-xs font-bold text-[#18181B]">Blank Seoul</span>
                   </div>
                 </div>
               )}
@@ -215,7 +215,7 @@ export default function ProductTrustAccordions({
               </div>
             )}
 
-            {/* Real Artisan Description & Story from Shopify DB */}
+            {/* Product Description & Story from Shopify DB */}
             {product.descriptionHtml && (
               <div
                 className="text-xs text-[#52525B] leading-relaxed pt-1 prose prose-sm max-w-none [&_.bg-purple-50]:!hidden [&_.border-purple-200]:!hidden"

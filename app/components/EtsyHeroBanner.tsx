@@ -12,19 +12,19 @@ export default function EtsyHeroBanner() {
             {/* Left Copy Column */}
             <div className="lg:col-span-7 flex flex-col gap-4 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-[#E1D7C3] text-xs font-bold text-[#1A2F25] uppercase tracking-wider w-fit mx-auto lg:mx-0 shadow-2xs">
-                <span>🇰🇷</span> Curated Korean Artisan Collective
+                <span>🇰🇷</span> Made in Korea · Shipped from Korea
               </div>
 
               <h1
                 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#18181B] leading-tight tracking-tight"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Discover Extraordinary Handcrafted Pieces,{" "}
+                Discover Products Made in Korea,{" "}
                 <span className="text-[#C25E38] block sm:inline">Made in Korea.</span>
               </h1>
 
               <p className="text-sm sm:text-base text-[#4B5563] max-w-xl leading-relaxed">
-                Connect directly with Korea&apos;s independent master craft studios. Every single piece is personally handmade by verified artisans, inspected for excellence, and dispatched directly from Korea with tracked international shipping.
+                Explore products from Korean makers, designers and brands, curated in Seoul and shipped directly from Korea with international tracking.
               </p>
 
               {/* Action Buttons */}
@@ -39,7 +39,7 @@ export default function EtsyHeroBanner() {
                   href="/#ateliers"
                   className="px-6 py-3 rounded-full bg-white hover:bg-[#FBF9F5] text-[#18181B] font-bold text-xs sm:text-sm tracking-wide border border-[#D8CEBA] transition-all shadow-2xs"
                 >
-                  🏛️ Meet Our Ateliers
+                  🏛️ Meet Our Makers &amp; Brands
                 </Link>
               </div>
             </div>
@@ -49,7 +49,7 @@ export default function EtsyHeroBanner() {
               <div className="relative mx-auto max-w-[420px] aspect-4/3 rounded-2xl overflow-hidden shadow-lg border border-white/80 group bg-white">
                 <Image
                   src="/assets/korean_artisan_crafts_hero.jpg"
-                  alt="Handcrafted Korean Artisan Masterpiece Collection"
+                  alt="Products Made in Korea — Blank Seoul"
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 420px"
@@ -59,7 +59,7 @@ export default function EtsyHeroBanner() {
 
                 <div className="absolute bottom-4 left-4 right-4 text-white">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4A373]">
-                    Featured Atelier Collection
+                    Featured Collection
                   </span>
                   <p className="text-sm sm:text-base font-bold leading-snug mt-0.5" style={{ fontFamily: "var(--font-heading)" }}>
                     Joseon Hopae Leather & Silk Knot Crafts

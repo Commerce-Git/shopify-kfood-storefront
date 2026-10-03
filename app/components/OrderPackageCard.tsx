@@ -225,7 +225,7 @@ export default function OrderPackageCard({
         })}
       </div>
 
-      {/* 5-Stage Live Crafting & Delivery Timeline */}
+      {/* 5-Stage Order Preparation & Delivery Timeline */}
       <div className={`pt-4 pb-2 border-t ${isDark ? "border-white/10" : "border-gray-100"}`}>
         <OrderStatusBar step={pkg.step} theme={theme} />
       </div>

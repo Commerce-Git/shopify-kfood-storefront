@@ -69,7 +69,7 @@ export default async function CollectionsPage() {
                 Curating Heritage Pieces from Korea
               </h2>
               <p className="text-xs sm:text-sm text-[#6B7280] leading-relaxed mb-6">
-                Our authentic Korean collections are currently being prepared by verified independent studios and local workshops across Korea.
+                Our collections of Korean-manufactured products are currently being prepared by makers and brands across Korea.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link

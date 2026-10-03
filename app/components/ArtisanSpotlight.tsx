@@ -13,7 +13,7 @@ export default function ArtisanSpotlight() {
 
             {/* Punchy 2-Line Headline */}
             <h2 className="heading-xl text-white leading-tight">
-              Korean Craftsmanship,{" "}
+              Made in Korea,{" "}
               <span className="bg-gradient-to-r from-[#F5D0A9] via-[#E8AA70] to-[#C77B4A] bg-clip-text text-transparent block">Direct From Korea.</span>
             </h2>
 
@@ -22,17 +22,17 @@ export default function ArtisanSpotlight() {
               className="text-base sm:text-lg text-white/70 max-w-xl mx-auto lg:mx-0 leading-relaxed"
               style={{ fontFamily: "var(--font-body)" }}
             >
-              Connecting your space directly with Korea&apos;s master artisans. <strong className="text-white font-semibold">Individually handcrafted with care</strong>.
+              Discover products from Korean makers and brands. <strong className="text-white font-semibold">Made in Korea. Shipped from Korea.</strong>
             </p>
 
             {/* 3 Core Trust Pillars — Symmetrical 1-Line Minimal Badges */}
             <div className="flex flex-wrap lg:flex-nowrap items-center justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-8 mt-6 pt-6 sm:mt-8 sm:pt-8 border-t border-white/10">
               <div className="whitespace-nowrap text-xs sm:text-sm font-bold text-white flex items-center justify-center lg:justify-start gap-1.5" style={{ fontFamily: "var(--font-heading)" }}>
-                <span>🏛️</span> Master Korean Artisans
+                <span>🏛️</span> Korean Makers &amp; Brands
               </div>
 
               <div className="whitespace-nowrap text-xs sm:text-sm font-bold text-white flex items-center justify-center lg:justify-start gap-1.5" style={{ fontFamily: "var(--font-heading)" }}>
-                <span>✨</span> Handcrafted Heritage
+                <span>✨</span> Made in Korea
               </div>
 
               <div className="whitespace-nowrap text-xs sm:text-sm font-bold text-white flex items-center justify-center lg:justify-start gap-1.5" style={{ fontFamily: "var(--font-heading)" }}>

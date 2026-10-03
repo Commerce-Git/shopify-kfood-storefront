@@ -711,7 +711,7 @@ export async function updateArtistFollowStatus(
   email: string,
   artistSlug: string,
   action: "follow" | "unfollow",
-  artistName: string = "Artisan"
+  artistName: string = "Blank Seoul"
 ): Promise<{ success: boolean; message?: string; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   const normalizedSlug = artistSlug.trim().toLowerCase();

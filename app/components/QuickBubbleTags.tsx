@@ -15,7 +15,7 @@ const ROW_1_TAGS: BubbleTag[] = [
   { label: "Transform Bags & Pouches", emoji: "🧵", href: "/#masterpieces" },
   { label: "Royal Silk Knot Charms", emoji: "🗝️", href: "/#masterpieces" },
   { label: "Mulberry Hanji Wrap", emoji: "🌿", href: "/#unboxing" },
-  { label: "Meet Master Studios", emoji: "🏛️", href: "/#ateliers" },
+  { label: "Meet Makers & Brands", emoji: "🏛️", href: "/#ateliers" },
 ];
 
 const ROW_2_TAGS: BubbleTag[] = [

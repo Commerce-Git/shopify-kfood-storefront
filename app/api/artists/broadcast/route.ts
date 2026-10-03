@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     const artistName =
       body.artistName?.trim() ||
       getArtistBySlug(normalizedSlug).name ||
-      "Artisan Studio";
+      "Blank Seoul";
 
     // ========================================================
     // 1. Supabase First-Party SSOT Query (Primary Source)
@@ -254,7 +254,7 @@ export async function POST(request: Request) {
         );
 
         return {
-          from: "Blank Seoul Atelier <atelier@blankseoul.com>",
+          from: "Blank Seoul <atelier@blankseoul.com>",
           to: recipient.email,
           subject: `New Studio Release: ${productTitle} by ${artistName}`,
           react: ArtistDropEmail({

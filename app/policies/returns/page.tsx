@@ -109,14 +109,14 @@ export default function ReturnPolicyPage() {
 
       <h2>4. 30-Day Returns & Exchanges Policy</h2>
       <p>
-        We want you to feel confident in every artisan purchase. We accept returns and exchanges within <strong>30 days of delivery</strong> under the following standard terms:
+        We want you to feel confident in every purchase. We accept returns and exchanges within <strong>30 days of delivery</strong> under the following standard terms:
       </p>
       <ul>
         <li>
           <strong>Buyer Responsibility for Return Shipping:</strong> Because each piece is dispatched directly from independent studios in South Korea, buyers are responsible for all tracked international return postage back to our fulfillment hub in Seoul, South Korea.
         </li>
         <li>
-          <strong>Condition of Returned Items:</strong> Items must be returned in their original, unused condition, complete with all original artisan packaging, tags, and protective wraps. If the item is not returned in its original condition, the buyer is responsible for any loss in value.
+          <strong>Condition of Returned Items:</strong> Items must be returned in their original, unused condition, complete with all original packaging, tags, and protective wraps. If the item is not returned in its original condition, the buyer is responsible for any loss in value.
         </li>
         <li>
           <strong>Custom & Bespoke Pieces:</strong> Custom-made, engraved, or personalized items crafted to order cannot be returned or exchanged.

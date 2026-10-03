@@ -3,10 +3,10 @@ export default function HowItWorks() {
     <section className="py-20 px-4 bg-surface-dim border-y border-border-light">
       <div className="max-w-[1000px] mx-auto text-center">
         <h2 className="heading-md text-dark mb-4">
-          From the Artisan&apos;s Hands to Your Door
+          From Korea to Your Door
         </h2>
         <p className="text-text-muted mb-12 max-w-2xl mx-auto">
-          We handle the logistics so our artisans can focus on what they do best: creating beautiful things. Here is how your order reaches you safely.
+          We connect Korean makers and brands with global shoppers. Here is how your order travels from Korea to you.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 relative">
@@ -19,10 +19,10 @@ export default function HowItWorks() {
               🤲
             </div>
             <h3 className="font-bold text-dark mb-2" style={{ fontFamily: "var(--font-heading)" }}>
-              1. Handcrafted
+              1. Made in Korea
             </h3>
             <p className="text-sm text-text-muted">
-              Made with care in the artisan&apos;s local studio. No factories, no mass production.
+              Explore goods manufactured in Korea by makers, designers, brands and manufacturers.
             </p>
           </div>
 

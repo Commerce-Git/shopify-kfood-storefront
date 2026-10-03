@@ -909,3 +909,25 @@ Vercel 재조회(2026-09-30 20:28 UTC / 2026-10-01 05:28 KST): Admin dev Preview
 - Admin 신규 회귀 시험 9개(설정 누락/다른 스토어/부분 공개/비활성/오류 응답/ID 저장 실패/재시도/화면 완료 판정), 전체 단위 시험 421개, TypeScript 검사, 새 helper 두 파일 ESLint, diff 공백 검사 통과. 새 상품 전체 파이프라인의 원격 생성 시험과 새 배포 E2E는 수행하지 않았다.
 
 **남은 제한:** 테스트 상품의 `availableForSale=false` 및 재고 0, 기존 재고 동기화 실패 작업은 그대로다. 이번 변경은 공개/노출 복구이며 실제 구매 시험 전 재고 동기화를 별도로 복구해야 한다. 기존 상품의 `registered` 상태가 모두 공개 사실을 보장한다고 소급 판정하지 않는다. 후속 작업은 [Admin TODO](../../../blank-seoul-admin/TODO.md)에 기록했다.
+
+
+## 2026-10-03 Shopify 테스트 재고 동기화 복구
+
+사용자 요청으로 채널 공개 이후 남은 재고 실패를 분석하고 공통 코드로 수정·검증했다. 테스트 DB의 노리개 상품 `b9772ff9-a1f8-408e-8a84-e9d83344cc99`는 `stock_quantity=1`, `shopify_stock_quantity=1`, 옵션 없음이었다. Shopify 재고 항목은 `Shop location` (`89747128498`)에만 연결되어 재고 0이었다. 기존 `getPrimaryLocationId`의 `locations(first: 1)`은 다른 위치 `My Custom Location` (`89747161266`)을 선택했다. 수정 전 실제 동기화 호출에서 `ITEM_NOT_STOCKED_AT_LOCATION` 오류를 재현했다. 운영에는 조회된 위치가 하나라 같은 결함이 드러나지 않았다.
+
+**수정:**
+
+- `inventory.ts`는 스토어 기본 위치 `location(id: null)`를 사용한다. 명시한 `SHOPIFY_LOCATION_ID`는 형식·존재·활성·온라인 주문 처리 가능 여부를 검증한다. 이전 스토어의 전역 위치 캐시를 제거했다.
+- `publishProduct.ts` 신규 등록도 이후 변경과 동일한 위치 resolver와 `setBatchInventoryQuantities`를 사용한다. 잘못된 재고 상태명 `Initial Inventory`의 별도 mutation을 제거하고 `available` 및 멱등 키·오류/응답 확인 경로를 통일했다. `shopify_stock_quantity`/옵션 `shopify_stock`의 명시값(0 포함)을 우선한다. 재고 추적 설정·수량 반영 실패 시 채널 공개/등록완료로 진행하지 않는다.
+- 배치 writer는 모든 입력 수량과 중복 대상을 먼저 검증하고, Shopify userErrors 또는 adjustment 응답 누락을 거절한다. strict worker는 실제 오류를 보존하여 기존의 포괄적 `not acknowledged` 메시지로 감추지 않는다.
+- 테스트 전용 성공 처리·권한 우회·가짜 재고는 추가하지 않았다. 임의 다른 위치에 재고를 활성화/복제하지 않았다. 운영 상품·재고는 read-only로 확인했다.
+
+**실제 복구:**
+
+기존 실패 작업 `8b5e8d7c-4219-4acc-843e-652824e353d8`의 `needs_reconciliation=true` 때문에 새 작업은 두 번의 worker 호출에서 인출되지 않았다. 이전 작업 스냅샷을 Git 밖 비공개 파일에 보관하고, 현재 상품/재고 및 같은 오류 재현을 확인한 후 기존 실패 이력에 복구 작업 ID와 원인을 덧붙여 확인 필요 플래그만 해제했다. 기존 작업을 성공으로 바꾸지 않았다. 새 작업 `ca596404-fa24-4ab0-b6a0-cc6972c8f399`은 기존 미완료 범위를 포함하도록 SYNC_ALL로 합쳐 공통 owned worker로 실행했고, `processed=1`, `errors=0`, `completed`, `attempts=1`을 확인했다. SQL/마이그레이션 실행은 없고 기존 애플리케이션 RPC/데이터 API만 사용했다.
+
+Shopify 기본 위치 available=1, totalInventory=1, Storefront 상품/옵션 `availableForSale=true`, `quantityAvailable=1`을 재조회했다. 실제 로컬 3001 상세 페이지에서 구매 버튼 활성화·브라우저 장바구니 수량 1을 확인했다. 최초 화면 확인은 기존 캐시의 품절 상태로 시간 초과했고, 이후 갱신된 응답에서 정상 표시를 재검증했다. 프론트 프로젝트의 실제 Storefront helper/CREATE_CART로 테스트 Shopify 카트 수량 1·$33 USD·checkoutUrl 생성을 확인한 뒤 카트 행을 제거했다. 주문 생성·결제·배송/알림 발송은 하지 않았다.
+
+**검증:** 새 위치/재고 시험 6개 및 신규 등록 공통 writer 회귀 시험 1개 추가, 전체 단위 시험 428개·TypeScript 검사·diff 공백 검사 통과. 세 변경 파일 ESLint의 기존 `no-explicit-any` 오류 총 56개는 남아 있다(HEAD 총수와 동일); 전체 lint 통과로 표시하지 않는다. 운영/테스트 기본 위치를 각각 조회했고 Vercel Admin에는 `SHOPIFY_LOCATION_ID` override가 없음을 확인했다. 추가 환경변수·SQL은 필요하지 않다.
+
+**남은 범위:** 사용자가 Admin 변경 코드를 Production/Preview에 배포해야 한다. 신규 상품 생성부터 결제/주문 확정까지의 전체 원격 E2E, 다중 옵션/다중 창고의 실제 주문 경쟁 조건은 이번 단품 복구 시험의 완료 범위가 아니다. 채널 수정 때 기록한 재고 0·복구 대기는 이 후속 검증으로 해소됐다.

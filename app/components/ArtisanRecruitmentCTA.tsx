@@ -22,13 +22,13 @@ export default function ArtisanRecruitmentCTA() {
           className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          Are You a Korean Heritage Artisan?{" "}
+          Do You Make Products in Korea?{" "}
           <span className="text-[#D4A373] block mt-1">Join Our Global Stage.</span>
         </h2>
 
         {/* Subtitle */}
         <p className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto mt-4 leading-relaxed">
-          We empower independent Korean craft masters to reach global collectors without the barriers of foreign languages, international shipping, or currency exchange.
+          We help Korean makers and brands reach global shoppers without the barriers of foreign languages, international shipping, or currency exchange.
         </p>
 
         {/* 3 Partner Benefits Grid */}
@@ -37,7 +37,7 @@ export default function ArtisanRecruitmentCTA() {
             <span className="text-2xl mb-3 block">🌏</span>
             <h4 className="text-sm font-bold text-white mb-1">Global Reach in English & USD</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              We translate your craft story and manage overseas customers, payments, and customs.
+              We translate your product story and manage overseas customers, payments, and customs.
             </p>
           </div>
 
@@ -51,7 +51,7 @@ export default function ArtisanRecruitmentCTA() {
 
           <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-xs">
             <span className="text-2xl mb-3 block">🎨</span>
-            <h4 className="text-sm font-bold text-white mb-1">Your Dedicated Atelier Identity</h4>
+            <h4 className="text-sm font-bold text-white mb-1">Your Maker &amp; Brand Profile</h4>
             <p className="text-xs text-white/70 leading-relaxed">
               Never hidden behind generic labels. Your studio name, philosophy, and photos are honored.
             </p>
@@ -61,10 +61,10 @@ export default function ArtisanRecruitmentCTA() {
         {/* CTA Contact Button */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="mailto:contact@blankseoul.com?subject=[Artisan Partnership] 입점 문의"
+            href="mailto:contact@blankseoul.com?subject=[Brand Partnership] 입점 문의"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#C25E38] hover:bg-[#A74B28] text-white font-bold text-sm tracking-wide uppercase transition-all shadow-lg text-center"
           >
-            Apply for Atelier Partnership →
+            Apply for Partnership →
           </a>
           <a
             href="https://instagram.com"

@@ -5,9 +5,9 @@ import { getEnrichedArtistsWithProducts } from "@/lib/artists";
 import ArtistsDirectoryInteractive from "./ArtistsDirectoryInteractive";
 
 export const metadata: Metadata = {
-  title: "Verified Korean Studios — Master Craft Guild | Blank Seoul",
+  title: "Korean Makers & Brands | Blank Seoul",
   description:
-    "Explore our directory of verified independent Korean craft studios. Authentic silk embroidery, mother-of-pearl inlay, palace Dancheong art, and Joseon heritage textiles delivered direct from Korea.",
+    "Meet the makers and brands behind our products made in Korea and shipped directly from Korea.",
 };
 
 export default async function ArtistsDirectoryPage() {
@@ -20,16 +20,16 @@ export default async function ArtistsDirectoryPage() {
       <section className="py-12 sm:py-16 border-b border-[#E8DFC8] bg-[#F5F0E6]">
         <div className="max-w-[1360px] mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/80 border border-[#E8DFC8] text-xs font-bold uppercase tracking-widest text-[#C77B4A] mb-4 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C77B4A]" /> The Korean Artisan Collective
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C77B4A]" /> Korean Makers &amp; Brands
           </div>
           <h1
             className="text-3xl sm:text-5xl font-extrabold text-[#18181B] tracking-tight mb-4"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Meet Our Verified Master Studios
+            Meet Our Makers &amp; Brands
           </h1>
           <p className="text-sm sm:text-base text-[#6B7280] max-w-2xl mx-auto leading-relaxed">
-            We partner directly with independent craft studios and master workshops across Korea. Authentically designed and made in Korea, dispatched directly worldwide.
+            Discover Korean makers, designers, brands and manufacturers. Explore their products made in Korea and shipped directly from Korea.
           </p>
         </div>
       </section>
@@ -49,10 +49,10 @@ export default async function ArtistsDirectoryPage() {
               className="text-lg sm:text-xl font-bold text-[#18181B] mb-2"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              Curating Verified Korean Studios
+              More Makers &amp; Brands Coming Soon
             </h2>
             <p className="text-xs sm:text-sm text-[#6B7280] leading-relaxed mb-6">
-              We are currently onboarding independent Korean master craft studios and verified workshops across Korea. New studio stories will arrive soon.
+              We are welcoming makers and brands with products manufactured in Korea. New collections and stories will arrive soon.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <Link
@@ -76,16 +76,16 @@ export default async function ArtistsDirectoryPage() {
       <section className="py-16 bg-[#1A2F25] text-white border-t border-[#2D4A3E]">
         <div className="max-w-[1000px] mx-auto px-4 sm:px-6 text-center">
           <span className="text-xs font-extrabold uppercase tracking-widest text-[#D4A373] block mb-2">
-            Are You an Independent Korean Maker or Studio?
+            Do You Make Products in Korea?
           </span>
           <h2
             className="text-2xl sm:text-4xl font-serif font-bold text-white mb-4"
             style={{ fontFamily: "Georgia, serif" }}
           >
-            Share Your Heritage Works with Global Collectors
+            Share Your Products with Global Shoppers
           </h2>
           <p className="text-xs sm:text-sm text-white/80 max-w-xl mx-auto leading-relaxed mb-8">
-            Blank Seoul provides global logistics, translation, photography, and worldwide distribution for verified Korean craft studios.
+            Blank Seoul connects makers and brands with global shoppers through products made in Korea and shipping from Korea.
           </p>
           <a
             href="mailto:contact@blankseoul.com?subject=Studio%20Partnership%20Inquiry"

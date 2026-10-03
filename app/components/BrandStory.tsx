@@ -11,7 +11,7 @@ export default function BrandStory() {
             <div className="relative aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
               <Image
                 src="/assets/brand-story-craft.png"
-                alt="Korean artisan crafts — Blank Seoul"
+                alt="Products Made in Korea — Blank Seoul"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 400px"
@@ -29,20 +29,20 @@ export default function BrandStory() {
             </div>
 
             <h2 className="text-3xl md:text-4xl font-extrabold leading-tight text-white" style={{ fontFamily: "var(--font-heading)" }}>
-              &quot;True Korean beauty isn&apos;t found in factory machines, but in the quiet workshops of narrow alleys.&quot;
+              Made in Korea. Shipped from Korea.
             </h2>
 
             <div className="w-12 h-1 bg-primary rounded-full my-8"></div>
 
             <div className="space-y-5 text-lg text-white/80 leading-relaxed" style={{ fontFamily: "var(--font-body)" }}>
               <p>
-                Among thousands of mass-produced souvenirs, I wander the streets of Seoul to find that one piece with a soul.
+                We curate products made in Korea, from everyday essentials to distinctive design objects.
               </p>
               <p>
-                I discovered incredible artisans who pour their hearts into every stitch, every knot, and every carving. They are preserving centuries of Korean heritage, yet their work remains hidden from the global stage.
+                Korean makers, designers, brands and manufacturers bring a wide range of products to everyday life. We help global shoppers discover their collections.
               </p>
               <p className="text-white font-medium">
-                That is why I created <strong>Blank Seoul</strong>. We are not a factory. Every piece you see here is <strong>made in Korea</strong> by independent artisans, and <strong>shipped directly from Korea</strong> to your door.
+                <strong>Blank Seoul</strong> connects you with products <strong>made in Korea</strong> and <strong>shipped directly from Korea</strong>.
               </p>
             </div>
 
@@ -51,7 +51,7 @@ export default function BrandStory() {
                 — Blank Seoul
               </p>
               <p className="text-sm text-white/50 uppercase tracking-widest mt-1">
-                Curated in Seoul · Crafted in Korea
+                Made in Korea · Shipped from Korea
               </p>
             </div>
           </div>

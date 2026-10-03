@@ -227,7 +227,7 @@ function WishlistContent() {
               My Curation & Followed Studios
             </h1>
             <p className="text-xs sm:text-sm text-[#71717A] mt-1.5 max-w-2xl">
-              Review your personal collection of saved Korean artisan pieces and manage VIP priority drop alerts for verified craft studios.
+              Review your saved products made in Korea and manage updates from the makers and brands you follow.
             </p>
           </div>
 
@@ -451,7 +451,7 @@ function WishlistContent() {
                   Your Curated Collection is Waiting
                 </h2>
                 <p className="text-xs sm:text-sm text-[#71717A] mt-2 leading-relaxed">
-                  You haven&apos;t saved any artisan pieces yet. Browse our curated Korean master craft collections and tap the heart icon on any work you&apos;d like to save.
+                  You haven&apos;t saved any products yet. Explore our collections made in Korea and tap the heart icon on any product you&apos;d like to save.
                 </p>
                 <div className="mt-6 flex items-center justify-center">
                   <Link
@@ -509,7 +509,7 @@ function WishlistContent() {
                           <Link
                             href={`/artists/${slug}`}
                             className="group/studio flex items-center gap-3 transition-all cursor-pointer select-none min-w-0 active:scale-[0.98]"
-                            aria-label={`Visit ${profile.name} atelier page`}
+                            aria-label={`Visit ${profile.name} profile`}
                           >
                             {/* Studio Avatar / Symbol */}
                             <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-xl sm:rounded-2xl bg-[#FAF8F5] border border-[#E8DFC8] overflow-hidden shrink-0 flex items-center justify-center shadow-2xs group-hover/studio:border-[#18181B]/40 group-hover/studio:scale-[1.02] transition-all">
@@ -627,7 +627,7 @@ function WishlistContent() {
                   No Studio Drops Followed Yet
                 </h2>
                 <p className="text-xs sm:text-sm text-[#71717A] mt-2 leading-relaxed">
-                  Follow verified Korean master craft studios to receive exclusive first-look priority alerts on small-batch studio releases before public availability.
+                  Follow Korean makers and brands to receive updates about their new products.
                 </p>
                 <div className="mt-6 flex items-center justify-center">
                   <Link

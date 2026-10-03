@@ -16,7 +16,7 @@
  *      1순위 카테고리 태그(category:fabric_living)가 우선하므로 100% 패브릭 기준이 노출됩니다.
  * 
  * 4. 보수적 안전 기본값 (Safe-by-Default):
- *    - 미분류/예외 상품 유입 시 허위 표기 없이 'general_craft' 공식 아틀리에 럭셔리 보증으로 안전 안착합니다.
+ *    - 미분류 상품에는 한국 제조·한국 출고와 상품별 관리 안내만 제공하며 수작업·인증을 추정하지 않습니다.
  * 
  * 5. 2026 글로벌 규제 준수:
  *    - US FDA 21 CFR (1,250°C/2,282°F 식품접촉), EU REACH (무니켈), 천연 식물성 원료 보증.
@@ -92,6 +92,9 @@ export interface CategoryMasterItem {
  * 🏛️ Master Registry of all 11 Craft Categories + 1 Safe Fallback
  * All category metadata, care standards, official whitelist, and compliance flags unified in one file.
  */
+// Manufacturing method must come from product facts, never from category defaults.
+const PRODUCT_ORIGIN_NOTE = "Made in Korea · Shipped from Korea · Follow the product-specific care instructions.";
+
 export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
   // ── 1. Ceramics & Tableware (도자기 & 다기) ──
   ceramics_dining: {
@@ -99,7 +102,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     nameKo: "도자기 & 다기",
     title: "Ceramics & Tableware",
     navEmoji: "🍵",
-    shelfSubtitle: "High-fire Joseon porcelain and artisanal Buncheong teaware",
+    shelfSubtitle: "Korean ceramics and tableware",
     shopify: {
       productType: "Home & Living",
       collectionHandle: "tea-dining",
@@ -107,7 +110,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     officialItems: [
       "Teacup & Mug (찻잔 및 머그)",
       "Teapot & Gaiwan (다관 및 개완)",
-      "Artisanal Plate & Dish (접시 및 대접)",
+      "Plate & Dish (접시 및 대접)",
       "Joseon Moon Jar (달항아리)",
       "Ceramic Vase & Object (화병 및 조형 오브제)",
       "Chopstick Rest (수저받침)",
@@ -156,8 +159,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Welcome your ceramic vessel into your home by gently washing it with warm water before its first brew. For unglazed Buncheong clay, soaking it in warm rice water for 15 minutes enhances its natural density and seals the clay luster for years of cherished use.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Conforms to US FDA 21 CFR Food Contact standards & EU GPSR safety guidelines.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["tea-dining"],
@@ -228,8 +230,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Upon unboxing, you may notice the subtle, earthy aroma of natural tree sap—the unmistakable signature of authentic Korean Ottchil. Wipe gently with a soft dry cloth; the lacquer will naturally mature and deepen in luster over months of companionship.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · 100% Natural Botanical Lacquer · Conforms to EU GPSR environmental benchmarks.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells", "tea-dining"],
@@ -244,7 +245,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     nameKo: "가방 & 파우치",
     title: "Heritage Bags & Pouches",
     navEmoji: "👜",
-    shelfSubtitle: "Artisanal quilted Bojagi bags and traditional silk drawstring pouches",
+    shelfSubtitle: "Bags, pouches and textile accessories made in Korea",
     shopify: {
       productType: "Bags & Pouches",
       collectionHandle: "pouches-wristlets",
@@ -269,8 +270,8 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
       badges: [
         {
           id: "badge_artisan_quilted",
-          label: "Artisan Quilted Weave",
-          subtitle: "Heritage Textile Structure",
+          label: "Textile Care",
+          subtitle: "Follow the Product Care Label",
           variant: "stone",
           icon: "🧵",
         },
@@ -293,7 +294,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         "Crafted with heritage-grade cotton, silk blends, and vegetable-tanned accents. Color-fastness tested to international textile standards (ISO 105-C06) and certified free of AZO dyes and harmful aromatic amines under EU REACH guidelines.",
       connoisseurCare: [
         "Spot Cleansing: Treat minor spots immediately by dabbing gently with a damp, lint-free cloth and mild diluted neutral detergent. Never rub abrasive brushes against delicate weaves.",
-        "Machine Washing: Do not machine wash or tumble dry. Structured silhouettes and handmade quilting maintain their form through gentle hand care.",
+        "Machine Washing: Do not machine wash or tumble dry. Follow the product care label for the appropriate cleaning method.",
         "Storage: Keep in the provided cotton dust bag with breathable paper stuffing when not in use to preserve the sculptural silhouette.",
       ],
       firstUseRitual: {
@@ -301,8 +302,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Unfold the silhouette and let the natural fibers relax in a well-ventilated space for an hour. As with fine Korean Bojagi, each crease softens into a gentle patina unique to your journey.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · AZO Dye-Free Textile Certification · Conforms to US FTC Care Labeling rules.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["pouches-wristlets", "hobo-shoulder-bags", "wallets-passport-cases"],
@@ -365,17 +365,16 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
       purityStatement:
         "Skin Safety & Purity: Formulated with 100% nickel-free, lead-free, and cadmium-free hypoallergenic brass, copper alloys, and 925 sterling silver. Tested to strictly exceed the European Union REACH Regulation (EC No 1907/2006) Nickel Release Standard (<0.5 µg/cm²/week).",
       connoisseurCare: [
-        "Silk Knot Care: Protect hand-braided silk knots and tassels from contact with water, heavy perfume, or cosmetic oils. If tassels wrinkle, suspend them naturally or gently steam from 6 inches away.",
+        "Silk Knot Care: Protect silk knots and tassels from contact with water, heavy perfume, or cosmetic oils. If tassels wrinkle, suspend them naturally or gently steam from 6 inches away.",
         "Metal Polishing: Gently buff silver and brass elements with a micro-polishing jeweler's cloth. Do not soak composite pieces featuring natural gemstones or mother-of-pearl in chemical dips.",
         "Aesthetic Preservation: Store individually in the airtight velvet pouch provided to prevent surface oxidation and tangling.",
       ],
       firstUseRitual: {
         title: "The Adornment Ritual",
         description:
-          "Gently straighten the hand-woven silk cords with your fingers before attaching your charm. In Korean tradition, tying a Norigae knot represents weaving longevity, harmony, and good fortune into your everyday presence.",
+          "Gently straighten the cords with your fingers before attaching your charm. In Korean tradition, tying a Norigae knot represents weaving longevity, harmony, and good fortune into your everyday presence.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · 100% Nickel-Free Hypoallergenic Certification · EU REACH & US CPSIA compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["keyrings-bag-charms", "necklaces-headbands"],
@@ -390,7 +389,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     nameKo: "헤어웨어 & 비녀",
     title: "Hair Scrunchies & Binyeo",
     navEmoji: "🌸",
-    shelfSubtitle: "Sculptural wooden Binyeo hairpins and artisan-dyed silk scrunchies",
+    shelfSubtitle: "Hairpins, scrunchies and hair accessories made in Korea",
     shopify: {
       productType: "Accessories & Charms",
       collectionHandle: "hair-scrunchies-binyeo",
@@ -429,13 +428,13 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         {
           id: "badge_ebony_craft",
           label: "Ebony & Brass Craft",
-          subtitle: "Hand-Turned Masterpiece",
+          subtitle: "Hair Accessories",
           variant: "indigo",
           icon: "🪵",
         },
       ],
       purityStatement:
-        "Crafted with hypoallergenic smooth-polished ebony wood, silver-plated brass, and 100% mulberry silk. Finishes are hand-buffed to eliminate rough burrs and prevent hair snagging, strictly adhering to US CPSIA and EU REACH skin contact norms.",
+        "Materials and finishes vary by product. Check the individual product description for wood, metal or fabric details and follow the supplied care instructions.",
       connoisseurCare: [
         "Binyeo Hairpin Handling: Insert with a gentle gliding motion into twisted hair buns. Never apply abrupt lateral bending force across the center of natural hardwood or horn pins.",
         "Water & Styling Spray: Keep hairpins and silk scrunchies away from direct wet hair or aerosol hair sprays containing alcohol, which can cloud natural wood oils.",
@@ -446,8 +445,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Twist your hair into a firm chignon bun before sliding the Binyeo horizontally through the knot. The balanced counterweight holds your hair securely without elastane tension, honoring Joseon dynasty grace.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Snag-Free Polished Finish · EU REACH Skin Safety compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["hair-scrunchies-binyeo"],
@@ -510,8 +508,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Mount your doorbell or wind chime and ring it three times to awaken the brass tone. In Korean belief, the clear acoustic resonance of brass clarifies the room's energy and welcomes auspicious fortunes.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Solid Cast Acoustic Brass · Conforms to EU GPSR safety standards.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells"],
@@ -526,7 +523,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     nameKo: "패브릭 & 리빙",
     title: "Fabric Living & Bojagi",
     navEmoji: "🧵",
-    shelfSubtitle: "Artisanal Ramie table runners, Jogakbo patchwork, and Bojagi living textiles",
+    shelfSubtitle: "Table runners, patchwork and home textiles made in Korea",
     shopify: {
       productType: "Home & Living",
       collectionHandle: "tea-dining",
@@ -558,7 +555,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         {
           id: "badge_dry_clean",
           label: "Dry Clean Recommended",
-          subtitle: "Preserves Hand Stitching",
+          subtitle: "Protects Seams & Stitching",
           variant: "stone",
           icon: "🧼",
         },
@@ -582,8 +579,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Unfold your Bojagi runner and let it breathe over your dining table. The subtle crispness of natural ramie will soften into an intimate, luminous texture through daily touch.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · 100% Natural Fiber Certification · US FTC & EU Textile Regulation compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells", "tea-dining"],
@@ -622,7 +618,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         {
           id: "badge_heritage_silk",
           label: "100% Heritage Silk",
-          subtitle: "Artisanal Draped Weave",
+          subtitle: "Fabric Texture",
           variant: "stone",
           icon: "👘",
         },
@@ -653,8 +649,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Tie the Goreum ribbon firmly at the breastbone, smoothing the flowing pleats outward. The silhouette is designed to celebrate movement and airflow, blending historic royalty with modern ease.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · 100% Natural Fiber Tailoring · US FTC & EU Textile Compliance.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells"],
@@ -724,8 +719,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Connect the USB power cord in a dimly lit room and observe the warm, dappled diffusion through the natural mulberry fibers. The microscopic bark textures create a calm, meditative sanctuary.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Low-Voltage CE/FCC Safety Certified · EU GPSR compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells"],
@@ -795,8 +789,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Light the tip of the stick and gently blow out the flame after 5 seconds, leaving a glowing red ember. In Korean Sunhyang tradition, watching the single plume of smoke rise clarifies the mind and welcomes tranquility.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · 100% Natural Botanical Ingredients · IFRA & EU Safety compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells"],
@@ -811,13 +804,13 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     nameKo: "한지 문구 & 부채",
     title: "Hanji Stationery & Fans",
     navEmoji: "📜",
-    shelfSubtitle: "Artisanal Damyang bamboo folding fans, mulberry journals, and calligraphy objects",
+    shelfSubtitle: "Fans, journals and stationery made in Korea",
     shopify: {
       productType: "Home & Living",
       collectionHandle: "home-decor-doorbells",
     },
     officialItems: [
-      "Handcrafted Bamboo Hapjukseon (담양 합죽선 전통 부채)",
+      "Bamboo Hapjukseon (담양 합죽선 전통 부채)",
       "Mulberry Bark Hanji Journal (닥나무 한지 노트)",
       "Heritage Brass Bookmark (금속 책갈피)",
       "Calligraphy Paperweight (전통 문진)",
@@ -842,7 +835,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         {
           id: "badge_damyang_bamboo",
           label: "Damyang Bamboo Ribs",
-          subtitle: "Hand-Carved Flexibility",
+          subtitle: "Open & Close Gently",
           variant: "indigo",
           icon: "🎋",
         },
@@ -855,7 +848,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         },
       ],
       purityStatement:
-        "Handmade using 100% unbleached Korean mulberry fibers and aged Damyang bamboo ribs. Acid-free pH neutral paper engineered to last over one thousand years without yellowing or brittle degradation.",
+        "Materials and construction vary by product. Check the product description and care label for paper, fabric or bamboo details.",
       connoisseurCare: [
         "Hapjukseon Fan Handling: Open and close with smooth, deliberate wrist momentum. Never force the fan ribs past their natural radial pivot angle.",
         "Moisture Protection: Protect natural paper folds and bamboo ribs from contact with rainwater or excessive humidity.",
@@ -866,8 +859,7 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
         description:
           "Gently slide open the bamboo ribs and inhale the subtle aroma of natural bamboo and aged paper. For centuries, Joseon scholars carried Hapjukseon as a symbol of mental clarity and calm dignity.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Acid-Free Archival Paper · EU GPSR compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: ["home-decor-doorbells"],
@@ -876,66 +868,65 @@ export const CATEGORY_REGISTRY: Record<CraftCategoryId, CategoryMasterItem> = {
     },
   },
 
-  // ── ★ Safe-by-Default Fallback (한국 정통 수공예품 럭셔리 기본값) ──
+  // ── ★ General Product Fallback (한국 제조 상품 기본 안내) ──
   general_craft: {
     id: "general_craft",
-    nameKo: "한국 전통 공예품 (안전 기본값)",
-    title: "Authentic Korean Handcrafted Goods",
+    nameKo: "한국 제조 상품 (기본 안내)",
+    title: "Products Made in Korea",
     navEmoji: "🇰🇷",
-    shelfSubtitle: "Authentic Korean heritage handcrafted objects created by master ateliers",
+    shelfSubtitle: "Products made in Korea and shipped from Korea",
     shopify: {
       productType: "Home & Living",
       collectionHandle: "home-decor-doorbells",
     },
     officialItems: [
-      "Unclassified Korean Master Craftwork (한국 정통 수공예품 공통)",
+      "Other Korean Products (한국 제조 상품 공통)",
     ],
     compliance: {
       fdaFoodSafe: false,
-      reachNickelFree: true,
-      naturalBotanical: true,
-      prop65Compliant: true,
+      reachNickelFree: false,
+      naturalBotanical: false,
+      prop65Compliant: false,
     },
     care: {
       categoryKey: "general_craft",
-      categoryTitle: "Authentic Korean Handcrafted Goods",
+      categoryTitle: "Products Made in Korea",
       badges: [
         {
           id: "badge_made_in_korea",
           label: "Made in Korea",
-          subtitle: "Verified Master Atelier",
+          subtitle: "Korean Manufacturing",
           variant: "emerald",
           icon: "🇰🇷",
         },
         {
-          id: "badge_artisan_handcrafted",
-          label: "Artisan Handcrafted",
-          subtitle: "Individual Uniqueness",
+          id: "badge_korea_dispatch",
+          label: "Shipped from Korea",
+          subtitle: "Direct International Dispatch",
           variant: "indigo",
           icon: "✨",
         },
         {
           id: "badge_gentle_care",
           label: "Gentle Care",
-          subtitle: "Lukewarm Water & Soft Cloth",
+          subtitle: "Follow Product Instructions",
           variant: "stone",
           icon: "🧼",
         },
       ],
       purityStatement:
-        "Crafted by verified artisan ateliers across South Korea. Created with non-toxic, sustainable materials honoring ancient Korean heritage craftsmanship and global product safety benchmarks.",
+        "Made in Korea and shipped from Korea. Refer to the individual product description for materials, manufacturing details and any applicable certifications.",
       connoisseurCare: [
-        "Thoughtful Care: Handle with thoughtful care. Clean gently with a soft dry or slightly damp cotton cloth.",
+        "Thoughtful Care: Check the supplied care instructions before using water, cleaning products or heat.",
         "Environmental Protection: Guard against prolonged exposure to extreme temperature contrasts, high moisture, or harsh direct sun rays.",
-        "Individual Uniqueness: Subtle variations in glaze, wood grain, or weave are the authentic hallmarks of human craftsmanship.",
+        "Product-Specific Care: Follow the instructions supplied with your product. Materials and finishes may require different care methods.",
       ],
       firstUseRitual: {
-        title: "The Craft Welcoming",
+        title: "Before First Use",
         description:
-          "Inspect the subtle variations in texture and tone—the true signatures of human hands and heritage mastery. Welcome this piece of Korean heritage into your daily life and sacred space.",
+          "Check the product and its care instructions before first use. Contact us if you have questions about its materials or care.",
       },
-      regulatoryFooter:
-        "Handcrafted in Korean ateliers · Dispatched direct from Korea · EU GPSR & US Product Safety compliant.",
+      regulatoryFooter: PRODUCT_ORIGIN_NOTE,
     },
     matching: {
       collections: [],

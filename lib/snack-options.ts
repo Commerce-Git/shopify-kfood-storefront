@@ -23,7 +23,7 @@ export const CATEGORY_OPTIONS = [
   { id: "k-culture-fan", label: "K-Culture Fan Items", emoji: "🇰🇷" },
   { id: "traditional-craft", label: "Traditional Crafts", emoji: "🏺" },
   { id: "modern-korean", label: "Modern Korean Design", emoji: "✨" },
-  { id: "more-artisans", label: "More Artisan Collabs!", emoji: "🤝" },
+  { id: "more-artisans", label: "More Maker Collaborations!", emoji: "🤝" },
 ];
 
 /** @deprecated Use PRODUCT_OPTIONS instead. Kept for backward compatibility. */
