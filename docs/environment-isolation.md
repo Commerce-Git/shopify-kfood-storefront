@@ -4,7 +4,7 @@
 
 ## 연결값
 
-**보호된 Admin Preview의 문의 연결(2026-10-02):** 프론트 dev Preview는 서버 전용 `ADMIN_API_PROTECTION_BYPASS`에 **Admin 프로젝트의** 자동화 접근키를 사용한다. dev 브랜치 Preview 범위에 encrypted 변수로 등록·재조회했고 프론트 문의 프록시에서 HTTPS 업스트림 헤더로만 전달한다. 프론트의 보호 키나 로그인 쿠키로 대체하지 않는다. `NEXT_PUBLIC_` 접두사는 붙이지 않으며 현재 localhost/보호되지 않은 Production에는 등록할 필요 없다. 변수 변경만으로 이미 배포된 프록시 코드가 바뀌지는 않으므로 **프론트 수정 코드 push·재배포가 필요**하다. [실제 시험·후속 단계](platform-analysis/INQUIRY_DELIVERY.md#2026-10-02-실제-문의-시험과-preview-연결-보완).
+**보호된 Admin Preview의 문의 연결(2026-10-02):** 프론트 dev Preview는 서버 전용 `ADMIN_API_PROTECTION_BYPASS`에 **Admin 프로젝트의** 자동화 접근키를 사용한다. dev 브랜치 Preview 범위에 encrypted 변수로 등록·재조회했고 프론트 문의 프록시에서 HTTPS 업스트림 헤더로만 전달한다. 프론트의 보호 키나 로그인 쿠키로 대체하지 않는다. `NEXT_PUBLIC_` 접두사는 붙이지 않으며 현재 localhost/보호되지 않은 Production에는 등록할 필요 없다. 사용자 재배포 후 `e76ddc2`의 실제 고객 Preview에서 문의 작성·회신·실시간 수신·연결 복구를 확인해 기존 503의 해결을 검증했다. 프론트 브라우저 시험에만 쓴 임시 접근키는 폐기했으며 Admin 기존 접근키를 사용하는 서버 변수는 유지한다. [실제 시험·후속 단계](platform-analysis/INQUIRY_DELIVERY.md#2026-10-02-실제-문의-시험과-preview-연결-보완).
 
 변수명은 환경마다 같고 값은 연결 대상에 맞춘다. 로컬 `.env.local`과 Vercel Preview는 별도 설정이다. 로컬 파일을 수정해도 Vercel 설정은 변경되지 않는다.
 
@@ -204,8 +204,26 @@ Admin의 `BIZ_REG_NO`, `EPOST_KPACKET_APPR_NO`, `EPOST_EMS_APPR_NO`, `SHIPPER_NA
 
 **키 교체 필요:** 팝빌 클라이언트의 하드코딩 기본 키가 현재 Vercel의 `POPBILL_SECRET_KEY`와 일치했다. 코드에서 제거했으나 Git 이력에 남아 있으므로 팝빌에서 연동 키를 교체한 뒤 Admin 양쪽 로컬 파일과 Vercel Preview/Production에 반영해야 한다. 이 키는 `POPBILL_WEBHOOK_SECRET`과 별개다. 공급자 키 교체는 수행하지 않았다.
 
+
+### 2026-10-03 일일 주문 요약 설정
+
+사용자 요청(D026)에 따라 주문 자동 알림은 한국 09:00 기준으로 작가별 하루 한 번 종합한다. Admin에서 `20261003_01_artist_order_digest.sql` → `20261003_02_artist_order_digest_batches.sql` → `20261003_03_artist_order_digest_start_at_nine.sql` 순서로 운영·테스트 DB에 직접 적용한 후 배포해야 한다. 01·02를 이미 적용했다면 03만 추가 적용한다. 별도 심사한 **운영** 알림톡 코드 `POPBILL_KAKAO_TEMPLATE_ORDER_DIGEST`를 로컬·Vercel Preview/Production에 등록한다. 미등록이면 주문 공개는 진행하고 자동 알림은 건너뛴다. 예약 호출자는 사용자 선택에 따라 cron-job.org 하나를 사용한다. Production API에는 현재 원격에 등록된 `PIPELINE_SECRET` Bearer 헤더로 호출한다. 2026-10-03 재조회에서 Admin Preview/Production의 `CRON_SECRET`은 없고 `PIPELINE_SECRET`은 있음을 확인했다. 로컬에는 `CRON_SECRET`도 있으므로 로컬 호출에는 그 값이 우선한다. 새 키를 추가하면 기존 호출자 인증이 바뀔 수 있어 임의 추가하지 않는다. 초기 권장 예약 창은 Asia/Seoul 09:00~10:59 매분이며, 집계 기준·준비 시작은 09:00이며, 집계 저장 완료 후 발송한다. 이후 호출은 저장된 남은 묶음과 결과 조회를 이어 처리하며 완료된 묶음을 재발송하지 않는다. Vercel 크론 설정은 제거했고 Preview는 별도 호출 시험이다. 202 응답은 실행 요청 접수이며 실제 발송 결과는 DB·서버 로그에서 확인한다. 같은 인증으로 `?status=1`을 조회하면 실행 없이 준비 수·남은 묶음·접수/전송 결과를 확인한다. 이전 `POPBILL_KAKAO_TEST_PHONES`는 미사용이므로 삭제 가능하다. 01·02 SQL 적용은 사용자 보고 후 필요 테이블·함수 존재를 확인했고 예약은 비활성 등록했다. 후속 03 SQL 실행 완료도 사용자 확인으로 기록했다. 템플릿 승인·변수 등록·배포·실제 수신·예약 활성화는 남아 있다. [알림 적용 순서·예약 한계](../../blank-seoul-admin/doc/notifications/KAKAO_POPBILL_SETUP_AND_OPERATIONS_GUIDE.md#작가별-일일-주문-알림-2026-10-03)를 따른다.
+
 ### 2026-10-01 외부 오류 복구 구현의 적용 조건
 
-팝빌 일반 API·알림/OTP 모두 공통 모드 검증을 사용하고 Preview/development에서 POPBILL_IS_TEST=false를 차단한다. 알림의 개별 isTest 인자는 서버 모드와 같아야 하며 로그만 시험으로 표시한 운영 발송을 허용하지 않는다. 누락 설정/권한 오류를 Mock 성공으로 처리하지 않는다.
+팝빌 일반 API·SMS/OTP는 공통 모드 검증을 사용하고 Preview/development에서 POPBILL_IS_TEST=false를 차단한다. 개별 isTest 인자는 서버 모드와 같아야 한다. **2026-10-03 사용자 확인에 따른 카카오톡 예외:** 카카오톡은 팝빌 운영 계정·실제 포인트를 사용해야 한다는 안내에 따라 별도 SDK 인스턴스로 항상 운영 API를 호출하도록 보완했다. 세금계산서·계좌 확인·SMS는 기존 모드를 유지한다. 사용자 단순화 요청에 따라 번호 사전 등록 제한을 제거했다. Production·Preview·로컬 모두 입력한 유효한 수신번호로 발송하며 `POPBILL_KAKAO_TEST_PHONES`는 사용하지 않는다. 관리자의 시험 발송은 실제 포인트 차감을 별도 확인한다. 이는 로컬 구현이며 새 배포·실제 수신은 미검증이다. [알림 설정 원본](../../blank-seoul-admin/doc/notifications/KAKAO_POPBILL_SETUP_AND_OPERATIONS_GUIDE.md#카카오톡-api-상품-권한-오류와-적용-설정)을 따른다. 누락 설정/권한 오류를 Mock 성공으로 처리하지 않는다.
 
 새 Vercel 변수는 추가하지 않았다. Admin SQL 01(기적용) → 02(세금계산서 쓰기 보호), 03(배송 반영 작업)을 **새 코드 배포 전에** 각 DB에 수동 적용해야 한다. 프론트 실행 코드는 이번에 변경하지 않았다. 배송 worker는 기존 CRON_SECRET/PIPELINE_SECRET 인증을 사용하며 예약 호출자 설정이 필요하다. [팝빌 적용 원본](../../blank-seoul-admin/doc/notifications/TAX_INVOICE_REVERSE_ISSUANCE_GUIDE.md#세금계산서-쓰기-보호--현재-적용-기준), [배송 복구 원본](../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md#7-배송-완료-외부-반영복구-계약)을 따른다.
+
+### 2026-10-03 Vercel 환경·주문 예약 재검토
+
+사용자 요청으로 Admin/Storefront의 Production·Preview 공통 등록 목록과 dev 기준 내려받은 값을 재조회했다. 네 배포 모두 READY이며 Admin main/dev는 `428ab8e`다. 새 일일 요약 변경은 아직 로컬에 있다. 최초 검토는 읽기 전용이며, 이후 사용자 실행 요청으로 아래 시험 회원 ID의 프로젝트 위치만 수정했다. 기존 예약은 보존했고 후속 실행 요청으로 새 요약 예약만 비활성 등록했다.
+
+- 두 프로젝트 모두 Production은 운영 Supabase `feezosccyvecmrhqrkgl`·운영 Shopify, Preview는 테스트 Supabase `zijvqethklunvydtqmak`·개발 Shopify다. 내려받을 수 있는 Supabase anon/service-role JWT의 프로젝트·역할도 일치한다. 이 대조를 모든 API의 실제 권한 검증으로 해석하지 않는다.
+- 같은 환경의 Admin/Storefront 캐시 갱신 키는 같고 Production/Preview 간에는 다르다. 고정 프론트↔어드민 주소도 각 환경에 맞는다. Sensitive 변수는 등록 여부만 확인하며 원문 값 일치까지 확인한 것은 아니다.
+- **발견 및 수정 완료:** `POPBILL_TEST_SUPPLIER_USER_ID=thec9rqwertest`가 Storefront Preview에 잘못 등록돼 있어 사용자 실행 요청 후 Admin Preview에 추가하고 Storefront에서 제거했다. Admin dev 기준 값을 내려받아 일치를 확인했고, 원격 재조회에서 Admin Preview에만 존재하며 양쪽 프로젝트의 다른 변수는 변하지 않았음을 확인했다. Admin 로컬 `.env.local`은 이미 같은 값이고 다른 로컬 환경에는 없다. Production에는 등록하지 않았다. 환경변수 저장은 완료됐으며 실제 배포 앱 반영에는 사용자 Preview 재배포가 필요하다.
+- 심사중인 일일 요약·세금계산서 템플릿 코드는 아직 원격에 없다. 승인 후 Admin 양쪽의 `POPBILL_KAKAO_TEMPLATE_ORDER_DIGEST=026100000103`, Preview의 `POPBILL_KAKAO_TEMPLATE_TAX_INVOICE=026100000102`, Production의 같은 키 `026100000104`를 연결한다. 기존 `POPBILL_KAKAO_TEMPLATE_ORDER=026090000102`는 아직 단건 시험 코드가 사용하므로 일일 코드로 덮어쓰거나 삭제하지 않는다.
+- Admin의 `POPBILL_IS_TEST`는 Production false/Preview true, `BYPASS_AUTH`는 양쪽 false, `EPOST_USE_PROD`는 양쪽 false다. `INQUIRY_REALTIME_ENABLED`는 Production false/Preview true이며 `INQUIRY_EMAIL_ENABLED`는 양쪽 false다. 출시 정책과 별개인 현재 기능 활성화 상태로 기록하며 이번에 바꾸지 않았다.
+- Storefront의 `NEXT_PUBLIC_STORE_LAUNCH_STATUS`는 양쪽 preview다. 배포 환경 이름과 독립된 판매 정책이다. `RESEND_WEBHOOK_SECRET`은 양쪽 미등록으로 메일 이벤트 웹훅을 사용하려면 공급자가 발급한 서명키 등록이 필요하다. 일반 메일 발송 키와 다르며 일일 주문 알림 크론의 필수 변수는 아니다.
+- **주문 예약 보존·요약 분리 완료(코드는 미배포):** 기존 `8031098`은 `/api/cron/send-artist-emails`를 종일 30분마다 호출하며, Shopify 동기화 `8440379`와 함께 설정을 그대로 유지했다. 사용자 3시간 공개 요구에 따라 로컬의 기존 GET은 공개만 수행하고, 새 `/api/cron/process-artist-order-digests`가 요약 집계·발송·결과 조회를 수행한다. cron-job.org API로 `8567586` (`BLANK SEOUL Artist Daily Order Digest`)을 Asia/Seoul 09:00~10:59 매분·비활성으로 생성하고 인증 헤더·시간·기존 예약 보존을 재조회했다. 후속 09:00 집계 시작용 03 SQL의 운영·테스트 실행 완료는 사용자 확인으로 기록했고, 사용자 배포·템플릿 승인과 연결·실제 수신 시험 후 활성화한다. [현재 등록값](../../blank-seoul-admin/doc/notifications/KAKAO_POPBILL_SETUP_AND_OPERATIONS_GUIDE.md#cron-joborg-등록값)을 따른다.
+- cron-job.org 계정 관리 키는 사용자 요청으로 Admin `.env.local`과 `.env.production.local`에 같은 `CRON_JOB_ORG_API_KEY` 값으로 보관했다. Next.js 실행용 변수가 아니므로 Vercel에는 등록하지 않는다. 예약이 우리 API를 호출할 때 쓰는 `PIPELINE_SECRET`과 구분한다. 계정 관리 키로 실제 예약 목록·상세 읽기 조회를 성공했다.
