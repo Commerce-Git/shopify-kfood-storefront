@@ -172,7 +172,7 @@ export default function CartOrderSummary({
                     Connecting to Checkout...
                   </span>
                 ) : (
-                  "Yes! Send Me The Blank Seoul Box →"
+                  "Continue to checkout →"
                 )}
               </button>
             </>
@@ -271,7 +271,7 @@ export default function CartOrderSummary({
                 loading ? "opacity-70 cursor-wait" : ""
               }`}
             >
-              {loading ? "Processing..." : "Complete Order →"}
+              {loading ? "Processing..." : "Checkout →"}
             </button>
           )}
         </div>

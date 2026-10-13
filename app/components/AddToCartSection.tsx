@@ -22,7 +22,6 @@ export default function AddToCartSection({
   productId,
   variantId,
   price,
-  currency,
   productTitle,
   productHandle,
   availableForSale,
@@ -67,12 +66,6 @@ export default function AddToCartSection({
     };
   }, [variantId]);
 
-  // Helper to format price with currency
-  const formattedPrice = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency,
-  }).format(parseFloat(price));
-
   const isSoldOut = currentlyNotInStock || (stockCount !== null && stockCount <= 0);
 
   // Determine stock badge display
@@ -86,7 +79,7 @@ export default function AddToCartSection({
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
-        🔴 Sold Out (Join the waitlist for the next slots)
+        Currently unavailable
       </span>
     );
   } else if (stockCount === null) {
@@ -94,23 +87,23 @@ export default function AddToCartSection({
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
-        ✨ Made to Order (Slots available)
+        Available to order
       </span>
     );
   } else if (stockCount <= 5) {
-    // Low stock warning (Urgency mapped to Crafting Slots)
+    // This is sales availability, not proof of handmade or made-to-order production.
     stockBadge = (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold animate-bounce-slow">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-        ⚡ Only {stockCount} crafting slot{stockCount !== 1 ? "s" : ""} left to secure right now!
+        {stockCount} available to order
       </span>
     );
   } else {
-    // Normal stock (mapped to Crafting Slots)
+    // Available quantity does not determine the manufacturing method.
     stockBadge = (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-        🟢 In Stock (Crafting slots available right now)
+        Available to order
       </span>
     );
   }
@@ -126,23 +119,23 @@ export default function AddToCartSection({
       {/* Real-time Stock Badge */}
       <div className="min-h-7 flex items-center">{stockBadge}</div>
 
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
         <QuantitySelector
           quantity={quantity}
           onChange={setQuantity}
           min={1}
           max={stockCount !== null ? stockCount : 99}
         />
-        <div className="flex-1 min-w-0">
+        <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
           <BuyButton
             variantId={variantId}
             productTitle={productTitle}
             productHandle={productHandle}
             price={price}
             quantity={quantity}
-            label={isSoldOut ? "Sold Out" : `Add to Cart — ${formattedPrice}`}
+            label={isSoldOut ? "Sold Out" : "Add to Cart"}
             size="lg"
-            className="w-full"
+            className="w-full min-h-14 whitespace-nowrap rounded-xl! px-4! text-base! shadow-none!"
             disabled={isSoldOut}
             variantTitle={variantTitle}
             image={image}
@@ -155,7 +148,7 @@ export default function AddToCartSection({
         <button
           type="button"
           onClick={handleToggleWishlist}
-          className={`h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center border transition-all duration-200 shrink-0 shadow-2xs active:scale-95 cursor-pointer ${
+          className={`col-start-2 row-start-1 sm:col-start-3 h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center border transition-all duration-200 shrink-0 shadow-2xs active:scale-95 cursor-pointer ${
             isSaved
               ? "bg-[#FBF6F0] border-[#C25E38] text-[#C25E38]"
               : "bg-white border-[#E8DFC8] text-[#18181B]/70 hover:text-[#C25E38] hover:border-[#C25E38]/60"

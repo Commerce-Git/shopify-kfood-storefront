@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
-import { getMegaNavStructure, findMatchingShelfId, MegaNavGroup } from "@/lib/config/collections";
+import { getMegaNavStructure, MegaNavGroup } from "@/lib/config/collections";
 import {
   subscribeWishlist,
   getWishlistCountSnapshot,
   getServerWishlistCountSnapshot,
 } from "@/lib/wishlist";
 import { isStoreLive } from "@/lib/constants";
+import Modal from './Modal';
 
 const emptySubscribe = () => () => {};
 
@@ -46,18 +47,6 @@ export default function Header() {
     setMobileMenuOpen(false);
   }
 
-  // 2026 Mobile UX: Prevent background body scroll when mobile drawer is active
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileMenuOpen]);
-
   const handleImmediateClose = () => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
@@ -65,6 +54,13 @@ export default function Header() {
     }
     setActiveDropdown(null);
   };
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const closeOnDesktop = () => { if (desktop.matches) setMobileMenuOpen(false); };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -140,15 +136,7 @@ export default function Header() {
     const q = searchQuery.trim();
     if (!q) return;
 
-    // Dynamically find matching shelf DOM ID or navigate to Shop All
-    const shelfId = findMatchingShelfId(q);
-    const target = shelfId ? document.getElementById(shelfId) : null;
-
-    if (target && pathname === "/") {
-      target.scrollIntoView({ behavior: "smooth" });
-    } else {
-      router.push(`/collections`);
-    }
+    router.push(`/search?q=${encodeURIComponent(q.slice(0, 200))}`);
   };
 
   return (
@@ -207,6 +195,8 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for Made in Korea goods, pouches, accessories..."
+                  aria-label="Search products"
+                  maxLength={200}
                   className="w-full pl-5 pr-14 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
                 />
                 {searchQuery && (
@@ -353,6 +343,8 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for anything..."
+                  aria-label="Search products"
+                  maxLength={200}
                   className="w-full pl-4 pr-11 py-2.5 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
                 />
                 {searchQuery && (
@@ -552,12 +544,9 @@ export default function Header() {
           Mobile Drawer (Category Accordions & Studio Navigation)
          ========================================================================= */}
       {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        >
+        <Modal label="Category menu" onClose={() => setMobileMenuOpen(false)}>
           <div
-            className="fixed top-0 left-0 h-full w-80 bg-white p-5 shadow-2xl overflow-y-auto pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
+            className="fixed top-0 left-0 h-full w-80 max-w-full bg-white p-5 shadow-2xl overflow-y-auto pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
@@ -570,7 +559,7 @@ export default function Header() {
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-full hover:bg-[#F4EFE6] text-[#6B7280] font-bold"
+                className="min-h-11 min-w-11 rounded-full hover:bg-[#F4EFE6] text-[#6B7280] font-bold"
                 aria-label="Close menu"
               >
                 ✕
@@ -728,7 +717,7 @@ export default function Header() {
               </Link>
             </nav>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

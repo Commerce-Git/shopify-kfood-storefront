@@ -1,4 +1,5 @@
 import type { StorefrontResponse } from "./types.ts";
+import { SHOPIFY_CATALOG_CACHE_TAG } from './cache.ts';
 
 /**
  * Shopify Storefront API GraphQL client.
@@ -29,7 +30,7 @@ export async function storefrontFetch<T>(
       "X-Shopify-Storefront-Access-Token": storefrontToken,
     },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 60 }, // ISR: revalidate every 1 minute (60 seconds)
+    next: { revalidate: 60, tags: [SHOPIFY_CATALOG_CACHE_TAG] },
   });
 
   if (!response.ok) {

@@ -1,5 +1,25 @@
 // Shopify Storefront API — GraphQL Queries & Mutations
 
+/** Full-text, relevant product results with bounded cursor pagination. */
+export const SEARCH_PRODUCTS = `
+  query SearchProducts($query: String!, $first: Int!, $after: String) {
+    search(query: $query, first: $first, after: $after, types: [PRODUCT], prefix: LAST, unavailableProducts: LAST) {
+      totalCount
+      pageInfo { hasNextPage endCursor }
+      edges {
+        node {
+          ... on Product {
+            id handle title description vendor productType tags availableForSale
+            images(first: 1) { edges { node { url altText width height } } }
+            priceRange { minVariantPrice { amount currencyCode } maxVariantPrice { amount currencyCode } }
+            variants(first: 10) { edges { node { id title availableForSale price { amount currencyCode } } } }
+          }
+        }
+      }
+    }
+  }
+`;
+
 /** Fetch a single product by its handle (URL slug) */
 export const GET_PRODUCT_BY_HANDLE = `
   query GetProductByHandle($handle: String!) {

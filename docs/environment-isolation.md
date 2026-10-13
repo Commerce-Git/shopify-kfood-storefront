@@ -25,6 +25,10 @@ Admin 서버의 `SHOPIFY_PUBLICATION_IDS`는 쉼표로 구분한 판매 채널 G
 
 ## 연결값
 
+**보호된 Storefront Preview의 캐시 연결(2026-10-14):** Admin dev에서 캐시 요청이 홈페이지 코드 실행 전에 `Protected by Vercel Authentication` 401로 차단됐다. 같은 환경의 `REVALIDATE_SECRET`은 일치했다. Storefront 프로젝트에 자동화 접근키를 만들고 Admin의 `STOREFRONT_API_PROTECTION_BYPASS`에 encrypted·Preview·dev 브랜치 범위로 등록·재조회했다. 이 값은 **Storefront 프로젝트의** 접근키이며 Admin 자신의 `VERCEL_AUTOMATION_BYPASS_SECRET`으로 대체하지 않는다. 새 헬퍼는 설정된 `STOREFRONT_URL`의 HTTPS Vercel origin에만 헤더로 전달한다. localhost override·다른 origin·Production에는 전달하지 않는다. 인증된 실제 Preview 캐시 API의 200 응답을 확인했다. 기존 배포에는 새 Admin 코드가 아직 없으며 양쪽 사용자 재배포가 필요하다.
+
+가격 변경의 캐시 계약은 [캐시 아키텍처 §4](technical/cache-architecture.md#4-온디맨드-즉각-캐시-무효화-on-demand-revalidation)를 따른다. Admin은 Shopify 실제 handle과 변경한 variant의 기대 USD 가격을 전달하고, Storefront는 자체 API의 새 금액을 확인한 뒤 상품 데이터 태그와 페이지 경로를 만료한다. 원문의 구체 주소에는 `page` 옵션을 붙이지 않으며 `/artists/[slug]` 같은 경로 패턴에만 사용한다. 배포 순서는 **Storefront → Admin**이다. [시험·배포 상태](../../blank-seoul-admin/.agent-bridge/storefront-cache-verification-results.json)를 확인하며 접근키·인증 쿠키는 실행 증거에 저장하지 않는다.
+
 **보호된 Admin Preview의 문의 연결(2026-10-02):** 프론트 dev Preview는 서버 전용 `ADMIN_API_PROTECTION_BYPASS`에 **Admin 프로젝트의** 자동화 접근키를 사용한다. dev 브랜치 Preview 범위에 encrypted 변수로 등록·재조회했고 프론트 문의 프록시에서 HTTPS 업스트림 헤더로만 전달한다. 프론트의 보호 키나 로그인 쿠키로 대체하지 않는다. `NEXT_PUBLIC_` 접두사는 붙이지 않으며 현재 localhost/보호되지 않은 Production에는 등록할 필요 없다. 사용자 재배포 후 `e76ddc2`의 실제 고객 Preview에서 문의 작성·회신·실시간 수신·연결 복구를 확인해 기존 503의 해결을 검증했다. 프론트 브라우저 시험에만 쓴 임시 접근키는 폐기했으며 Admin 기존 접근키를 사용하는 서버 변수는 유지한다. [실제 시험·후속 단계](platform-analysis/INQUIRY_DELIVERY.md#2026-10-02-실제-문의-시험과-preview-연결-보완).
 
 변수명은 환경마다 같고 값은 연결 대상에 맞춘다. 로컬 `.env.local`과 Vercel Preview는 별도 설정이다. 로컬 파일을 수정해도 Vercel 설정은 변경되지 않는다.

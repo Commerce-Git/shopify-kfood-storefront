@@ -8,6 +8,7 @@ import { createInquiryRequestKey, mergeInquiryMessages } from '../../lib/inquiri
 import { useInquirySignals } from '../../lib/inquiries/useInquirySignals';
 import { createInquiryPoller } from '../../lib/inquiries/polling';
 import { takePendingSupportRequest, type SupportRequest } from '../../lib/inquiries/openSupport';
+import { readInquiryHistory, saveInquiryHistory, upsertInquiryHistory, type InquiryHistoryEntry } from '../../lib/inquiries/history';
 
 interface InquiryMessage {
   id: string;
@@ -80,6 +81,24 @@ export default function ConciergeChat() {
   const [activeToken, setActiveToken] = useState<string | null>(null);
   const [activeThread, setActiveThread] = useState<InquiryThread | null>(null);
   const [messages, setMessages] = useState<InquiryMessage[]>([]);
+  // Preserve the acknowledged first message across the new token's polling setup.
+  const createdConversationRef = useRef<{ token: string; message: InquiryMessage; thread: InquiryThread } | null>(null);
+  const [outgoingMessage, setOutgoingMessage] = useState<string | null>(null);
+  const [history, setHistory] = useState<InquiryHistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyLoadFailed, setHistoryLoadFailed] = useState(false);
+  const draftsRef = useRef<Record<string, string>>({});
+  const rememberConversation = useCallback((entry: InquiryHistoryEntry) => {
+    setHistory(previous => {
+      const existing = previous.find(row => row.token === entry.token);
+      const next = upsertInquiryHistory(previous, {
+        ...entry,
+        title: entry.title || existing?.title || 'Support inquiry',
+      });
+      saveInquiryHistory(next);
+      return next;
+    });
+  }, []);
   const requestKey = useRef(createInquiryRequestKey());
   const sendingRef = useRef(false);
   const versionRef = useRef<string | null>(null);
@@ -97,6 +116,7 @@ export default function ConciergeChat() {
   const [faqQuestion, setFaqQuestion] = useState<string | null>(null);
   const [faqSession, setFaqSession] = useState(0);
   const inquiryInputRef = useRef<HTMLTextAreaElement>(null);
+  const composingMessageRef = useRef(false);
   const guestNameRef = useRef<HTMLInputElement>(null);
   const faqPrefix = faqQuestion ? `FAQ topic: ${faqQuestion}\n\n` : '';
   const inquiryLimit = 5000 - faqPrefix.length;
@@ -125,6 +145,13 @@ export default function ConciergeChat() {
   // 1. 초기 토큰 복원 및 URL 딥링크 (?inquiry_token=... / ?inquire=true / ?chat=open)
   useEffect(() => {
     setRenderedAt(Date.now());
+    const savedHistory = readInquiryHistory();
+    const restoredToken = searchParams.get('inquiry_token') || localStorage.getItem(STORAGE_TOKEN_KEY);
+    if (restoredToken && !savedHistory.some(row => row.token === restoredToken)) {
+      savedHistory.push({ token: restoredToken, title: 'Support inquiry', updatedAt: new Date().toISOString() });
+      saveInquiryHistory(savedHistory);
+    }
+    setHistory(savedHistory);
 
     // 비회원 입력값 복원
     const savedName = localStorage.getItem(STORAGE_GUEST_NAME) || '';
@@ -157,12 +184,14 @@ export default function ConciergeChat() {
       takePendingSupportRequest();
       const detail = customEvent.detail;
       if (sendingRef.current) { setIsOpen(true); return; }
+      setShowHistory(false);
       const requested = detail?.product || null;
       if (detail?.intent === 'general') {
         setExpanded(false);
         // A general inquiry is a separate draft, never a relabeled product thread.
         if (tokenRef.current && !composingNew) {
           existingDraftRef.current = inputMessage;
+          draftsRef.current[tokenRef.current] = inputMessage;
           setInputMessage('');
         }
         setComposingNew(Boolean(tokenRef.current));
@@ -205,6 +234,11 @@ export default function ConciergeChat() {
     if (!signal.aborted && tokenRef.current === token) {
       const data = await res.json();
       setUnreadCount(data.unreadCount);
+      setHistory(previous => {
+        const next = previous.map(row => row.token === token ? { ...row, unreadCount: data.unreadCount } : row);
+        saveInquiryHistory(next);
+        return next;
+      });
       setMessages(prev => prev.map(row => messageIds.includes(row.id) ? { ...row, is_read: true } : row));
     }
   }, []);
@@ -223,13 +257,22 @@ export default function ConciergeChat() {
       if (res.status === 410 || res.status === 404) {
         localStorage.removeItem(STORAGE_TOKEN_KEY);
         setActiveToken(null); setActiveThread(null); setMessages([]); setUnreadCount(0);
+        setHistory(previous => {
+          const next = previous.filter(row => row.token !== token);
+          saveInquiryHistory(next);
+          return next;
+        });
         if (!silent) setSendError('This conversation is unavailable. Please start a new inquiry.');
         return true;
       }
-      if (!res.ok) return false;
+      if (!res.ok) throw new Error('Conversation unavailable');
       const data = await res.json();
       if (signal.aborted || tokenRef.current !== token || !data.ok) return false;
       setActiveThread(data.thread);
+      setHistoryLoadFailed(false);
+      rememberConversation({ token, title: data.thread.product_title || '',
+        updatedAt: data.messages?.at(-1)?.created_at || data.thread.updated_at || data.thread.created_at || new Date().toISOString(),
+        status: data.thread.status, unreadCount: data.thread.unread_customer_count || 0 });
       setUnreadCount(data.thread.unread_customer_count || 0);
       if (Array.isArray(data.messages)) {
         setMessages(prev => mergeInquiryMessages(prev, data.messages));
@@ -240,8 +283,11 @@ export default function ConciergeChat() {
         if (!signal.aborted) versionRef.current = data.version;
       }
       return true;
-    } catch { return false; }
-  }, [markDisplayed]);
+    } catch {
+      if (!signal.aborted && tokenRef.current === token) setHistoryLoadFailed(true);
+      return false;
+    }
+  }, [markDisplayed, rememberConversation]);
 
   const loadOlder = async () => {
     if (!activeToken || !olderCursor || loadingOlder) return;
@@ -262,15 +308,18 @@ export default function ConciergeChat() {
   };
 
   useEffect(() => {
-    openRef.current = isOpen && !composingNew;
+    openRef.current = isOpen && !composingNew && !showHistory;
     if (openRef.current) versionRef.current = null;
     pollerRef.current?.setOpen(openRef.current);
-  }, [isOpen, composingNew]);
+  }, [isOpen, composingNew, showHistory]);
 
   useEffect(() => {
     versionRef.current = null;
-    setMessages([]);
-    setActiveThread(null);
+    const created = createdConversationRef.current;
+    const seed = created?.token === activeToken ? created : null;
+    setMessages(seed ? [seed.message] : []);
+    setActiveThread(seed?.thread || null);
+    setHistoryLoadFailed(false);
     loadedAtRef.current = 0;
     nearBottomRef.current = true;
     lastMessageRef.current = undefined;
@@ -308,13 +357,13 @@ export default function ConciergeChat() {
     };
   }, [activeToken, fetchThreadAndMessages]);
 
-  const realtimeReady = useInquirySignals(activeToken && isOpen && !composingNew ? `/api/inquiries/${activeToken}/realtime` : null, () => pollerRef.current?.refresh());
+  const realtimeReady = useInquirySignals(activeToken && isOpen && !composingNew && !showHistory ? `/api/inquiries/${activeToken}/realtime` : null, () => pollerRef.current?.refresh());
   useEffect(() => { pollerRef.current?.setRealtimeReady(realtimeReady); }, [realtimeReady, activeToken]);
 
   // Only scroll the conversation, never the page behind the modeless panel.
   useEffect(() => {
     const feed = feedRef.current;
-    if (!feed || !isOpen || composingNew) return;
+    if (!feed || !isOpen || (composingNew && !outgoingMessage)) return;
     const last = messages.at(-1)?.id;
     const newReply = last !== lastMessageRef.current;
     lastMessageRef.current = last;
@@ -327,7 +376,7 @@ export default function ConciergeChat() {
     } else if (newReply) {
       setHasNewReplies(true);
     }
-  }, [messages, isOpen, composingNew]);
+  }, [messages, outgoingMessage, isOpen, composingNew, showHistory]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -344,7 +393,7 @@ export default function ConciergeChat() {
     });
     observer.observe(feed);
     return () => observer.disconnect();
-  }, []);
+  }, [showHistory, isOpen, composingNew]);
 
   const acknowledgeBottom = () => {
     const wasNearBottom = nearBottomRef.current;
@@ -441,6 +490,9 @@ export default function ConciergeChat() {
           inquiryCategory: productContext?.type === 'order' ? 'SHIPPING' : 'GENERAL',
 
     };
+    nearBottomRef.current = true;
+    setOutgoingMessage(payload.message);
+    setExpanded(true);
     try {
       const res = await fetch('/api/inquiries', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -448,15 +500,21 @@ export default function ConciergeChat() {
         signal: AbortSignal.timeout(15000),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!res.ok || !data.ok || !data.token || !data.message) {
         throw new Error(data.error || 'Failed to start inquiry');
       }
 
       requestKey.current.clear();
+      const createdThread: InquiryThread = {
+        id: data.threadId, status: 'ACTIVE', customer_name: effectiveName, customer_email: effectiveEmail,
+        product_title: enrichedTitle, product_handle: effectiveHandle, product_image_url: productContext?.imageUrl || null,
+      };
+      createdConversationRef.current = { token: data.token, message: data.message, thread: createdThread };
+      rememberConversation({ token: data.token, title: enrichedTitle || payload.message.replace(/\s+/g, ' ').slice(0, 80), updatedAt: data.message.created_at, status: 'ACTIVE', unreadCount: 0 });
       tokenRef.current = data.token;
       versionRef.current = null;
       setActiveToken(data.token);
-      setActiveThread(null);
+      setActiveThread(createdThread);
       setOlderCursor(null);
       setUnreadCount(0);
       setComposingNew(false);
@@ -477,6 +535,7 @@ export default function ConciergeChat() {
     } finally {
       sendingRef.current = false;
       setIsSending(false);
+      setOutgoingMessage(null);
     }
   };
 
@@ -494,6 +553,8 @@ export default function ConciergeChat() {
     const token = activeToken;
     sendingRef.current = true;
     setIsSending(true); setSendError('');
+    nearBottomRef.current = true;
+    setOutgoingMessage(text);
     try {
       const res = await fetch(`/api/inquiries/${token}/messages`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -505,12 +566,26 @@ export default function ConciergeChat() {
       requestKey.current.clear();
       if (tokenRef.current === token) {
         setMessages(prev => mergeInquiryMessages(prev, [data.message]));
+        draftsRef.current[token] = '';
+        rememberConversation({ token, title: activeThread?.product_title || '', updatedAt: data.message.created_at, status: 'ACTIVE', unreadCount });
         setInputMessage(prev => prev.trim() === text ? '' : prev);
         pollerRef.current?.refresh();
       }
     } catch {
       setSendError('We could not confirm delivery. Your message is kept here; press Send to retry safely.');
-    } finally { sendingRef.current = false; setIsSending(false); }
+    } finally { sendingRef.current = false; setIsSending(false); setOutgoingMessage(null); }
+  };
+
+  // Desktop Enter submits; touch-first devices keep Return for multiline input.
+  // The 229 guard covers IME confirmation events in browsers where isComposing is false.
+  const handleMessageKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (composingMessageRef.current || event.nativeEvent.isComposing || event.keyCode === 229) return;
+    if (window.matchMedia?.('(pointer: coarse)').matches) return;
+    event.preventDefault();
+    if (event.repeat || sendingRef.current || pendingContext || !inputMessage.trim()) return;
+    if (event.currentTarget.form) event.currentTarget.form.requestSubmit();
+    else void handleSendMessage();
   };
 
   const continueExistingInquiry = () => {
@@ -525,6 +600,7 @@ export default function ConciergeChat() {
     if (!pendingContext || sendingRef.current) return;
     if (!composingNew) {
       existingDraftRef.current = inputMessage;
+      if (activeToken) draftsRef.current[activeToken] = inputMessage;
       setInputMessage('');
     }
     setContactFormOpen(false);
@@ -566,7 +642,7 @@ export default function ConciergeChat() {
     } catch { return null; }
   })();
   const newInquiry = !activeToken || composingNew;
-  const panelExpanded = expanded || !newInquiry || contactFormOpen || Boolean(pendingContext);
+  const panelExpanded = showHistory || expanded || !newInquiry || contactFormOpen || Boolean(pendingContext);
   const panelStyle = {
     '--support-height': `${panelExpanded ? 640 : displayContext ? 520 : 460}px`,
     ...(mobileViewport ? {
@@ -582,7 +658,7 @@ export default function ConciergeChat() {
   return (
     <>
       {/* Resume an existing conversation; browsing alone never shows a launcher. */}
-      {activeToken && <button
+      {(activeToken || history.length > 0) && <button
         hidden={isOpen}
         onClick={handleToggleOpen}
         aria-label="Open Blank Seoul Concierge"
@@ -642,6 +718,39 @@ export default function ConciergeChat() {
           </button>
         </div>
 
+        <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-3">
+          <button type="button" disabled={isSending} className="min-h-11 px-1 text-sm font-medium disabled:opacity-50"
+            onClick={() => setShowHistory(value => !value)}>{showHistory ? '← Back' : '← Your inquiries'}</button>
+          {showHistory && <button type="button" className="min-h-11 px-1 text-sm font-semibold" onClick={() => {
+            if (!composingNew) {
+              existingDraftRef.current = inputMessage;
+              if (activeToken) draftsRef.current[activeToken] = inputMessage;
+            }
+            setInputMessage(''); setComposingNew(Boolean(activeToken)); setPendingContext(null); setProductContext(null);
+            setFaqQuestion(null); setFaqSession(value => value + 1); setContactFormOpen(false); setSendError(''); setShowHistory(false);
+          }}>New inquiry</button>}
+        </div>
+        {showHistory ? <div className="min-h-0 flex-1 overflow-y-auto bg-[#FAF9F7] p-4">
+          <h4 className="text-base font-semibold">Your inquiries</h4>
+          <p className="mt-1 mb-4 text-xs leading-relaxed text-zinc-500">Saved on this browser. Open a conversation to check for new replies.</p>
+          {history.length === 0 ? <p className="py-6 text-sm text-zinc-500">Your inquiries will appear here after you send a message.</p> :
+            <ul className="space-y-2">{history.map(entry => <li key={entry.token}>
+              <button type="button" className="w-full rounded-xl border border-zinc-200 bg-white p-3 text-left hover:border-zinc-500 focus-visible:outline-2" onClick={() => {
+                if (activeToken && !composingNew) draftsRef.current[activeToken] = inputMessage;
+                setInputMessage(draftsRef.current[entry.token] || (entry.token === activeToken && composingNew ? existingDraftRef.current : ''));
+                if (entry.token !== activeToken) { setMessages([]); setActiveThread(null); setHistoryLoadFailed(false); }
+                tokenRef.current = entry.token; setActiveToken(entry.token); localStorage.setItem(STORAGE_TOKEN_KEY, entry.token);
+                setComposingNew(false); setPendingContext(null); setSendError(''); setShowHistory(false);
+              }}>
+                <span className="block line-clamp-2 text-sm font-semibold">{entry.title}</span>
+                <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                  <span>{entry.status === 'RESOLVED' ? 'Resolved' : 'Open'}</span>
+                  <time dateTime={entry.updatedAt}>{new Date(entry.updatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
+                  {!!entry.unreadCount && <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-white">New replies</span>}
+                </span>
+              </button>
+            </li>)}</ul>}
+        </div> : <>
         {sendError && (!activeToken || composingNew) && <p role="alert" className="px-4 py-2 text-xs text-red-700">{sendError}</p>}
         {activeToken && !composingNew && olderCursor && <button onClick={loadOlder} disabled={loadingOlder} className="py-2 text-xs underline">{loadingOlder ? 'Loading…' : 'Load earlier messages'}</button>}
         {pendingContext && (
@@ -672,8 +781,8 @@ export default function ConciergeChat() {
 
         {/* 본문 피드 */}
         <div ref={feedRef}
-          role={activeToken && !composingNew ? 'log' : undefined}
-          aria-label={activeToken && !composingNew ? 'Conversation with Blank Seoul support' : 'New inquiry'}
+          role={!newInquiry || outgoingMessage ? 'log' : undefined}
+          aria-label={!newInquiry || outgoingMessage ? 'Conversation with Blank Seoul support' : 'New inquiry'}
           aria-live={isOpen && !composingNew ? 'polite' : 'off'}
           aria-relevant="additions"
           tabIndex={0}
@@ -684,11 +793,16 @@ export default function ConciergeChat() {
             else nearBottomRef.current = false;
           }}
           className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-[#FAF9F7] flex flex-col p-4 gap-3">
-          {newInquiry ? (
+          {newInquiry && !outgoingMessage ? (
             <SupportFaqIntro key={faqSession}
               contextType={productContext?.type} onContact={selectFaq} />
-          ) : messages.length === 0 ? (
-            <div className="text-center py-10 text-xs text-zinc-400">Loading conversation history...</div>
+          ) : newInquiry ? null : messages.length === 0 && !outgoingMessage ? (
+            <div className="text-center py-8 text-sm text-zinc-500" role="status">
+              {historyLoadFailed ? <>
+                <p>Conversation could not be loaded.</p>
+                <button type="button" className="mt-2 min-h-11 px-4 font-semibold underline" onClick={() => { setHistoryLoadFailed(false); pollerRef.current?.refresh(); }}>Try again</button>
+              </> : 'Loading conversation history…'}
+            </div>
           ) : (
             /* 활성 대화 말풍선 피드 */
             messages.map((msg) => {
@@ -750,12 +864,21 @@ export default function ConciergeChat() {
                     {cleanText && <div className="whitespace-pre-wrap">{cleanText}</div>}
                   </div>
                   <span className="text-[9.5px] text-zinc-400 px-1">
+                    {isCustomer && 'Sent · '}
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               );
             })
           )}
+          {outgoingMessage && <div className="flex max-w-[85%] flex-col items-end gap-1 self-end" aria-label="Outgoing message">
+            <span className="px-1 text-[10.5px] font-medium text-zinc-500">You</span>
+            <div className="whitespace-pre-wrap break-words rounded-2xl rounded-br-sm bg-zinc-800 p-3 text-[13px] leading-relaxed text-white">{outgoingMessage}</div>
+            <span role="status" className="flex items-center gap-1.5 px-1 text-xs text-zinc-500">
+              <span aria-hidden="true" className="h-3 w-3 rounded-full border-2 border-zinc-300 border-t-zinc-700 animate-spin motion-reduce:animate-none" />
+              Sending…
+            </span>
+          </div>}
           {!composingNew && activeThread?.status === 'RESOLVED' && (
             <div className="my-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center select-none">
               <div className="text-[12px] font-semibold text-emerald-800 flex items-center justify-center gap-1.5">
@@ -772,14 +895,18 @@ export default function ConciergeChat() {
 
         {newInquiry && <form onSubmit={handleStartInquiry} className="min-h-0 max-h-[75%] overflow-y-auto border-t border-zinc-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
           <input type="text" name="website_url" value={honeypot} onChange={e => setHoneypot(e.target.value)} hidden tabIndex={-1} autoComplete="off" />
-          {!isLoggedIn && contactFormOpen && <div className="grid grid-cols-2 gap-2">
+          {!isLoggedIn && contactFormOpen && !isSending && <div className="grid grid-cols-2 gap-2">
             <label className="text-xs text-zinc-600">Your name *<input id="support-guest-name" ref={guestNameRef} required autoComplete="name" maxLength={200} value={guestName} onChange={e => setGuestName(e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-2 text-base md:text-sm" /></label>
             <label className="text-xs text-zinc-600">Your email *<input id="support-guest-email" type="email" required autoComplete="email" maxLength={254} value={guestEmail} onChange={e => setGuestEmail(e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-2 text-base md:text-sm" /></label>
           </div>}
           <div className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-white p-2 focus-within:border-zinc-800 focus-within:ring-1 focus-within:ring-zinc-800">
             <label htmlFor="support-new-message" className="sr-only">Your message</label>
             <textarea id="support-new-message" ref={inquiryInputRef} required disabled={isSending} rows={2} maxLength={inquiryLimit}
-              value={inputMessage} onChange={e => setInputMessage(e.target.value)} placeholder="Message support…"
+              value={isSending ? '' : inputMessage} onChange={e => setInputMessage(e.target.value)} placeholder={isSending ? 'Sending your message…' : 'Message support…'}
+              enterKeyHint="enter" inputMode="text"
+              onCompositionStart={() => { composingMessageRef.current = true; }}
+              onCompositionEnd={() => { composingMessageRef.current = false; }}
+              onKeyDown={handleMessageKeyDown}
               aria-describedby={inputMessage.length >= inquiryLimit - 500 ? 'support-new-limit' : undefined}
               className="block min-w-0 flex-1 resize-none bg-transparent px-1 py-1 text-base md:text-sm focus:outline-none" />
             <button type="submit" disabled={isSending || !!pendingContext || !inputMessage.trim() || inputMessage.trim().length > inquiryLimit}
@@ -802,17 +929,15 @@ export default function ConciergeChat() {
                 rows={2}
                 aria-label="Message to Blank Seoul support"
                 maxLength={5000}
-                    value={inputMessage}
+                disabled={isSending}
+                value={isSending ? '' : inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-                  if (e.key === 'Enter' && !e.shiftKey && !window.matchMedia?.('(pointer: coarse)').matches) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
+                enterKeyHint="enter" inputMode="text"
+                onCompositionStart={() => { composingMessageRef.current = true; }}
+                onCompositionEnd={() => { composingMessageRef.current = false; }}
+                onKeyDown={handleMessageKeyDown}
                 placeholder={
-                  activeThread?.status === 'RESOLVED'
+                  isSending ? 'Sending your message…' : activeThread?.status === 'RESOLVED'
                     ? 'Follow up on this issue...'
                     : 'Type your reply in English...'
                 }
@@ -831,6 +956,7 @@ export default function ConciergeChat() {
             <InquiryPrivacyNotice />
           </div>
         )}
+        </>}
       </div>
     </>
   );

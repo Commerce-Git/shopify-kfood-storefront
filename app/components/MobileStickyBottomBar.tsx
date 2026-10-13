@@ -6,6 +6,7 @@ import type { ShopifyProduct } from "@/lib/shopify/types";
 import { formatPrice } from "@/lib/shopify/api";
 import { useCart } from "./CartProvider";
 import { isWishlisted, toggleWishlist, subscribeWishlist } from "@/lib/wishlist";
+import Modal from './Modal';
 
 interface MobileStickyBottomBarProps {
   product: ShopifyProduct;
@@ -43,35 +44,31 @@ export default function MobileStickyBottomBar({
     () => false
   );
 
-  // 1. IntersectionObserver for high-performance scroll detection
+  // Check position once per frame, including jumps that skip the whole buy box.
   useEffect(() => {
     const target = targetRef.current;
     if (!target) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // When main buy box is NOT intersecting and is above the viewport (scrolled past), show sticky bar
-        const isPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        setIsVisible(isPast);
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [targetRef]);
-
-  // 2. Body Scroll Lock when Bottom Drawer Sheet is open
-  useEffect(() => {
-    if (isDrawerOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
+    let frame: number | null = null;
+    const update = () => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        setIsVisible(target.getBoundingClientRect().bottom <= 0);
+      });
     };
-  }, [isDrawerOpen]);
+    const observer = new ResizeObserver(update);
+    observer.observe(target);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [targetRef]);
 
   // Image for active variant or product thumbnail
   const activeImage = selectedVariant?.image || product.images.edges[0]?.node || null;
@@ -111,6 +108,8 @@ export default function MobileStickyBottomBar({
     <>
       {/* 1. Universal Floating Bottom Bar (Mobile 1-Tap Bar + Desktop Floating Glass Island) */}
       <div
+        inert={!isVisible}
+        aria-hidden={!isVisible}
         className={`
           fixed z-30 transition-all duration-300 ease-out
           bottom-0 left-0 right-0 lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-3xl lg:px-4
@@ -228,12 +227,7 @@ export default function MobileStickyBottomBar({
 
       {/* 2. Seamless Bottom Drawer Sheet / Desktop Center Modal */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 z-40 animate-fade-in flex items-end lg:items-center lg:justify-center p-0 lg:p-4">
-          {/* Dim Backdrop Overlay */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsDrawerOpen(false)}
-          />
+        <Modal label="Product options" onClose={() => setIsDrawerOpen(false)} className="flex items-end lg:items-center lg:justify-center lg:p-4">
 
           {/* Drawer / Modal Panel (Slides up on mobile, centered modal on desktop) */}
           <div className="relative w-full lg:max-w-md bg-[#FDFBF7] rounded-t-3xl lg:rounded-3xl border border-[#E8DFC8] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
@@ -270,7 +264,7 @@ export default function MobileStickyBottomBar({
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-200/60 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-colors text-sm font-bold shrink-0"
+                className="w-11 h-11 rounded-full bg-stone-200/60 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-colors text-sm font-bold shrink-0"
                 aria-label="Close option selector"
               >
                 ✕
@@ -410,7 +404,7 @@ export default function MobileStickyBottomBar({
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

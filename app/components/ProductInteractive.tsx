@@ -370,33 +370,42 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
         </div>
       )}
 
-      {/* Meet the Maker / Atelier Profile Box */}
+      {/* Maker / brand profile and product-specific support */}
       {product.vendor && (
-        <div className="max-w-[1000px] mx-auto bg-[#F4EFE6] rounded-3xl p-6 sm:p-10 border border-[#E8DFC8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-2xs">
-          <div className="flex items-center gap-5">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-[#E8DFC8] bg-white shadow-xs">
+        <section aria-label="Maker and brand" className="max-w-[1000px] mx-auto grid grid-cols-1 gap-5 rounded-3xl border border-[#E8DFC8] bg-[#F4EFE6] p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:p-8">
+          <div className="flex min-w-0 items-center gap-4 self-start">
+            <Link href={`/artists/${getArtistSlug(product.vendor)}`} aria-label={`View ${artistDisplayName} profile`} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-[#E8DFC8] bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2D4A3E] sm:h-16 sm:w-16">
               <img
                 src={artistProfile.avatar || "/assets/blank_seoul_symbol.png"}
-                alt={artistDisplayName}
+                alt=""
                 className="w-full h-full object-cover"
               />
-            </div>
-            <div>
+            </Link>
+            <div className="min-w-0">
+              <p className="mb-1 text-xs font-medium text-zinc-600">Discover the maker or brand</p>
               <h3
-                className="text-lg sm:text-xl font-bold text-[#18181B]"
+                className="break-words text-lg font-semibold leading-snug text-[#18181B] [overflow-wrap:anywhere] sm:text-xl"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                {artistDisplayName}
+                <Link href={`/artists/${getArtistSlug(product.vendor)}`} className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2D4A3E]">{artistDisplayName}</Link>
               </h3>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="grid min-w-0 grid-cols-2 items-start gap-3">
             <ArtistFollowButton
               artistSlug={getArtistSlug(product.vendor)}
               artistName={artistDisplayName}
-              variant="compact"
+              variant="profile"
             />
+            <Link
+              href={`/artists/${getArtistSlug(product.vendor)}`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#18181B] px-4 py-2.5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-[#2D4A3E] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2D4A3E]"
+            >
+              View profile <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="flex min-w-0 flex-col items-start border-t border-[#E8DFC8] pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4 lg:col-span-2">
             <ConciergeTriggerButton
               variant="pdp-atelier"
               contextType="product"
@@ -409,14 +418,9 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
               artistSlug={getArtistSlug(product.vendor || "")}
               artistAvatar={artistProfile.avatar}
             />
-            <Link
-              href={`/artists/${getArtistSlug(product.vendor)}`}
-              className="px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-[#C25E38] text-white text-xs font-bold uppercase tracking-wider transition-colors text-center shrink-0 shadow-xs flex items-center justify-center"
-            >
-              Explore Studio Works →
-            </Link>
+            <p className="text-xs leading-5 text-zinc-600">Answered by Blank Seoul Support</p>
           </div>
-        </div>
+        </section>
       )}
 
       {/* 2026 Mobile Sticky Bottom Action Bar + Bottom Drawer Sheet */}

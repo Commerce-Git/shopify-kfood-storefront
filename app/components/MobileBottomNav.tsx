@@ -25,7 +25,7 @@ export default function MobileBottomNav() {
   // 1. Route-aware visibility: Auto-hide on Product Detail Page (PDP)
   // On /product/..., the MobileStickyBottomBar (Buy Box) takes 100% precedence for conversion
   const isPDP = pathname?.startsWith("/product/");
-  if (isPDP) {
+  if (isPDP || pathname === "/cart") {
     return null;
   }
 

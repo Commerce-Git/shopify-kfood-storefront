@@ -931,3 +931,15 @@ Shopify 기본 위치 available=1, totalInventory=1, Storefront 상품/옵션 `a
 **검증:** 새 위치/재고 시험 6개 및 신규 등록 공통 writer 회귀 시험 1개 추가, 전체 단위 시험 428개·TypeScript 검사·diff 공백 검사 통과. 세 변경 파일 ESLint의 기존 `no-explicit-any` 오류 총 56개는 남아 있다(HEAD 총수와 동일); 전체 lint 통과로 표시하지 않는다. 운영/테스트 기본 위치를 각각 조회했고 Vercel Admin에는 `SHOPIFY_LOCATION_ID` override가 없음을 확인했다. 추가 환경변수·SQL은 필요하지 않다.
 
 **남은 범위:** 사용자가 Admin 변경 코드를 Production/Preview에 배포해야 한다. 신규 상품 생성부터 결제/주문 확정까지의 전체 원격 E2E, 다중 옵션/다중 창고의 실제 주문 경쟁 조건은 이번 단품 복구 시험의 완료 범위가 아니다. 채널 수정 때 기록한 재고 0·복구 대기는 이 후속 검증으로 해소됐다.
+
+## 2026-10-06 Shopify 동일 재고 설정 응답 보완
+
+테스트 상품 `BLN-02` 파우치 전송 실패를 조회로 대조했다. DB의 `status=ready`, `shopify_stock_quantity=0`, `stock_quantity=0`과 Shopify 개발 스토어의 상품 ACTIVE·재고 추적 true·기본 위치 available=0을 확인했다. 상품 ID는 이미 저장되어 있었지만 판매 채널 공개 기록은 비어 있었다. 오류 문구는 공통 inventory writer에서 userErrors가 비어 있고 `inventoryAdjustmentGroup`이 없을 때 발생한다. 수량 `0 → 0`의 변경 기록 부재가 원인일 가능성이 높으나 당시 원본 응답은 미보관이므로 no-op 원인 확정과 구분한다. [Shopify 2026-01 공식 규격](https://shopify.dev/docs/api/admin-graphql/2026-01/payloads/InventorySetQuantitiesPayload)은 변경 기록을 nullable로 정의한다.
+
+**로컬 수정:** `lib/shopify/inventory.ts`에서 변경 기록이 명시적으로 null인 정상 형태 응답에는 배치별 실제 수량 조회를 추가했다. 각 요청의 inventoryItem ID·location ID·tracked=true·available 정수 수량과 목표값을 모두 대조한 후에만 채널 공개 등 다음 단계로 진행한다. 0개를 다른 수량으로 바꾸지 않고, 같은 항목의 서로 다른 위치와 100개 배치 경계를 보존한다. 오류 응답·필드 누락·수량/대상 불일치·조회 실패는 계속 중단하며 확인을 위한 추가 재고 쓰기는 수행하지 않는다. 기존 변경 기록이 있는 응답의 처리 방식은 유지한다. 생산환경 전용 우회나 테스트 전용 성공 처리는 없다.
+
+**검증:** inventory 12개(추가 6개), publications 10개, sync-intent 14개로 관련 36개 시험 및 `npm run typecheck` 통과. 0개/동일 양수 수량, 서로 다른 위치, 배치 일부 불일치, 대상·수량 누락, 추적 꺼짐, 조회 오류, 101개 배치를 가상 API로 검증했다. 테스트 Shopify에서는 재고 설정 응답만 가상 null로 제공하고 수정한 writer의 확인 query를 실제 API 2026-01로 실행하여 BLN-02의 동일 항목·기본 위치·available=0을 확인했다. 실제 mutation은 0회이며 원격 채널 공개나 최종 등록 완료의 E2E 성공을 의미하지 않는다. 변경 파일 ESLint 오류 10개는 모두 HEAD에도 존재하는 기존 규칙 위반(라이브러리 any 5개, 테스트 any/VM module 변수 5개)이며 신규 오류 없음; 전체 lint 통과로 표시하지 않는다.
+
+**남은 실행:** 로컬 테스트 화면에서 파우치 전송을 다시 실행해 기존 상품 ID를 유지한 채 채널 공개·DB registered 완료를 확인한다. 배포 화면은 사용자 push·배포 후 동일하게 확인한다. SQL·환경변수 추가 없이 양 환경의 공통 writer에 적용되는 변경이다. 이번 작업의 운영 DB·원격 상품·재고·공개 상태 변경은 없었다.
+
+**후속 — 전송 성공 직후 관리 화면 갱신:** 사용자 재전송 성공 보고 후 수동 새로고침 전 상태가 바뀌지 않는 원인을 확인했다. `useShopifyPush.ts`가 성공 응답의 상품 ID만 반영하여 클라이언트의 status=ready가 남았고 `getStatus`가 ready로 판정했다. 성공한 행의 status를 registered로 함께 반영하고 가짜 ID done을 생성하던 대체값을 기존 실제 ID 보존으로 바꿨다. 동일 상태에서 계산되는 준비/완료 수·필터와 선택 해제가 즉시 반영된다. 실제 React hook과 getStatus를 React DOM에 올리고 가상 API 응답으로 단품 성공·부분 성공·실패·비동기 큐 접수 4개 흐름을 확인했다. 큐 접수만으로 완료를 표시하지 않는다. 공개 관련 기존 10개 시험·타입·변경 diff 공백 검사 통과. 브라우저 자동 새로고침·새 서버 호출·원격 쓰기·SQL·배포는 추가하지 않았다.

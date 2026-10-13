@@ -1,5 +1,5 @@
 import { storefrontFetch } from "./storefront.ts";
-import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS } from "./queries.ts";
+import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
 import type { ShopifyProduct, ShopifyCollection } from "./types.ts";
 
 // ---- API Response Shapes ----
@@ -46,6 +46,17 @@ export interface ProductsPageResult {
 export interface FetchCatalogOptions {
   maxItems?: number;
   pageSize?: number;
+}
+
+export async function searchProducts(query: string, after: string | null = null): Promise<ProductsPageResult & { totalCount: number }> {
+  const data = await storefrontFetch<{ search: ProductsResponse['products'] & { totalCount: number } }>(SEARCH_PRODUCTS, {
+    query: query.trim().slice(0, 200), first: 24, after,
+  });
+  return {
+    products: data.search.edges.map(edge => edge.node),
+    pageInfo: data.search.pageInfo || { hasNextPage: false, endCursor: null },
+    totalCount: data.search.totalCount,
+  };
 }
 
 /**
@@ -233,4 +244,3 @@ export function isProductSoldOut(product: ShopifyProduct): boolean {
   }
   return !product.availableForSale;
 }
-

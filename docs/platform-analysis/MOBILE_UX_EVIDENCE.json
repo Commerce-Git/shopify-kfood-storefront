@@ -1,0 +1,890 @@
+{
+  "dates": "2026-10-03 through 2026-10-04",
+  "scope": "Initial audit and local implementation checks; not deployed verification",
+  "baselineHead": "1f152f6",
+  "baselineWorkingTreeAlreadyDirty": true,
+  "initialMatrix": [
+    {
+      "path": "/?mode=preview",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=live",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections/jewelry-charms",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 404,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/product/jade-norigae-knot-bag-charm",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/cart",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/wishlist",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/artists",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/account/login",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/order-lookup",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/policies/returns",
+      "screen": {
+        "width": 320,
+        "height": 568
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=preview",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=live",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections/jewelry-charms",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 404,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/product/jade-norigae-knot-bag-charm",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/cart",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/wishlist",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/artists",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/account/login",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/order-lookup",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/policies/returns",
+      "screen": {
+        "width": 390,
+        "height": 844
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=preview",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=live",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections/jewelry-charms",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 404,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/product/jade-norigae-knot-bag-charm",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/cart",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/wishlist",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/artists",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/account/login",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/order-lookup",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/policies/returns",
+      "screen": {
+        "width": 430,
+        "height": 932
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=preview",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=live",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections/jewelry-charms",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 404,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/product/jade-norigae-knot-bag-charm",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/cart",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/wishlist",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/artists",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/account/login",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/order-lookup",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/policies/returns",
+      "screen": {
+        "width": 768,
+        "height": 1024
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=preview",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/?mode=live",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/collections/jewelry-charms",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 404,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/product/jade-norigae-knot-bag-charm",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/cart",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/wishlist",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/artists",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/account/login",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/order-lookup",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/policies/returns",
+      "screen": {
+        "width": 844,
+        "height": 390
+      },
+      "httpStatus": 200,
+      "horizontalOverflow": false,
+      "pageErrors": []
+    }
+  ],
+  "initialCartOverlap": {
+    "name": "populatedCart",
+    "text": "Back to Shop\nBlank Seoul\nSecure Checkout\n1\n2\n3\n\nStep 1 of 3: Review Cart\n\nYour Selected Treasures\n1 item\nJade Norigae Knot Bag Charm\n\n$33.00\n\n−\n1\n+\nMax stock (1 left)\nOrder Summary\nSubtotal\n$33.00\nShipping\nFREE\nTotal (USD)\n\nTaxes and shipping included\n\n$33.00\n\nZero Risk, Guaranteed\n\nChanged your mind? Cancel yourself in 1 click within 3 hours directly from your order page.\n\nYes! Send Me The Blank Seoul Box →\n256-Bit SSL\n•\nFree Tracked Shipping\n•\nPre-Cleared Customs\n•\n30-Day Protection\nContinue Exploring Curations\n\nTOTAL\n\n$33.00\n\nComplete Order →",
+    "navRect": {
+      "x": 0,
+      "y": 779,
+      "width": 390,
+      "height": 65,
+      "top": 779,
+      "right": 390,
+      "bottom": 844,
+      "left": 0
+    },
+    "actions": [
+      {
+        "text": "Yes! Send Me The Blank Seoul Box →",
+        "rect": {
+          "x": 37,
+          "y": 1070.984375,
+          "width": 316,
+          "height": 73.6875,
+          "top": 1070.984375,
+          "right": 353,
+          "bottom": 1144.671875,
+          "left": 37
+        },
+        "coveredByNav": false,
+        "intersectsNav": false
+      },
+      {
+        "text": "Complete Order →",
+        "rect": {
+          "x": 92.46875,
+          "y": 779.15625,
+          "width": 281.53125,
+          "height": 50.84375,
+          "top": 779.15625,
+          "right": 374,
+          "bottom": 830,
+          "left": 92.46875
+        },
+        "centerHit": "You",
+        "coveredByNav": true,
+        "intersectsNav": true
+      }
+    ]
+  },
+  "publicHomepageLabSamples": {
+    "samples": [
+      {
+        "slow": false,
+        "status": 200,
+        "receivedBytes": 1633123,
+        "lcp": {
+          "startTime": 1968,
+          "size": 62920,
+          "tag": "IMG"
+        },
+        "cls": 0,
+        "longTasks": 0,
+        "elapsedMs": 10059.799999952316,
+        "ttfb": 64.79999995231628,
+        "dcl": 1841.2000000476837,
+        "load": 2039.3999999761581,
+        "overflow": false,
+        "images": [
+          {
+            "loaded": true,
+            "alt": "Made in Korea - Natural Korean Silk Woven Taegeukgi"
+          }
+        ],
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 1924
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 1924
+          }
+        ]
+      },
+      {
+        "slow": true,
+        "status": 200,
+        "receivedBytes": 1634320,
+        "lcp": {
+          "startTime": 3536,
+          "size": 62803,
+          "tag": "IMG"
+        },
+        "cls": 0.04446492484828897,
+        "longTasks": 3,
+        "elapsedMs": 14581.100000023842,
+        "ttfb": 44.300000071525574,
+        "dcl": 2593.7000000476837,
+        "load": 6528.399999976158,
+        "overflow": false,
+        "images": [
+          {
+            "loaded": true,
+            "alt": "Made in Korea - Natural Korean Silk Woven Taegeukgi"
+          }
+        ],
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 2608
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 2608
+          }
+        ]
+      }
+    ],
+    "publicRoutes": [
+      {
+        "path": "/collections/jewelry-charms",
+        "status": 200
+      },
+      {
+        "path": "/collections",
+        "status": 200
+      },
+      {
+        "path": "/product/maedeup-knot-jade-bag-charm",
+        "status": 200
+      }
+    ]
+  },
+  "postChangeLayoutAndDelivery": {
+    "layouts": [
+      {
+        "width": 320,
+        "buttonWidth": 288,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 334,
+        "buttonWidth": 302,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 390,
+        "buttonWidth": 358,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 430,
+        "buttonWidth": 398,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 768,
+        "buttonWidth": 504.9375,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 1024,
+        "buttonWidth": 240.9375,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      },
+      {
+        "width": 1440,
+        "buttonWidth": 328.9375,
+        "buttonHeight": 56,
+        "label": "Add to Cart",
+        "radius": "24px",
+        "overflow": false,
+        "textFits": true
+      }
+    ],
+    "chat": [
+      {
+        "width": 390,
+        "pendingBubble": true,
+        "firstMessageSurvivesDelayedHistory": true,
+        "noDuplicates": true,
+        "failureDraftAndRetryKeyPreserved": true,
+        "separateDraftFailureReturnsToOriginal": true,
+        "realWrites": 0,
+        "errors": []
+      },
+      {
+        "width": 1440,
+        "pendingBubble": true,
+        "firstMessageSurvivesDelayedHistory": true,
+        "noDuplicates": true,
+        "failureDraftAndRetryKeyPreserved": true,
+        "separateDraftFailureReturnsToOriginal": true,
+        "realWrites": 0,
+        "errors": []
+      }
+    ],
+    "audit": [
+      {
+        "name": "updatedAddToCart",
+        "items": [
+          {
+            "title": "Jade Norigae Knot Bag Charm",
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "name": "keywordSearch",
+        "path": "/search",
+        "query": "?q=zzzznomatchingproduct"
+      }
+    ]
+  },
+  "postChangeFlows": {
+    "ui": [
+      {
+        "width": 320,
+        "galleryTouchZoom": true,
+        "modalFocusAndLayer": true,
+        "checkoutVisible": true
+      },
+      {
+        "width": 390,
+        "galleryTouchZoom": true,
+        "modalFocusAndLayer": true,
+        "checkoutVisible": true
+      },
+      {
+        "width": 430,
+        "galleryTouchZoom": true,
+        "modalFocusAndLayer": true,
+        "checkoutVisible": true
+      },
+      {
+        "width": 768,
+        "galleryTouchZoom": true,
+        "modalFocusAndLayer": true,
+        "checkoutVisible": true
+      },
+      {
+        "search": "header keyword → actual product result → empty state",
+        "readOnlyShopify": true
+      }
+    ],
+    "history": [
+      {
+        "width": 390,
+        "twoThreadsSwitchAndReload": true,
+        "listNoFanout": true,
+        "readFailureRetry": true,
+        "realWrites": 0
+      },
+      {
+        "width": 1440,
+        "twoThreadsSwitchAndReload": true,
+        "listNoFanout": true,
+        "readFailureRetry": true,
+        "realWrites": 0
+      }
+    ]
+  },
+  "keyboardRegression": [
+    {
+      "mobile": false,
+      "newAndExisting": true,
+      "shiftEnterNewline": true,
+      "imeAndRepeatGuard": true,
+      "guestIdentityRequired": true,
+      "failureRetainsDraftAndKey": true,
+      "postsIntercepted": 3,
+      "realMessagesSent": 0,
+      "pageErrors": []
+    },
+    {
+      "mobile": true,
+      "newAndExisting": true,
+      "shiftEnterNewline": true,
+      "imeAndRepeatGuard": true,
+      "guestIdentityRequired": true,
+      "failureRetainsDraftAndKey": "tested on desktop",
+      "postsIntercepted": 2,
+      "realMessagesSent": 0,
+      "pageErrors": []
+    }
+  ],
+  "gates": {
+    "unitTestsPassed": 30,
+    "unitTestsFailed": 0,
+    "typecheck": "passed",
+    "changedFileLintErrors": 0,
+    "changedFileLintExistingImageWarnings": 2
+  },
+  "limitations": [
+    "Chrome emulation, no physical device or Safari test of new changes",
+    "Inquiry writes mocked; no real support messages or notifications",
+    "Search actual catalog first page and empty results checked; large catalog pagination not exercised end to end",
+    "No real checkout payment, deployment, SQL or Git push",
+    "History is browser-held access links, not account-wide or cross-device lookup",
+    "Performance is one pre-deployment public sample per condition; no INP or field 75th percentiles"
+  ],
+  "postChangeReducedViewport": {
+    "viewport": {
+      "width": 390,
+      "height": 400
+    },
+    "inputAndSendVisible": true,
+    "horizontalOverflow": false,
+    "physicalKeyboard": false
+  }
+}

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useCart } from "@/app/components/CartProvider";
 import { isStoreLive } from "@/lib/constants";
 import PrelaunchWaitlistCard from "@/app/components/PrelaunchWaitlistCard";
+import Modal from './Modal';
 
 export default function CartDrawer() {
   const {
@@ -36,37 +37,12 @@ export default function CartDrawer() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isCartOpen, setIsCartOpen]);
 
-  // Lock background body scroll when drawer is active
-  useEffect(() => {
-    if (isCartOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isCartOpen]);
-
-
-
+  if (!isCartOpen) return null;
   return (
-    <>
-      {/* Backdrop Dim Scrim */}
-      <div
-        className={`fixed inset-0 bg-black/45 backdrop-blur-xs z-[80] transition-opacity duration-300 ${
-          isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsCartOpen(false)}
-        aria-hidden="true"
-      />
-
+    <Modal label="Shopping Cart Drawer" onClose={() => setIsCartOpen(false)}>
       {/* Responsive Drawer: Bottom Sheet on Mobile, Slide-over on Desktop */}
       <aside
         id="cart-drawer"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Shopping Cart Drawer"
         className={`
           fixed z-[90] bg-[#FFFFFF] shadow-2xl flex flex-col transition-transform duration-300 ease-out border-t md:border-t-0 md:border-l border-[#E8DFC8]/60
           /* Mobile: Bottom Sheet (Pure Vertical Slide) */
@@ -277,6 +253,6 @@ export default function CartDrawer() {
           </div>
         )}
       </aside>
-    </>
+    </Modal>
   );
 }

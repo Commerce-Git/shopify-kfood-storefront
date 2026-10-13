@@ -6,7 +6,7 @@ import { useArtistFollow } from "@/lib/hooks/useArtistFollow";
 export interface ArtistFollowButtonProps {
   artistSlug: string;
   artistName: string;
-  variant?: "hero" | "compact";
+  variant?: "hero" | "compact" | "profile";
   className?: string;
 }
 
@@ -55,6 +55,28 @@ export default function ArtistFollowButton({
       await followArtist(artistSlug, artistName);
     }
   };
+
+  // Profile cards offer following without implying that email alerts are configured.
+  if (variant === "profile") {
+    return (
+      <div className={`min-w-0 ${className}`}>
+        <button
+          type="button"
+          onClick={handleToggleFollow}
+          disabled={isLoading}
+          aria-label={`Follow ${artistName}`}
+          aria-pressed={followed}
+          title={followed ? `Unfollow ${artistName}` : `Follow ${artistName}`}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-transparent px-4 py-2.5 text-sm font-semibold leading-5 text-zinc-800 transition-colors hover:border-stone-500 hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2D4A3E] disabled:cursor-wait disabled:opacity-60"
+        >
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            {followed ? <path d="m5 12 4 4L19 6" /> : <path d="M12 5v14M5 12h14" />}
+          </svg>
+          {isLoading ? "Saving…" : followed ? "Following" : "Follow"}
+        </button>
+      </div>
+    );
+  }
 
   // State 1: Followed State (YouTube / Twitter Benchmark: Clean 'Following' with Hover-Flip to 'Unfollow')
   if (followed) {

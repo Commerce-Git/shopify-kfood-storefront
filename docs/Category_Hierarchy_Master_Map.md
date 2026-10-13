@@ -1,3 +1,5 @@
+> **과거 카테고리 설계 자료:** 아래 전략·수치·HS 선택 방식은 작성 당시 제안/관찰이다. 현재 카테고리·질문·HS 완료 기준은 [Admin HS 설계](../../blank-seoul-admin/doc/hscode/HS_CLASSIFICATION_DESIGN.md)를 따른다. 이 문서를 현재 통관 보장이나 11개 카테고리 고정 정책의 근거로 사용하지 않는다.
+
 # 🗺️ 카테고리 위계 마스터 맵 (Category Hierarchy Master Map)
 ## (Shopify 3/8대 상업용 분류 & 작가 위저드 11대 공예 통관 분류 브릿지 명세서)
 
@@ -120,5 +122,5 @@
 * **스토어프론트 단일 카테고리 마스터 소스코드:** [`lib/config/categoryMaster.ts`](../lib/config/categoryMaster.ts)
 * **글로벌 D2C 공예품 안전·취급 표준 정책서:** [`docs/Craft_Care_and_Safety_Standards_Policy.md`](./Craft_Care_and_Safety_Standards_Policy.md)
 * **세관 통관 & HS 코드 통합 총괄 가이드 (Control Tower):** `blank-seoul-admin/doc/hscode/README.md`
-* **작가 친화형 3단계 HS CODE 선택 시스템 및 34개 세번 명세서:** `blank-seoul-admin/doc/hscode/HSCODE_Step_By_Step_Selection_Guide.md`
-* **11대 마스터 카테고리 선택 및 스마트 안내 명시 원칙:** `blank-seoul-admin/doc/hscode/Category_Selection_and_Notice_Policy.md`
+* **현재 HS 분류 설계·완료 기준:** [HS 설계 원본](../../blank-seoul-admin/doc/hscode/HS_CLASSIFICATION_DESIGN.md)
+* **카테고리·상품 종류 및 작가 안내 기준:** `blank-seoul-admin/doc/hscode/Category_Selection_and_Notice_Policy.md`

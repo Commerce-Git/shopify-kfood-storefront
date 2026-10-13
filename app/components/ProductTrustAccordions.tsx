@@ -311,7 +311,7 @@ export default function ProductTrustAccordions({
 
                     {/* Floating Speech-Bubble Popover Card */}
                     <div
-                      className={`absolute left-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
+                      className={`absolute left-0 top-full mt-2 w-72 max-w-[calc(100vw-5rem)] sm:w-80 p-3.5 bg-white rounded-xl shadow-xl border border-[#E8DFC8] text-[11px] text-[#52525B] leading-relaxed z-40 transition-all duration-200 ${
                         isReturnPopoverOpen
                           ? "opacity-100 visible translate-y-0 pointer-events-auto"
                           : "opacity-0 invisible -translate-y-1 pointer-events-none"

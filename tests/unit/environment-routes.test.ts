@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 function load(file: string, env: Record<string, string>, extras: Record<string, unknown> = {}, dependencies: Record<string, unknown> = {}) {
-  const mod = { exports: {} as Record<string, (...args: any[]) => Promise<Response>> };
+  const mod = { exports: {} as Record<string, (request: Request, id?: string) => Promise<Response>> };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -14,6 +14,8 @@ function load(file: string, env: Record<string, string>, extras: Record<string, 
     require: (name: string) => {
       if (name === 'next/server') return { NextResponse: Response };
       if (name === '@/lib/errors') return { errorMessage: () => 'error' };
+      if (name === '@/lib/shopify/cache') return { SHOPIFY_CATALOG_CACHE_TAG: 'shopify-catalog' };
+      if (name === '@/lib/shopify/queries') return { GET_PRODUCT_BY_HANDLE: 'query ProductPrice($handle: String!) { product(handle: $handle) { variants(first: 10) { edges { node { id price { amount currencyCode } } } } } }' };
       if (name in dependencies) return dependencies[name];
       throw new Error(name);
     },
@@ -26,23 +28,70 @@ function request(url: string, body?: unknown) {
 
 test('revalidation accepts artist JSON and rejects invalid credentials before any invalidation', async () => {
   const paths: string[] = [];
+  const tags: Array<{ tag: string; expire: number }> = [];
   const api = load('app/api/revalidate/route.ts', { REVALIDATE_SECRET: 'fixture-secret' }, {}, {
-    'next/cache': { revalidatePath: (path: string, type: string) => paths.push(`${path}:${type}`) },
+    'next/cache': {
+      revalidatePath: (path: string, type?: string) => paths.push(`${path}:${type}`),
+      revalidateTag: (tag: string, profile: { expire: number }) => tags.push({ tag, expire: profile.expire }),
+    },
   });
   const res = await api.POST(request('https://front.invalid/api/revalidate', {
     secret: 'fixture-secret', handle: null, collections: [], artists: true,
   }));
   assert.equal(res.status, 200);
-  assert.ok(paths.includes('/artists:page'));
+  assert.ok(paths.includes('/artists:undefined'));
   assert.ok(paths.includes('/artists/[slug]:page'));
+  assert.deepEqual(tags, [{ tag: 'shopify-catalog', expire: 0 }]);
   paths.length = 0;
+  tags.length = 0;
   assert.equal((await api.POST(request('https://front.invalid/api/revalidate', { secret: 'wrong', artists: true }))).status, 401);
   assert.equal(paths.length, 0);
+  assert.equal(tags.length, 0);
   assert.equal((await api.POST(Object.assign(new Request('https://front.invalid/api/revalidate?secret=fixture-secret&path=/artists', { method: 'POST' }), { nextUrl: new URL('https://front.invalid/api/revalidate?secret=fixture-secret&path=/artists') }))).status, 400);
   assert.equal(paths.length, 0);
+  assert.equal(tags.length, 0);
   assert.equal((await api.POST(request('https://front.invalid/api/revalidate', { secret: 'fixture-secret', handle: 'item', collections: ['craft'] }))).status, 200);
-  assert.ok(paths.includes('/product/item:page'));
-  assert.ok(paths.includes('/collections/craft:page'));
+  assert.ok(paths.includes('/product/item:undefined'));
+  assert.ok(paths.includes('/collections/craft:undefined'));
+  assert.ok(paths.includes('/collections:undefined'));
+  assert.ok(paths.includes('/:undefined'));
+});
+
+test('price changes expire caches only after the uncached Storefront price matches', async () => {
+  const paths: string[] = [], tags: string[] = [], calls: RequestInit[] = [];
+  let amount = '34.0';
+  const api = load('app/api/revalidate/route.ts', { REVALIDATE_SECRET: 'fixture-secret',
+    NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: 'dev-shop.myshopify.com', NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN: 'storefront-token',
+  }, { fetch: async (_url: string, init: RequestInit) => {
+    calls.push(init); return Response.json({ data: { product: { variants: { edges: [{ node: {
+      id: 'gid://shopify/ProductVariant/1', price: { amount, currencyCode: 'USD' },
+    } }] } } } });
+  } }, { 'next/cache': {
+    revalidatePath: (path: string) => paths.push(path),
+    revalidateTag: (tag: string) => tags.push(tag),
+  } });
+  const body = { secret: 'fixture-secret', handle: 'item', expectedPrice: {
+    variantId: 'gid://shopify/ProductVariant/1', amountUsd: 153,
+  } };
+  assert.equal((await api.POST(request('https://front.invalid/api/revalidate', { ...body, secret: 'wrong' }))).status, 401);
+  assert.equal(calls.length, 0);
+  const pending = await api.POST(request('https://front.invalid/api/revalidate', body));
+  assert.equal(pending.status, 409);
+  assert.equal((await pending.json()).code, 'SHOPIFY_PRICE_PENDING');
+  assert.equal(paths.length, 0); assert.equal(tags.length, 0);
+  assert.equal(calls[0].cache, 'no-store');
+  assert.deepEqual(JSON.parse(String(calls[0].body)).variables, { handle: 'item' });
+  assert.ok(calls[0].signal instanceof AbortSignal);
+  amount = '153.0';
+  const ready = await api.POST(request('https://front.invalid/api/revalidate', body));
+  assert.equal(ready.status, 200); assert.equal((await ready.json()).priceConfirmed, true);
+  assert.deepEqual(tags, ['shopify-catalog']);
+  assert.ok(paths.includes('/product/item'));
+  calls.length = 0;
+  assert.equal((await api.POST(request('https://front.invalid/api/revalidate', {
+    ...body, expectedPrice: { variantId: 'invalid', amountUsd: 153 },
+  }))).status, 400);
+  assert.equal(calls.length, 0);
 });
 
 test('inquiry proxy uses only the canonical backend and forwards a write once without retry', async () => {
