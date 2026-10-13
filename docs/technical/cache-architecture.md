@@ -13,7 +13,7 @@
 | 상품 상세 리뷰 | `unstable_cache` 300초 | 리뷰 조회 DB 비용 절감 |
 | 재고 API | 동적 API·Shopify 조회15초·CDN15초/SWR60초 | 재고 조회 부하 제한; 완전한 실시간 보장은 아님 |
 
-상품 상세의 요청별 조회 수정은 로컬 구현·검증 상태이며 후속 dev 배포가 남아 있습니다.
+상품 상세의 요청별 조회 수정은 Storefront `86bb662` dev에 배포됐고 실제 가격 변경·새 장바구니 검증을 완료했습니다.
 
 ---
 
@@ -69,4 +69,6 @@ Admin의 상품 동기화 후 홈페이지가 다음 접근에서 최신 데이�
 
 2026-10-14 첫 dev 버전의4회 시험에서는 이전 가격 잔류2회·첫 조회 반영2회를 확인했습니다. 조회 주소를 통일한 Storefront `51c70cf`·Admin `4394753`의 후속 dev 시험2회 중1회는 첫 조회와 마우스 클릭의 새 장바구니가153을 표시했고1회는 이전 가격이 남았습니다. 주소 통일만으로 지연이 해소됐다고 판정하지 않습니다.
 
-추가 시험에서는 **Shopify Admin API는153인데 캐시를 우회한 Storefront API 자체는34**인 시점을 함께 기록했습니다. 로컬 운영 방식의 요청별 상세 조회에서 외부 Storefront 가격이153으로 전파되자 화면도153이 됐고, 새 장바구니153·가격 하향 뒤 새 상세/새 장바구니34를 확인했습니다. 최종 사례에서는 최초 측정부터 약15초 동안 외부 API의 이전 가격이 관찰됐습니다. 외부 가격 전파의 즉시 일관성을 보장할 수 없으며, 요청별 상세 조회 수정의 dev 배포 검증은 아직 남아 있습니다. [Next.js fetch 규격](https://nextjs.org/docs/app/api-reference/functions/fetch)의 `no-store`는 Next.js 캐시를 우회하는 옵션이며 Shopify 내부 전파 지연까지 제거하는 기능은 아닙니다.
+추가 시험에서는 **Shopify Admin API는153인데 캐시를 우회한 Storefront API 자체는34**인 시점을 함께 기록했습니다. 로컬 운영 방식의 요청별 상세 조회에서 외부 Storefront 가격이153으로 전파되자 화면도153이 됐고, 새 장바구니153·가격 하향 뒤 새 상세/새 장바구니34를 확인했습니다. 최종 사례에서는 최초 측정부터 약15초 동안 외부 API의 이전 가격이 관찰됐습니다. 외부 가격 전파의 즉시 일관성을 보장할 수 없으며, 요청별 상세 조회 수정은 아래 후속 dev 배포에서 검증했습니다. [Next.js fetch 규격](https://nextjs.org/docs/app/api-reference/functions/fetch)의 `no-store`는 Next.js 캐시를 우회하는 옵션이며 Shopify 내부 전파 지연까지 제거하는 기능은 아닙니다.
+
+**후속 dev 배포 검증 완료:** Storefront `86bb662`(`dpl_CcG57RcC49vdkKd5opu8Z9nHdcAg`)·Admin `4394753`의 실제 HTTPS API/브라우저에서 $34→$153→$34를 확인했습니다. 상향 첫 상세 응답은 `x-vercel-cache: MISS`, 상세/직접 Storefront/Admin 모두153이었고 마우스로 담은 새 장바구니도153이었습니다. 하향 후 새 구매자 컨텍스트의 상세/새 장바구니는34였습니다. 저장 뒤 별도 수동 캐시 요청은 없었습니다. 페이지 오류0개, 임시 TEST 상품·인증 사용자의 삭제, 기존 상품/작가 주문 해시 일치와 잔여 QA 상품0개를 확인했습니다. 이 시험의 완료는 dev 가격 반영·새 장바구니 범위이며 모든 지역의 즉시 외부 전파·기존 장바구니 재가격 산정·대규모 성능·운영 적용을 보장하지 않습니다. [실행 증거](../../../blank-seoul-admin/.agent-bridge/storefront-cache-verification-results.json)의 `deployedFollowupVerification`를 따릅니다.
