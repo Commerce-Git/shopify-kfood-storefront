@@ -76,7 +76,7 @@ Admin의 상품 동기화 후 홈페이지가 다음 접근에서 최신 데이�
 * **인증**: 같은 환경의 `REVALIDATE_SECRET`을 검사합니다. 보호된 Preview의 서버 접근에는 [환경 연결 계약](../environment-isolation.md#연결값)의 `STOREFRONT_API_PROTECTION_BYPASS` 헤더도 필요합니다.
 * **동작 원리**:
   1. WMS 데이터 동기화 완료 시 `POST /api/revalidate`로 요청이 전달됩니다.
-  2. 가격 변경 요청에는 Admin이 조회한 Shopify 실제 handle과 `expectedPrice: { variantId, amountUsd }`를 전달합니다. Storefront는 `cache: 'no-store'`로 자신의 Shopify 가격을 조회합니다. 값이 아직 다르면 캐시를 만료하지 않고 `409 / SHOPIFY_PRICE_PENDING`을 반환합니다. Admin은 이 응답만 1초 간격으로 최대40회·전체45초 안에서 확인하고, 다른 실패·미지원 응답은 성공으로 기록하지 않습니다. 이 한도를 넘는 지연은 로그에 남으며 영구 재시도 큐는 이번 범위가 아닙니다. 이전 버전의 Storefront가 가격 확인 없이200을 반환해도 `priceConfirmed: true`가 없으면 성공으로 기록하지 않습니다.
+  2. 가격 변경 요청에는 Admin이 조회한 Shopify 실제 handle과 `expectedPrice: { variantId, amountUsd }`를 전달합니다. Storefront는 상품 상세와 같은 `storefrontFetch`·API 주소(`2025-10`)·전체 상품 쿼리·변수를 사용하고, 확인 요청에만 `cache: 'no-store'`와4초 제한을 적용합니다. 값이 아직 다르면 캐시를 만료하지 않고 `409 / SHOPIFY_PRICE_PENDING`을 반환합니다. Admin은 이 응답만 1초 간격으로 최대40회·전체45초 안에서 확인하고, 다른 실패·미지원 응답은 성공으로 기록하지 않습니다. 이 한도를 넘는 지연은 로그에 남으며 영구 재시도 큐는 이번 범위가 아닙니다. 이전 버전의 Storefront가 가격 확인 없이200을 반환해도 `priceConfirmed: true`가 없으면 성공으로 기록하지 않습니다.
   3. 새 가격을 확인한 뒤 `revalidateTag('shopify-catalog', { expire: 0 })`로 공통 Shopify 조회 캐시를 만료합니다. 페이지 재생성 때 이전 상품 응답을 다시 사용하지 않도록 합니다. 가격 검사가 없는 상품·이미지·작가 갱신도 이 태그를 만료합니다.
   4. 수신된 `handle` 및 `collections`에 **`revalidatePath()`**를 적용합니다. 구체 주소에는 `type`을 생략합니다. `/artists/[slug]` 같은 동적 경로 패턴에는 `'page'`가 필요합니다.
      - `revalidatePath("/product/상품슬러그")`
@@ -84,4 +84,6 @@ Admin의 상품 동기화 후 홈페이지가 다음 접근에서 최신 데이�
      - `revalidatePath("/")`
   5. Route Handler에서 만료한 페이지는 다음 접근에서 다시 생성합니다. Admin의 상품 수정 API는 캐시 요청을 기다린 뒤 응답하므로 응답 종료로 요청이 중단되지 않습니다. 이미 열린 브라우저 화면은 재접근·새로고침이 필요하며, 변경 전에 localStorage에 담아 둔 장바구니 금액의 재동기화는 이 서버 캐시 계약에 포함하지 않습니다.
 
-설치된 Next.js16.2 문서의 `revalidatePath`·`revalidateTag`·`fetch` 규격을 기준으로 구현합니다. [검증 기록](../../../blank-seoul-admin/.agent-bridge/storefront-cache-verification-results.json)에 코드·실제 API·운영 방식의 로컬 화면·배포 대기를 구분합니다.
+설치된 Next.js16.2 문서의 `revalidatePath`·`revalidateTag`·`fetch` 규격을 기준으로 구현합니다. [검증 기록](../../../blank-seoul-admin/.agent-bridge/storefront-cache-verification-results.json)에 코드·실제 API·운영 방식의 로컬 화면·배포 검증을 구분합니다.
+
+2026-10-14 dev 배포 시험에서는 캐시 API200·가격 확인 뒤에도 상품 상세에 이전 가격이 남는 경우가2회 관찰됐고, 다른2회는 첫 조회에 새 가격이 표시됐습니다. 후자의 장바구니 시험은 dev 출시 전 모드의 버튼명 차이로 미완료입니다. 상세 조회의2024-01 주소와 확인 API의2025-10 주소를 공통 함수로 통일하는 후속 수정은 로컬에 준비했으나, 아직 지연 해소의 배포 증거는 없습니다. API 응답 성공과 실제 화면 반영 성공을 구분하며 다음 프론트 배포 후 재검증합니다. [Next.js 즉시 만료 규격](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)을 사용하더라도 외부 API·배포 화면의 일관성은 별도로 확인합니다.

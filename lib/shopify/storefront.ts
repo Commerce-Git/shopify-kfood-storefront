@@ -7,13 +7,14 @@ import { SHOPIFY_CATALOG_CACHE_TAG } from './cache.ts';
  */
 export async function storefrontFetch<T>(
   query: string,
-  variables: Record<string, unknown> = {}
+  variables: Record<string, unknown> = {},
+  options: { cache?: 'no-store'; signal?: AbortSignal } = {}
 ): Promise<T> {
   const storeDomain =
     process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
   const storefrontToken =
     process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "";
-  const storefrontApiUrl = `https://${storeDomain}/api/2024-01/graphql.json`;
+  const storefrontApiUrl = `https://${storeDomain}/api/2025-10/graphql.json`;
 
   // If no token configured, throw a helpful error
   if (!storeDomain || !storefrontToken) {
@@ -30,7 +31,10 @@ export async function storefrontFetch<T>(
       "X-Shopify-Storefront-Access-Token": storefrontToken,
     },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 60, tags: [SHOPIFY_CATALOG_CACHE_TAG] },
+    ...(options.cache === 'no-store'
+      ? { cache: 'no-store' as const }
+      : { next: { revalidate: 60, tags: [SHOPIFY_CATALOG_CACHE_TAG] } }),
+    ...(options.signal ? { signal: options.signal } : {}),
   });
 
   if (!response.ok) {

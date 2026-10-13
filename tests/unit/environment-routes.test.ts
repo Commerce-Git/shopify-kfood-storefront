@@ -14,7 +14,8 @@ function load(file: string, env: Record<string, string>, extras: Record<string, 
     require: (name: string) => {
       if (name === 'next/server') return { NextResponse: Response };
       if (name === '@/lib/errors') return { errorMessage: () => 'error' };
-      if (name === '@/lib/shopify/cache') return { SHOPIFY_CATALOG_CACHE_TAG: 'shopify-catalog' };
+      if (name === '@/lib/shopify/cache' || name === './cache.ts') return { SHOPIFY_CATALOG_CACHE_TAG: 'shopify-catalog' };
+      if (name === '@/lib/shopify/storefront') return load('lib/shopify/storefront.ts', env, extras, dependencies);
       if (name === '@/lib/shopify/queries') return { GET_PRODUCT_BY_HANDLE: 'query ProductPrice($handle: String!) { product(handle: $handle) { variants(first: 10) { edges { node { id price { amount currencyCode } } } } } }' };
       if (name in dependencies) return dependencies[name];
       throw new Error(name);
@@ -92,6 +93,27 @@ test('price changes expire caches only after the uncached Storefront price match
     ...body, expectedPrice: { variantId: 'invalid', amountUsd: 153 },
   }))).status, 400);
   assert.equal(calls.length, 0);
+});
+
+test('page and price confirmation use identical upstream requests with separate cache policies', async () => {
+  const calls: Array<{ url: string; init: RequestInit & { next?: { revalidate?: number | false; tags?: string[] } } }> = [];
+  const client = load('lib/shopify/storefront.ts', {
+    NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: 'dev-shop.myshopify.com', NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN: 'fixture-token',
+  }, { fetch: async (url: string, init: RequestInit) => {
+    calls.push({ url, init }); return Response.json({ data: { product: { id: 'fixture' } } });
+  } }) as unknown as { storefrontFetch: (query: string, variables: Record<string, unknown>, options?: { cache: 'no-store'; signal: AbortSignal }) => Promise<unknown> };
+  const signal = AbortSignal.timeout(4000);
+  await client.storefrontFetch('query Product', { handle: 'item' });
+  await client.storefrontFetch('query Product', { handle: 'item' }, { cache: 'no-store', signal });
+  assert.equal(calls[0].url, 'https://dev-shop.myshopify.com/api/2025-10/graphql.json');
+  assert.equal(calls[0].url, calls[1].url);
+  assert.equal(calls[0].init.body, calls[1].init.body);
+  assert.deepEqual({ ...calls[0].init.headers }, { ...calls[1].init.headers });
+  assert.equal(calls[0].init.next?.revalidate, 60);
+  assert.ok(calls[0].init.next?.tags?.includes('shopify-catalog'));
+  assert.equal(calls[1].init.cache, 'no-store');
+  assert.equal(calls[1].init.next, undefined);
+  assert.equal(calls[1].init.signal, signal);
 });
 
 test('inquiry proxy uses only the canonical backend and forwards a write once without retry', async () => {

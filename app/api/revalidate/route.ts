@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { SHOPIFY_CATALOG_CACHE_TAG } from '@/lib/shopify/cache';
 import { GET_PRODUCT_BY_HANDLE } from '@/lib/shopify/queries';
+import { storefrontFetch } from '@/lib/shopify/storefront';
+import type { ShopifyProduct } from '@/lib/shopify/types';
 
 export const dynamic = "force-dynamic";
 
@@ -59,20 +61,13 @@ async function handleRevalidation(request: NextRequest) {
       if (typeof handle !== 'string' || !handle) {
         return NextResponse.json({ success: false, error: 'Product handle required for price confirmation' }, { status: 400 });
       }
-      const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-      const token = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN;
-      if (!domain || !token) throw new Error('Shopify Storefront configuration missing');
-      const response = await fetch(`https://${domain}/api/2025-10/graphql.json`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': token },
-        // Use the same product query as the page: node(id) can update before the product index.
-        body: JSON.stringify({ query: GET_PRODUCT_BY_HANDLE, variables: { handle } }),
-        cache: 'no-store', signal: AbortSignal.timeout(4000),
-      });
-      if (!response.ok) throw new Error('Shopify price verification failed');
-      const result = await response.json();
-      if (result.errors?.length) throw new Error('Shopify price verification failed');
-      const price = result.data?.product?.variants?.edges?.find(
-        (edge: { node: { id: string } }) => edge.node.id === expectedPrice.variantId)?.node?.price;
+      // Match the page's endpoint, credentials, query and variables; only bypass its cache.
+      const result = await storefrontFetch<{ product: ShopifyProduct | null }>(
+        GET_PRODUCT_BY_HANDLE, { handle },
+        { cache: 'no-store', signal: AbortSignal.timeout(4000) },
+      );
+      const price = result.product?.variants?.edges?.find(
+        (edge) => edge.node.id === expectedPrice.variantId)?.node?.price;
       if (price?.currencyCode !== 'USD' || Number(price?.amount) !== expectedPrice.amountUsd) {
         return NextResponse.json({ success: false, code: 'SHOPIFY_PRICE_PENDING' },
           { status: 409, headers: { 'Cache-Control': 'no-store' } });
