@@ -4,8 +4,30 @@ import test from "node:test";
 process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN = "unit-test.myshopify.com";
 process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN = "unit-test-token";
 
-import { fetchAllCatalogProducts } from "../../lib/shopify/api.ts";
+import { fetchAllCatalogProducts, getProductByHandle } from "../../lib/shopify/api.ts";
 import type { ShopifyProduct } from "../../lib/shopify/types.ts";
+
+test("product detail reads current purchase prices without a persistent fetch cache", async () => {
+  const previousFetch = globalThis.fetch;
+  let amount = "34.0";
+  globalThis.fetch = async (_input, init) => {
+    assert.equal(init?.cache, "no-store");
+    assert.equal(init?.next, undefined);
+    assert.deepEqual(JSON.parse(String(init?.body)).variables, { handle: "price-test" });
+    return Response.json({ data: { product: {
+      handle: "price-test", variants: { edges: [{ node: { price: { amount, currencyCode: "USD" } } }] },
+    } } });
+  };
+  try {
+    assert.equal((await getProductByHandle("price-test"))?.variants.edges[0].node.price.amount, "34.0");
+    amount = "153.0";
+    assert.equal((await getProductByHandle("price-test"))?.variants.edges[0].node.price.amount, "153.0");
+    amount = "34.0";
+    assert.equal((await getProductByHandle("price-test"))?.variants.edges[0].node.price.amount, "34.0");
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
 
 test("fetchAllCatalogProducts merges multiple pages using cursor pagination", async () => {
   const previousFetch = globalThis.fetch;

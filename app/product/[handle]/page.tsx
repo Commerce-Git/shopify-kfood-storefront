@@ -1,28 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import ProductInteractive from "@/app/components/ProductInteractive";
 import Reviews from "@/app/components/Reviews";
 import { unstable_cache } from "next/cache";
 import {
-  getAllProducts,
   getProductByHandle,
   getProductImages,
 } from "@/lib/shopify/api";
 
-export const revalidate = 60; // ISR: 60s Edge SWR Cache
-
-export async function generateStaticParams() {
-  try {
-    const products = await getAllProducts(50);
-    return products.map((product) => ({
-      handle: product.handle,
-    }));
-  } catch {
-    return [];
-  }
-}
+// Purchase prices must not be served from an older ISR page or Shopify Data Cache.
+export const revalidate = 0;
+// Share the fresh product between metadata and the page within this render only.
+const getRequestProduct = cache(getProductByHandle);
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -48,7 +40,7 @@ const getCachedReviews = unstable_cache(
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const product = await getProductByHandle(decodedHandle);
+  const product = await getRequestProduct(decodedHandle);
 
   if (!product) {
     return { title: "Product Not Found" };
@@ -63,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
-  const product = await getProductByHandle(decodedHandle);
+  const product = await getRequestProduct(decodedHandle);
 
   if (!product) {
     notFound();

@@ -144,7 +144,8 @@ export async function getProductByHandle(
   try {
     const data = await storefrontFetch<ProductByHandleResponse>(
       GET_PRODUCT_BY_HANDLE,
-      { handle }
+      { handle },
+      { cache: 'no-store' },
     );
     return data.product;
   } catch (error) {
