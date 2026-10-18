@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useAccountOrders } from "@/lib/orders/useAccountOrders";
 import { useAuth } from "@/app/components/AuthProvider";
 import { getOrderStep } from "@/lib/shopify/order-utils";
 import type { MappedOrder } from "@/lib/shopify/admin";
@@ -19,55 +20,11 @@ export default function OrderDetailPage() {
   const { isLoading: authLoading, isLoggedIn } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const orderId = decodeURIComponent(params.id as string);
+  let orderId = "";
+  try { orderId = decodeURIComponent(params.id as string); } catch { /* Invalid route is not an order. */ }
 
-  const [order, setOrder] = useState<MappedOrder | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchOrder() {
-      // 1. Try localStorage cache first (shared with /account page)
-      try {
-        const keys = Object.keys(localStorage).filter((k) => k.startsWith("orders_"));
-        for (const key of keys) {
-          const cached = JSON.parse(localStorage.getItem(key) || "{}");
-          const age = Date.now() - (cached.timestamp || 0);
-          if (age < 2 * 60 * 1000 && cached.orders) {
-            const found = cached.orders.find((o: MappedOrder) => o.id === orderId);
-            if (found) {
-              setOrder(found);
-              setLoading(false);
-              break;
-            }
-          }
-        }
-      } catch {
-        // Cache miss — continue to API
-      }
-
-      // 2. Always fetch fresh data
-      try {
-        const res = await fetch("/api/orders");
-        if (!res.ok) throw new Error("Failed to fetch orders");
-        const data = await res.json();
-        const found = data.orders.find((o: MappedOrder) => o.id === orderId);
-        if (found) {
-          setOrder(found);
-        } else if (!order) {
-          setError("Order not found.");
-        }
-      } catch {
-        if (!order) setError("Failed to load order.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (!authLoading && isLoggedIn) {
-      fetchOrder();
-    }
-  }, [authLoading, isLoggedIn, orderId]);
+  const { orders, loading, error, retry } = useAccountOrders();
+  const order = orders.find(order => order.id === orderId) || null;
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) {
@@ -88,6 +45,7 @@ export default function OrderDetailPage() {
       <div className="flex-1 max-w-2xl mx-auto px-4 pb-12 text-center">
         <div className="text-4xl mb-4">😕</div>
         <p className="text-gray-600 mb-4">{error || "Order not found"}</p>
+        {error && <button type="button" onClick={retry} className="px-4 py-2 underline">Try again</button>}
         <Link
           href="/account"
           className="text-orange-600 hover:text-orange-700 underline"
@@ -161,7 +119,7 @@ export default function OrderDetailPage() {
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               {order.packages.length > 1
-                ? `Dispatched in ${order.packages.length} Separate Packages`
+                ? `Items from ${order.packages.length} makers`
                 : "Shipment Details"}
             </h2>
           </div>

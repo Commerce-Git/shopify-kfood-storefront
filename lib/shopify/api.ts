@@ -1,5 +1,5 @@
 import { storefrontFetch } from "./storefront.ts";
-import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
+import { GET_SAVED_PRODUCTS, GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
 import type { ShopifyProduct, ShopifyCollection } from "./types.ts";
 
 // ---- API Response Shapes ----
@@ -139,19 +139,24 @@ export async function getAllProducts(count = 20): Promise<ShopifyProduct[]> {
  * Returns null if not found.
  */
 export async function getProductByHandle(
-  handle: string
+  handle: string, options: { signal?: AbortSignal } = {}
 ): Promise<ShopifyProduct | null> {
-  try {
-    const data = await storefrontFetch<ProductByHandleResponse>(
-      GET_PRODUCT_BY_HANDLE,
-      { handle },
-      { cache: 'no-store' },
-    );
-    return data.product;
-  } catch (error) {
-    console.error("[getProductByHandle]", error);
-    return null;
+  const data = await storefrontFetch<ProductByHandleResponse>(GET_PRODUCT_BY_HANDLE, { handle }, { cache: 'no-store', signal: options.signal });
+  const product = data.product;
+  if (!product) return null;
+  let pageInfo = product.variants.pageInfo;
+  const seen = new Set<string>();
+  while (pageInfo?.hasNextPage) {
+    const after = pageInfo.endCursor;
+    if (!after || seen.has(after)) throw new Error('Product options could not be loaded. Please retry.');
+    seen.add(after);
+    const next = await storefrontFetch<ProductByHandleResponse>(GET_PRODUCT_BY_HANDLE, { handle, after }, { cache: 'no-store', signal: options.signal });
+    if (!next.product) throw new Error('Product options could not be loaded. Please retry.');
+    product.variants.edges.push(...next.product.variants.edges);
+    pageInfo = next.product.variants.pageInfo;
   }
+  product.variants.pageInfo = pageInfo;
+  return product;
 }
 
 /**
@@ -159,18 +164,10 @@ export async function getProductByHandle(
  * Returns null if not found.
  */
 export async function getCollectionByHandle(
-  handle: string
+  handle: string, options: { first?: number; after?: string | null } = {}
 ): Promise<ShopifyCollection | null> {
-  try {
-    const data = await storefrontFetch<CollectionByHandleResponse>(
-      GET_COLLECTION_BY_HANDLE,
-      { handle }
-    );
-    return data.collection;
-  } catch (error) {
-    console.error("[getCollectionByHandle]", error);
-    return null;
-  }
+  const data = await storefrontFetch<CollectionByHandleResponse>(GET_COLLECTION_BY_HANDLE, { handle, ...options });
+  return data.collection;
 }
 
 /**
@@ -244,4 +241,23 @@ export function isProductSoldOut(product: ShopifyProduct): boolean {
     return !product.variants.edges.some((edge) => edge.node.availableForSale);
   }
   return !product.availableForSale;
+}
+
+/** Saved items remain reachable when they leave the newest catalog page. */
+export async function getSavedProducts(keys: string[]): Promise<ShopifyProduct[]> {
+  const unique = [...new Set(keys)];
+  const ids = unique.filter(key => /^gid:\/\/shopify\/product\/\d+$/i.test(key))
+    .map(id => id.replace(/^gid:\/\/shopify\/product\//i, 'gid://shopify/Product/'));
+  const handles = unique.filter(key => !key.includes('://'));
+  const products: ShopifyProduct[] = [];
+  for (let index = 0; index < ids.length; index += 250) {
+    const data = await storefrontFetch<{ nodes: (ShopifyProduct | null)[] }>(GET_SAVED_PRODUCTS, { ids: ids.slice(index, index + 250) });
+    products.push(...data.nodes.filter((product): product is ShopifyProduct => !!product?.id));
+  }
+  // Older storage used handles. Resolve those directly too, in bounded batches.
+  for (let index = 0; index < handles.length; index += 10) {
+    const batch = await Promise.all(handles.slice(index, index + 10).map(handle => getProductByHandle(handle)));
+    products.push(...batch.filter((product): product is ShopifyProduct => !!product));
+  }
+  return [...new Map(products.map(product => [product.id, product])).values()];
 }

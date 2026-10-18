@@ -7,92 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminGraphQL } from "@/lib/shopify/admin";
-import { COUPON_CONFIG, generateCouponCode } from "@/lib/coupon-config";
+import { ensureReviewDiscount, reviewCouponCode } from "@/lib/shopify/review-discount";
+import { COUPON_CONFIG } from "@/lib/coupon-config";
 import { sendCouponConfirmationEmail } from "@/emails";
 import { getReviewStatus } from "@/lib/review-filter";
-import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
-// ---- Shopify 쿠폰 생성 ----
-
-async function createShopifyDiscount(
-  couponCode: string,
-  expiresAt: Date
-) {
-  const startsAt = new Date().toISOString();
-  const endsAt = expiresAt.toISOString();
-
-  // Build discount value input based on config
-  const customerGetsValue =
-    COUPON_CONFIG.discountType === "percentage"
-      ? { percentage: COUPON_CONFIG.discountValue / 100 }
-      : { discountAmount: { amount: String(COUPON_CONFIG.discountValue), appliesOnEachItem: false } };
-
-  // Build variables object — all dynamic values passed safely via GraphQL variables
-  const variables: Record<string, unknown> = {
-    title: `Review Reward - ${couponCode}`,
-    code: couponCode,
-    startsAt,
-    endsAt,
-    usageLimit: COUPON_CONFIG.usageLimit,
-    customerGetsValue,
-  };
-
-  // Add minimum requirement if configured
-  const minimumRequirementFragment = COUPON_CONFIG.minimumOrderAmount != null
-    ? `minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: $minimumSubtotal } }`
-    : "";
-
-  if (COUPON_CONFIG.minimumOrderAmount != null) {
-    variables.minimumSubtotal = String(COUPON_CONFIG.minimumOrderAmount);
-  }
-
-  const minimumSubtotalParam = COUPON_CONFIG.minimumOrderAmount != null
-    ? "$minimumSubtotal: Decimal!"
-    : "";
-
-  const mutation = `
-    mutation CreateDiscount(
-      $title: String!
-      $code: String!
-      $startsAt: DateTime!
-      $endsAt: DateTime!
-      $usageLimit: Int!
-      $customerGetsValue: DiscountCustomerGetsValueInput!
-      ${minimumSubtotalParam}
-    ) {
-      discountCodeBasicCreate(basicCodeDiscount: {
-        title: $title
-        code: $code
-        startsAt: $startsAt
-        endsAt: $endsAt
-        usageLimit: $usageLimit
-        customerGets: {
-          value: $customerGetsValue
-          items: { all: true }
-        }
-        customerSelection: { all: true }
-        ${minimumRequirementFragment}
-      }) {
-        codeDiscountNode {
-          id
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const result = await adminGraphQL(mutation, variables);
-  const errors = result.data?.discountCodeBasicCreate?.userErrors;
-  if (errors?.length > 0) {
-    throw new Error(`Shopify discount error: ${JSON.stringify(errors)}`);
-  }
-  return result;
-}
 
 // ---- POST: 리뷰 제출 ----
 
@@ -123,13 +42,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (new Date(review.token_expires_at) < new Date()) {
-      return NextResponse.json({ error: "This review link has expired." }, { status: 410 });
+    const tokenExpiresAt = Date.parse(review.token_expires_at);
+    if (!Number.isFinite(tokenExpiresAt) || tokenExpiresAt <= Date.now()) {
+      return NextResponse.json({ error: 'This review link has expired.' }, { status: 410 });
     }
 
     // 2. 리뷰 데이터 검증
     const rating = Number(body.rating);
-    if (!rating || rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Rating must be between 1 and 5." }, { status: 400 });
     }
 
@@ -153,14 +73,14 @@ export async function POST(request: NextRequest) {
     const status = getReviewStatus(title, reviewBody);
 
     // 4. Shopify 쿠폰 생성
-    const couponCode = generateCouponCode();
-    const couponExpiresAt = new Date();
+    const couponCode = reviewCouponCode(token);
+    let couponExpiresAt = new Date();
     couponExpiresAt.setDate(couponExpiresAt.getDate() + COUPON_CONFIG.validityDays);
 
-    await createShopifyDiscount(couponCode, couponExpiresAt);
+    couponExpiresAt = await ensureReviewDiscount(couponCode, couponExpiresAt);
 
     // 5. Supabase 업데이트
-    const { error: updateError } = await supabaseAdmin
+    const { data: saved, error: updateError } = await supabaseAdmin
       .from("reviews")
       .update({
         rating,
@@ -176,22 +96,23 @@ export async function POST(request: NextRequest) {
         coupon_expires_at: couponExpiresAt.toISOString(),
         submitted_at: new Date().toISOString(),
       })
-      .eq("token", token);
+      .eq("token", token).is("rating", null).select("id").maybeSingle();
 
     if (updateError) {
       console.error("[Review API] Update error:", updateError);
       return NextResponse.json({ error: "Failed to save review." }, { status: 500 });
     }
 
+    if (!saved) return NextResponse.json({ error: "Review already submitted." }, { status: 409 });
+
     const discountLabel =
       COUPON_CONFIG.discountType === "percentage"
         ? `${COUPON_CONFIG.discountValue}% OFF`
         : `$${COUPON_CONFIG.discountValue} OFF`;
 
-    // 6. 쿠폰 확인 이메일 발송 (fire-and-forget, opt-out 체크 안 함 — 거래 이메일)
-    const unsubscribeUrl = generateUnsubscribeUrl(review.customer_email);
+    // 6. 저장 성공 요청만 거래 이메일을 발송하고 완료를 기다린다.
 
-    sendCouponConfirmationEmail({
+    await sendCouponConfirmationEmail({
       to: review.customer_email,
       customerName: review.customer_name.split(" ")[0],
       couponCode,

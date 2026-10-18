@@ -1,0 +1,8 @@
+{
+  "name": "@blank-seoul/next-eslint-glob",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scoped adapter for Next 16.3.8 ESLint rootDir globSync calls; not a general fast-glob replacement",
+  "main": "index.cjs",
+  "dependencies": { "tinyglobby": "0.2.17" }
+}

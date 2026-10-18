@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/components/AuthProvider";
-import type { MappedOrder } from "@/lib/shopify/admin";
+import { useAccountOrders } from "@/lib/orders/useAccountOrders";
+import { readStoredValue, writeStoredValue } from "@/lib/browser-storage";
 import type { Coupon } from "@/lib/types/coupon";
 
 import AccountProfileCard from "./_components/AccountProfileCard";
@@ -11,11 +12,9 @@ import AccountCouponVault from "./_components/AccountCouponVault";
 import AccountOrdersSection from "./_components/AccountOrdersSection";
 import AccountCollectorCircle from "./_components/AccountCollectorCircle";
 
-export default function AccountPage() {
+function AccountContent() {
   const { user, customer, isLoading, signOut, isLoggedIn } = useAuth();
-  const [orders, setOrders] = useState<MappedOrder[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const { orders, loading: ordersLoading, error: ordersError, subscribed, retry } = useAccountOrders();
   const router = useRouter();
 
   // Coupon vault state
@@ -37,10 +36,8 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && user?.email) {
-      const saved = localStorage.getItem(`blank_seoul_subscribed_${user.email.trim().toLowerCase()}`);
-      if (saved === "true") {
-        setIsLocallySubscribed(true);
-      }
+      const saved = readStoredValue(`blank_seoul_subscribed_${user.email.trim().toLowerCase()}`);
+      setIsLocallySubscribed(saved === "true");
     }
   }, [user?.email]);
 
@@ -62,7 +59,7 @@ export default function AccountPage() {
         setNewsletterStatus("success");
         setNewsletterMessage(data.message || "Welcome to the Collector Circle. You will receive private studio alerts.");
         if (typeof window !== "undefined" && newsletterEmail) {
-          localStorage.setItem(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
+          writeStoredValue(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
           setIsLocallySubscribed(true);
         }
       } else {
@@ -75,85 +72,31 @@ export default function AccountPage() {
     }
   };
 
-  useEffect(() => {
-    async function fetchOrders() {
-      const cacheKey = `orders_${user?.email || "anon"}`;
-
-      // 1. Show cached data instantly (stale-while-revalidate)
-      try {
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          const { orders: cachedOrders, timestamp } = JSON.parse(cached);
-          const age = Date.now() - timestamp;
-          if (age < 2 * 60 * 1000 && cachedOrders.length > 0) {
-            setOrders(cachedOrders);
-            setOrdersLoading(false);
-          }
-        }
-      } catch {
-        // localStorage not available or corrupt — ignore
-      }
-
-      // 2. Always fetch fresh data in background
-      try {
-        const res = await fetch("/api/orders");
-        if (!res.ok) throw new Error("Failed to fetch orders");
-        const data = await res.json();
-        setOrders(data.orders);
-
-        if (user?.email && typeof window !== "undefined") {
-          const key = `blank_seoul_subscribed_${user.email.trim().toLowerCase()}`;
-          if (data.isSubscribed) {
-            setIsLocallySubscribed(true);
-            localStorage.setItem(key, "true");
-          } else {
-            setIsLocallySubscribed(false);
-            localStorage.removeItem(key);
-          }
-        }
-
-        try {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({ orders: data.orders, timestamp: Date.now() })
-          );
-        } catch {
-          // Storage full — ignore
-        }
-      } catch {
-        if (orders.length === 0) {
-          setOrdersError("Failed to load orders. Please try again.");
-        }
-      } finally {
-        setOrdersLoading(false);
-      }
-    }
-
-    if (!isLoading && user) {
-      fetchOrders();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, user]);
+  useEffect(() => { setIsLocallySubscribed(subscribed); }, [subscribed, user?.id]);
 
   // Fetch coupons
   useEffect(() => {
+    const controller = new AbortController();
+    setCoupons([]);
+    setCouponsLoading(true);
     async function fetchCoupons() {
       try {
-        const res = await fetch("/api/my-coupons");
+        const res = await fetch("/api/my-coupons", { signal: controller.signal, cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          setCoupons(data.coupons || []);
+          if (!controller.signal.aborted) setCoupons(data.coupons || []);
         }
       } catch {
         // Silently fail — coupons are supplementary
       } finally {
-        setCouponsLoading(false);
+        if (!controller.signal.aborted) setCouponsLoading(false);
       }
     }
     if (!isLoading && user) {
       fetchCoupons();
     }
-  }, [isLoading, user]);
+    return () => controller.abort();
+  }, [isLoading, user?.id]);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -241,8 +184,14 @@ export default function AccountPage() {
           orders={orders}
           ordersLoading={ordersLoading}
           ordersError={ordersError}
+          onRetry={retry}
         />
       </div>
     </div>
   );
+}
+
+export default function AccountPage() {
+  const { user } = useAuth();
+  return <AccountContent key={`${user?.id}:${user?.email}`} />;
 }

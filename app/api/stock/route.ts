@@ -12,6 +12,7 @@ const query = `
     node(id: $id) {
       ... on ProductVariant {
         id
+        availableForSale
         quantityAvailable
         currentlyNotInStock
       }
@@ -62,6 +63,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         success: true,
+        availableForSale: variantNode.availableForSale,
         quantityAvailable: variantNode.quantityAvailable, // number | null
         currentlyNotInStock: variantNode.currentlyNotInStock, // boolean
       },

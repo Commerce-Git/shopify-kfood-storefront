@@ -7,6 +7,7 @@ export interface ShopifyCollection {
   description: string;
   image?: ShopifyImage | null;
   products?: {
+    pageInfo?: { hasNextPage: boolean; endCursor: string | null };
     edges: {
       node: ShopifyProduct;
     }[];
@@ -29,6 +30,8 @@ export interface ShopifyProductVariant {
   id: string;
   title: string;
   availableForSale: boolean;
+  quantityAvailable?: number | null;
+  currentlyNotInStock?: boolean;
   price: ShopifyPrice;
   compareAtPrice: ShopifyPrice | null;
   image: ShopifyImage | null;
@@ -55,6 +58,7 @@ export interface ShopifyProduct {
     }[];
   };
   variants: {
+    pageInfo?: { hasNextPage: boolean; endCursor: string | null };
     edges: {
       node: ShopifyProductVariant;
     }[];

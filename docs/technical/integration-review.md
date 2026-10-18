@@ -1,141 +1,123 @@
-# Shopify 연동 기능 검토 보고서
+# Storefront 구매·계정·연동 — 구현·검증 기준
 
-> 현재 구현 상태와 실제 Shopify 연동을 위해 필요한 수정 사항을 정리합니다.
+현재 기준: 2026-10-16. 이전의 “Mock 상품 / 장바구니 결제 미연결” 설명은 현재 코드와 맞지 않아 이 문서로 교체했다. 공통 목표는 [플랫폼 목차](../platform-analysis/README.md)와 [확정 결정](../platform-analysis/PROJECT_DIRECTION.md)을 따른다.
 
-## 현재 상태 요약
+## 범위와 완료 기준
 
-| 기능 | 상태 | 설명 |
-|---|---|---|
-| 상품 자동 인식 | ❌ Mock | Shopify Admin 상품 변경이 프론트에 반영 안 됨 |
-| Buy Now 직접 구매 | ✅ 구현 | API 토큰만 추가하면 작동 |
-| 장바구니 UI | ✅ 구현 | React Context + localStorage |
-| Cart → Checkout | ❌ 미연결 | 버튼 클릭 시 checkout 생성 안 됨 |
-| Shopify 이미지 | ❌ 로컬 | CDN URL 미사용 |
+이번 범위는 홈·상품 목록·컬렉션·검색·찜 → 상품 상세·옵션 → 장바구니 → Shopify 결제 페이지 연결이다. 구매자가 선택한 상품·옵션·수량이 유지되고, 실패했을 때 수정·재시도가 가능하며, 모바일에서 주요 조작이 가려지지 않는지를 평가한다.
 
----
+| 기준 | 확인 방법 | 완료 증거 |
+| --- | --- | --- |
+| 탐색 누락 방지 | 첫 페이지 밖 상품, 검색 다음 페이지, 저장한 오래된 상품 | 65개 가상 상품의 목록·컬렉션·검색·65번째 찜 상품 확인 |
+| 선택 정확성 | 존재하지 않는 옵션 조합, 품절, 옵션별 가격·수량 | 잘못된 조합의 첫 옵션 대체 제거; 실제 화면·단위 시험 |
+| 장바구니 일관성 | 첫 담기·재담기·옵션 변경·합치기·복원·재열기 | 공통 수량 처리와 최신 옵션 정보 적용; 단위·화면 시험 |
+| 결제 실패 복구 | 연속 클릭·503·수량 변경·Shopify 경고·쿠폰 거절·뒤로가기 | 중복 실행 방지, 실패 시 로컬 장바구니 보존, 재시도·복원 확인 |
+| 모바일 접근성 | 320/390/768/1440px, 키보드, 상태·오류 표시 | 상품 상세·장바구니 가로 넘침 검사, Escape 닫기, 옵션 aria-pressed·오류 role=alert |
+| 연동 사실 | 실제 dev Shopify 읽기·장바구니 생성·금액 | 시험 상품 1개, 2개 × $33 = $66, 옵션·수량 일치, 시험 상품 삭제·카트 비우기 |
+| 회귀·배포 가능성 | 전체 단위 시험·타입·린트·격리 빌드 | 아래 실행 결과 참조 |
 
-## 1. 상품 자동 인식
+모든 플랫폼 기능의 전수 감사, 실제 카드 청구, 주문 수신·이행, 모든 시장·통화·할인 정책, 동시 사용자 용량, 실물 상품 분류 적합성을 검증한 결과는 아니다. 개발용 Shopify 테스트 결제 승인은 아래 후속 검증 범위에서 별도로 확인했다. HS 분류 및 어드민 업무 코드는 변경하지 않았다.
 
-### 현재: Mock 데이터 하드코딩
+## 확인한 문제와 변경
 
-- `ProductShowcase.tsx`: 가격, 이름, variant ID가 전부 하드코딩
-- `product/[handle]/page.tsx`: Mock 데이터 사용
-- `WhatsInside.tsx`: 구성품 목록 하드코딩
+| 영역 | 이전 동작 | 현재 동작 |
+| --- | --- | --- |
+| 전체 상품·개별 컬렉션 | 첫 50개 / 첫 250개 뒤로 이동할 수 없음 | 48개 페이지와 다음 페이지·첫 페이지 링크 |
+| 상위 컬렉션 | 전체 최신 50개에서 유형 문자열로 필터 | 각 실제 하위 컬렉션의 12개 미리보기와 전체 컬렉션 링크. 전체 건수로 표시하지 않음 |
+| 찜 | 최신 50개에서만 저장 ID/handle 검색 | 저장 ID를 nodes로 직접 조회, 기존 handle도 직접 조회. 작가 추천 3개는 기존 최신 카탈로그 미리보기 범위 유지 |
+| 상세 옵션 | 처음 10개만 읽음 | 100개 단위로 마지막 페이지까지 읽고 커서 정체 시 오류 처리. Admin 가격 확인도 같은 전체 옵션 조회 사용 |
+| 없는 옵션 조합 | 첫 옵션을 대신 선택 | 해당 조합은 구매할 수 없음을 표시하고 담기 비활성화 |
+| 재고 | currentlyNotInStock를 판매 불가로 오해; 옵션 전환 후 이전 수량 유지 | availableForSale와 별도 수량 조건 사용; 선택 옵션별 상태 초기화·수량 제한. Shopify의 구매 가능한 backorder 플래그와 품절을 구분 |
+| 장바구니 수량 | 첫 담기·합치기·옵션 변경·복원의 제한이 서로 다름 | `lib/cart/items.ts`에서 처리. 새 옵션의 가격·수량 제한을 사용하고 손상된 숫자 입력을 제외 |
+| 장바구니 옵션 조회 | 수량 변경 시 중복 요청 가능 | 상품 handle 집합이 바뀔 때 조회; 뒤늦은 응답은 무시 |
+| 결제 요청 | 연속 실행 가능, 일부 수량 누락·경고를 확인하지 않음 | 실행 잠금·20초 제한·no-store; 실제 카트 행·수량·경고·쿠폰 적용 여부 확인 후 이동 |
+| 결제 복귀 | 브라우저 복원 시 이동 중 화면이 남을 수 있음 | pageshow에서 상태 복구; 기존 상품이 남아 있어도 결제 백업 복원 표시 |
+| 쿠폰 | 다른 로그인 계정으로 바뀌어도 선택이 남을 수 있음 | 선택 계정과 현재 사용 가능한 쿠폰이 일치할 때만 적용 |
+| 오류 표시 | Shopify 읽기 장애를 상품 없음으로 처리 | 상세·컬렉션·홈에서 재시도 가능한 오류 화면. 실제 상품 없음과 구분 |
+| 모바일 | 장바구니 헤더·가격/수량 영역의 폭 경합, 작은 수량 버튼 | 줄바꿈·유동 너비·40px 수량 버튼, 하단 결제 버튼 근처에도 오류 표시 |
+| 가격 | 카드 USD 기본값·장바구니 총액 확정처럼 표시 | 카드 응답 통화·가격 범위의 From 표시, 장바구니는 Estimated total. 최종 금액은 Shopify 결제 화면에서 확인 |
 
-### 수정 방향
+원문 분류 질문·상품 노출 카테고리 이름·배송/반품 정책은 이번 작업의 변경 대상이 아니다. 상위 컬렉션은 Shopify에 구성된 하위 컬렉션이 있어야 상품을 표시한다.
 
-Shopify Admin에서 상품 등록 → Storefront API가 자동 반영 → Next.js Server Component에서 fetch
+## 주요 코드
 
-```typescript
-// 수정 예시: app/page.tsx
-import { storefrontFetch } from "@/lib/shopify/storefront";
-import { GET_ALL_PRODUCTS } from "@/lib/shopify/queries";
+- 탐색: `app/collections/`, `app/search/`, `app/api/wishlist-products/route.ts`
+- 상세: `app/components/ProductInteractive.tsx`, `AddToCartSection.tsx`, `MobileStickyBottomBar.tsx`
+- 장바구니 상태: `app/components/CartProvider.tsx`, `lib/cart/items.ts`
+- 결제 연결: `app/cart/_hooks/useCartCheckout.ts`, `lib/cart/checkout.ts`
+- 외부 조회: `lib/shopify/api.ts`, `queries.ts`, `app/api/stock/route.ts`
+- 캐시의 적용 범위: [캐시 문서](cache-architecture.md)
 
-export default async function Home() {
-  const data = await storefrontFetch(GET_ALL_PRODUCTS);
-  const product = data.products.edges[0].node;
-  
-  return (
-    <>
-      <Hero />
-      <ProductShowcase product={product} />  {/* props로 전달 */}
-      ...
-    </>
-  );
-}
-```
+재고 조회는 예약이 아니다. 화면에서 확인한 뒤 실제 결제 시점까지 재고와 가격이 바뀔 수 있으며 Shopify가 최종 거래 조건을 판단한다. 로컬 저장 가격은 견적이며 가격 보장이나 결제 완료의 근거가 아니다.
 
-### 수정 대상 파일
+Shopify 공식 정의: [ProductVariant](https://shopify.dev/docs/api/storefront/latest/objects/ProductVariant), [cartCreate](https://shopify.dev/docs/api/storefront/latest/mutations/cartCreate). 문서 확인과 별도로 현재 앱의 API 경로에서 재고 필드·warnings·카트 수량을 실제 조회했다.
 
-| 파일 | 수정 내용 |
-|---|---|
-| `app/page.tsx` | Server Component에서 `GET_ALL_PRODUCTS` 호출 |
-| `app/components/ProductShowcase.tsx` | Mock 제거, props로 데이터 받기 |
-| `app/product/[handle]/page.tsx` | `GET_PRODUCT_BY_HANDLE` 호출 |
+## 최초 구매 흐름 실행 검증
 
----
+- `npm run test:unit`: 45개 통과. 기존 33개와 수량·잘못된 옵션 조합·결제 부분 수락·쿠폰·옵션 페이지·장애·찜 직접 조회 회귀를 포함한다.
+- `npm run typecheck`: 통과.
+- `npm run lint -- --quiet`: 전체 오류 0개. 기존 상품 상세의 네이티브 img 경고 등을 전부 없앴다는 의미는 아니다.
+- `npm run build`(기본 Turbopack)와 `next build --webpack`: TEST 공개 환경변수·`.next-offline` 출력으로 통과. 개발 서버 산출물과 운영 환경을 사용하지 않았다.
+- `npm run test:purchase`: 로컬 실제 Chrome에서 14개 흐름을 검사한다. Shopify·Supabase 응답은 고정한 가상 데이터이며 원격 저장이나 결제는 수행하지 않는다.
+- 별도 실제 연동: `blank-seoul-dev.myshopify.com`에 본 작업 소유의 시험 상품을 만들고 조회·2개 카트 생성·$66 계산·반환 경로 판정을 확인했다. 카트 행 제거와 시험 상품 삭제 후 삭제 여부를 다시 확인했다. Supabase SQL/업무 데이터 변경·운영 상품 변경·주문 생성·메일 발송은 하지 않았다.
 
-## 2. 장바구니 → 체크아웃 연결
+브라우저 시험 실행에는 Chrome이 필요하다. macOS에서는 기본 Chrome 경로를 사용하고, 다른 환경에서는 `BROWSER_EXECUTABLE=/absolute/path/to/chrome npm run test:purchase`로 지정한다. 시험은 3021 포트와 `.next-offline`을 사용하므로 같은 출력 디렉터리의 빌드·다른 시험과 동시에 실행하지 않는다. 실행 로그·스크린샷·results.json은 명령이 출력하는 시스템 임시 디렉터리에 기록된다. SSR과 브라우저의 외부 요청을 모두 가상 응답으로 격리하며 Shopify/Supabase 실제 키 대신 시험 문자열을 사용한다.
 
-### 현재 문제
+시험 도구 초기 오류(페이지 전체 h3 개수에 푸터 제목 포함, 찜 상품을 heading으로 찾음)와 뷰포트 변경 중 CSS 전환 측정은 시험 대상을 좁히고 전환 완료 후 확인하도록 수정했다. 이를 실제 상품 오류나 모바일 개선 효과로 집계하지 않는다.
 
-```tsx
-// cart/page.tsx - Line 156
-<button className="btn-primary w-full text-base py-4 mt-2">
-  Proceed to Checkout   // ← onClick 핸들러가 없음!
-</button>
-```
+## 의존성 검토
 
-### 수정 방향
+Next.js 16.2.3 → 16.3.8 및 같은 버전의 eslint-config-next로 업데이트했다. [공식 이미지 최적화 보안 공지](https://github.com/vercel/next.js/security/advisories/GHSA-cjq9-62q9-8jv4)와 npm advisory의 수정 범위를 확인했으며, semver 범위 내 전이 의존성 수정도 적용했다. 변경 후 단위·타입·린트·빌드와 구매 브라우저 시험을 확인한다.
 
-```typescript
-async function handleCheckout() {
-  const lineItems = items.map(item => ({
-    variantId: item.variantId,
-    quantity: item.quantity,
-  }));
-  
-  const data = await storefrontFetch(CREATE_CHECKOUT, { lineItems });
-  window.location.href = data.checkoutCreate.checkout.webUrl;
-}
-```
+후속 요청에 따라 `@react-email/ui`가 고정한 Next 16.3.3을 `package.json`의 범위 한정 override(`@react-email/ui.next: "$next"`)로 앱과 같은 16.3.8에 연결했다. 다른 도구의 Next를 일괄 덮어쓰지 않는다. 깨끗한 `npm ci` 후에도 내부 Next가 16.3.8로 연결됨을 확인했다. 미리보기 서버 기동과 주문 취소·쿠폰 확인 메일의 실제 브라우저 렌더링, 단위45개·타입·린트·TEST 환경 빌드를 확인했으며 메일 발송은 하지 않았다. upstream이 수정 버전을 제공하면 이 override의 필요성을 다시 확인한다.
 
----
+최초 후속 감사의 잔여 high 5건은 `eslint-config-next → @next/eslint-plugin-next → fast-glob → micromatch → braces`라는 한 경로에서 발생했다. [braces 공식 보안 공지](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)는 검토 시점에 수정 버전이 없었다. 이후 사용자 요청으로 이 의존성 경로를 제거했다. **최종 깨끗한 `npm ci`와 전체 `npm audit` 결과는 0건**이다. upstream braces 자체를 수정했다는 뜻은 아니다.
 
-## 3. Shopify 이미지 CDN
+Next ESLint 플러그인의 실제 호출은 `get-root-dirs.js`의 `globSync(string, { onlyDirectories: true })`뿐이다. 해당 버전 아래의 fast-glob만 로컬 어댑터 `tools/next-eslint-glob`로 연결하고 tinyglobby 0.2.17로 처리한다. 단순 패키지 alias는 절대/상대 경로와 단일 디렉터리 확장 동작이 달라 채택하지 않았다. 어댑터는 이 차이를 보정하고 예상하지 못한 인자를 거부한다. `rootDir`의 문자열·배열·와일드카드·중괄호·숨김·불일치와 실제 Next 링크 검사 규칙을 검증했다. 린트 규칙을 끄거나 감사 경고를 숨긴 것이 아니다.
 
-### 현재: 로컬 이미지
+이것은 전체 fast-glob API 대체재가 아니다. Next/ESLint 갱신 시 호출 규격과 override 적용 범위를 재검토하고 공식 해결이 제공되면 제거한다. [어댑터 유지관리](../../tools/next-eslint-glob/README.md)를 따른다.
 
-`public/images/` 디렉토리의 AI 생성 이미지 사용 중
+## 후속 배포·테스트 결제 확인
 
-### 수정 필요
+- Vercel dev의 `b4dfd55`가 READY이며 TEST Supabase와 `blank-seoul-dev.myshopify.com`에 연결됨을 읽기 전용으로 확인했다. 홈·목록·장바구니 응답은 모두 HTTP 200이다. **현재 로컬 수정사항을 포함한 배포 검증은 아니다.**
+- Shopify API로 해당 스토어의 개발용 플랜(`partnerDevelopment: true`)을 확인했다. 사용자가 방문용 비밀번호를 설정한 뒤 실제 Chrome의 Shopify 결제 화면에서 테스트 게이트웨이 안내를 확인하고, 거절 번호로 결제 실패·카트 유지 후 승인 번호로 다시 결제했다. 주문 확인 화면과 Admin API에서 `#1015`, `test: true`, `PAID`, `bogus` 게이트웨이의 FAILURE→SUCCESS 거래를 대조했다. 주문 생성 API로 결제 상태를 만든 시험이 아니다.
+- 임시 상품 2×$33=$66, 기본 배송 프로필의 Standard $8, 결제 총액 $74 USD가 주문 API와 일치했다. 이 임시 상품은 일반 배송 프로필을 사용했으므로 실제 판매 상품의 무료배송 정책 검증으로 확대하지 않는다. 배송 정책은 변경하지 않았다.
+- 검증 후 소유권·테스트 주문 여부를 재확인하고 `#1015`를 고객 알림 없이 취소·테스트 환불·보관했다(`REFUNDED`, `closed: true`). 임시 상품 삭제를 재조회했다. 결제된 카트는 조회 시 null로 소멸되었고, 빈 카트 정리 스크립트의 null 오류 이후 상품 정리를 별도 완료했다.
+- 예약된 example.com 테스트 주소와 가상 배송 정보를 사용하고 마케팅 수신을 선택하지 않았다. Shopify의 기본 주문 확인은 테스트 주소 대상으로 발생할 수 있으나 메일 도달을 검증하지 않았다. 실제 카드 청구·출고·SQL·기존 상품/주문 변경은 없다. 어드민 주문 수신과 물류 이행은 이번 결제 승인 검증에 포함하지 않는다.
+- 실행 근거는 `.agent-bridge-front/storefront-followup-results.json`에 기록한다. 방문용 비밀번호나 API 토큰을 문서·실행 보고서에 저장하지 않는다.
 
-1. `next.config.ts`에 Shopify CDN 도메인 허용
-2. 상품 이미지를 API 응답의 `images.edges[].node.url` (Shopify CDN URL)로 대체
+## 추가 프론트엔드 검토·리팩토링
 
-```typescript
-// next.config.ts
-const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.shopify.com",
-        pathname: "/s/files/**",
-      },
-    ],
-  },
-};
-```
+구매 흐름 후속 요청에서는 개인정보 격리·주문 표시 정확성·외부 쓰기의 중복/실패 처리에 우선순위를 뒀다. 파일 크기나 추상화 개수보다 실제 결함과 반복 로직을 기준으로 수정했다. 카탈로그·장바구니 검증은 유지하고 계정·주문·리뷰 보상·구독 경로를 추가로 조사했다.
 
----
+| 우선 기준 | 발견한 문제 | 반영한 변경 |
+| --- | --- | --- |
+| 계정 간 정보 격리 | 주문 상세가 다른 이메일의 localStorage 주문까지 탐색; 계정 변경 전 응답이 화면/찜에 남을 가능성 | 개인 주문 영구 캐시 제거·기존 캐시 정리, 계정 소유자와 요청 수명 연결, 인증/프로필/찜·팔로우의 오래된 응답 배제 |
+| 주문 이력 완전성 | Shopify REST 최초 20개만 조회 | 250개 단위 다음 페이지 조회, 각 주문 이메일 정확 대조, 중복 제거, 동일 호스트·경로의 다음 링크만 허용 |
+| 배송 표시 정확성 | 작가의 창고행 발송을 구매자행 배송으로 표시, 작가 여러 행 중 마지막 값 사용, 다른 작가 송장 공유 | 최소 진행 상태 집계, 창고행은 포장 단계, 성공한 이행의 실제 수량으로 작가 그룹 배송 판단, 다른 그룹 송장 차단 |
+| 외부 실패 처리 | GraphQL 실패가 빈 결과/성공으로 처리될 수 있고 요청이 오래 대기 | 오류 명시, 토큰 갱신 단일 실행, OAuth 10초·Admin 요청 15초 제한, 제한된 재시도 대기, 개인 조회 no-store |
+| 보상 중복 방지 | 같은 리뷰의 동시 제출/재시도에서 서로 다른 쿠폰 생성 가능 | 리뷰 토큰 기반 고정 코드·기존 코드 조회, DB 미제출 조건부 저장, 저장을 확보한 요청만 확인 메일 실행 |
+| 구독 성공의 의미 | 기존 고객이면 태그만 넣고 동의 상태는 갱신하지 않음; mutation 실패/이메일 중복 생성도 성공 반환 | 정확한 이메일 확인, 명시적 신청 시 동의와 태그 갱신 확인, tagsAdd로 기존 태그 보존, 저장 실패를 성공으로 표시하지 않음 |
+| 실패 복구 UI | 주문 조회 실패 재시도와 로그아웃 실패 안내 부족, 작가 그룹을 실제 포장 개수로 표현 | 주문 재시도, 로그아웃 대기·실패·재시도, Maker Groups로 표시 |
 
-## 4. 환경 변수 설정
+공통화한 코드는 `lib/orders/useAccountOrders.ts`(계정 주문 수명), `lib/orders/enrichment.ts`(DB 진행 상태 조회·페이지 처리), `lib/orders/status.ts`(진행 상태 집계), `lib/security/account-storage.ts`(계정 저장소 정리)다. 리뷰 할인 발급은 `lib/shopify/review-discount.ts`로 분리해 재시도·동시성 계약을 검사한다. 범용 프레임워크나 새로운 DB 스키마는 추가하지 않았다.
 
-### 필요한 `.env.local` 파일
+Shopify 검색 결과 자체를 권한 확인으로 사용하지 않는다. 주문/고객의 반환 이메일을 요청의 검증된 이메일과 정확히 대조한다. 구독 입력 계약은 [Shopify CustomerInput](https://shopify.dev/docs/api/admin-graphql/latest/input-objects/CustomerInput)을 참고했으며 이번 검사는 모의 API다. 실제 Shopify의 동의 저장·실제 메일 도달을 새로 시험한 것은 아니다.
 
-```env
-NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=tv7r0x-zn.myshopify.com
-NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=<Storefront API 토큰>
-```
+### 추가 검증과 한계
 
-### 토큰 생성 방법
+최종 검증: **단위 55/55 · Chrome 16/16 흐름 · 페이지 오류 0 · 타입 검사 통과 · 린트 오류 0 · TEST 환경 Turbopack 빌드 통과 · 전체 보안 감사 0건**. `npm ci`의 깨끗한 설치와 로컬 어댑터의 정상 의존성 연결도 확인했다. 린트 오류 0은 기존 스타일 경고를 모두 제거했다는 뜻이 아니다. 최초 구매 흐름의 45개/14개 기록에 후속 검증을 더한 현재 결과다.
 
-1. Shopify Admin → Settings → Apps and sales channels
-2. "Develop apps" 클릭
-3. 새 앱 생성 → Storefront API access scopes 설정
-4. 필요한 권한: `unauthenticated_read_products`, `unauthenticated_write_checkouts`
-5. Install → Storefront access token 복사
+`.agent-bridge-front/storefront-hardening-results.json`에 실행 로그·브라우저 결과·소스 해시를 기록한다. 최신 브라우저 증거는 임시 폴더 `storefront-purchase-ga8JmO`의 `results.json`과 화면 캡처다. 이번 후속 작업에서는 원격 DB·주문·쿠폰·구독·메일을 변경하지 않았다.
 
----
+- 주문 상태/배송 수량·개인 캐시·Shopify 페이지/잘못된 다음 링크·미인증 요청·동시 리뷰·구독 실패와 실제 ESLint 규칙 회귀를 추가했다.
+- 브라우저는 외부 응답을 가상으로 격리한다. 타 계정 캐시 배제·주문 오류 재시도·인코딩된 주문 상세·로그아웃 실패 후 재시도를 포함한다. 실제 운영 계정 전환·메일 발송·실제 동시 결제 시험으로 확대하지 않는다.
+- 주문 이력은 앱이 접근 가능한 Shopify 범위만 반환한다. 60일보다 오래된 주문 접근은 스토어의 `read_all_orders` 권한에 달려 있으며 이번 로컬 검사는 권한 부여를 보장하지 않는다.
+- 리뷰의 같은 코드 재사용은 중복 쿠폰 발급을 막지만 Shopify와 DB를 하나의 트랜잭션으로 만들지는 않는다. DB 저장 뒤 메일 실패의 영구 재전송 큐는 없으며 실제 발송/도달 보장이 필요하면 별도 작업이다.
+- 기존 공개 API의 프로세스 내 제한은 분산 환경 전체의 남용 방어 보장이 아니다. 트래픽 기반 분산 제한·운영 모니터링·부하 시험은 출시 검증 대상으로 남는다. 이번 작업으로 모든 API 전수 감사나 대규모 동시 사용자 적합 판정을 내리지 않는다.
 
-## 수정 우선순위
+## 완료와 다음 단계
 
-```
-1️⃣  .env.local 생성 (토큰 설정)
-2️⃣  next.config.ts 수정 (이미지 CDN)
-3️⃣  랜딩 페이지 → API 연동
-4️⃣  상품 상세 페이지 → API 연동
-5️⃣  Cart → Checkout 연결
-6️⃣  Add to Cart 버튼 추가
-```
+요청한 개발도구 경고 처리와 발견한 주요 결함의 로컬 수정·리팩토링을 완료한다. 불필요한 컴포넌트 분할이나 새로운 캐시/큐 인프라는 도입하지 않았다.
+
+사용자 결정대로 커밋·푸시·배포는 수행하지 않는다. 추후 수정본을 dev에 배포한 뒤 실제 두 테스트 계정의 주문/로그아웃, 리뷰 쿠폰·구독 저장, 구매→어드민 주문 수신을 확인하면 된다. 과거 #1015의 테스트 결제 성공과 이번 수정본 배포 검증은 구분한다.

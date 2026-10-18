@@ -1,5 +1,6 @@
 "use client";
 
+import { matchingVariant, stockLimitForVariant } from "@/lib/cart/items";
 import { useState, useRef } from "react";
 import Link from "next/link";
 import type { ShopifyProduct } from "@/lib/shopify/types";
@@ -98,14 +99,10 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
   });
 
   // Calculate matching variant
-  const selectedVariant = product.variants.edges.find((edge) => {
-    return edge.node.selectedOptions.every(
-      (opt) => selectedOptions[opt.name] === opt.value
-    );
-  })?.node || product.variants.edges[0]?.node;
+  const selectedVariant = matchingVariant(product.variants.edges.map(edge => edge.node), selectedOptions);
 
-  const price = selectedVariant?.price.amount || "0";
-  const currency = selectedVariant?.price.currencyCode || "USD";
+  const price = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
+  const currency = selectedVariant?.price.currencyCode || product.priceRange.minVariantPrice.currencyCode;
   const compareAtPrice = selectedVariant?.compareAtPrice?.amount || null;
 
   const priceNum = parseFloat(price);
@@ -198,7 +195,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                 className="text-3xl sm:text-4xl font-extrabold text-[#18181B]"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                {formatPrice(price, currency)}
+                {!selectedVariant && "From "}{formatPrice(price, currency)}
               </span>
               {compareNum && compareNum > priceNum && (
                 <span className="text-base sm:text-lg text-text-muted line-through">
@@ -234,6 +231,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
                         <button
                           key={value}
                           type="button"
+                          aria-pressed={isSelected}
                           onClick={() =>
                             setSelectedOptions((prev) => ({
                               ...prev,
@@ -267,10 +265,13 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
             </div>
           )}
 
+          {!selectedVariant && <p role="status" className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">This option combination is unavailable. Please choose another option.</p>}
           {/* 5. Add to Cart Section (Immediate Action Zone) */}
           {selectedVariant?.id && (
             <div className="pt-2 space-y-3">
               <AddToCartSection
+                key={selectedVariant.id}
+                initialStockLimit={stockLimitForVariant(selectedVariant)}
                 productId={product.id}
                 variantId={selectedVariant.id}
                 price={price}
@@ -429,7 +430,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
         allOptions={allOptions}
-        selectedVariant={selectedVariant}
+        selectedVariant={selectedVariant ?? null}
         price={price}
         currency={currency}
         targetRef={buyBoxRef}

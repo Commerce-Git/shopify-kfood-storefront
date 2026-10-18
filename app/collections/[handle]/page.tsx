@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCollectionByHandle, getAllProducts, isProductSoldOut } from "@/lib/shopify/api";
+import { getCollectionByHandle, isProductSoldOut } from "@/lib/shopify/api";
 import {
   resolveCollectionHandle,
   getCollectionConfig,
@@ -22,6 +22,7 @@ export function generateStaticParams() {
 
 interface PageProps {
   params: Promise<{ handle: string }>;
+  searchParams: Promise<{ after?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -56,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CollectionPage({ params }: PageProps) {
+export default async function CollectionPage({ params, searchParams }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
   const targetHandle = resolveCollectionHandle(decodedHandle);
@@ -68,34 +69,14 @@ export default async function CollectionPage({ params }: PageProps) {
     const superCat = getSuperCategory(targetHandle);
     if (!superCat) notFound();
 
-    const allLive = await getAllProducts(50);
     const childConfigs = superCat.categoryHandles
       .map((h) => MASTER_COLLECTIONS.find((c) => c.handle === h))
       .filter(Boolean);
 
-    const matchedProducts = allLive.filter((p) => {
-      const pType = (p.productType || "").toLowerCase().trim();
-      const pTitle = (p.title || "").toLowerCase();
-
-      return childConfigs.some((config) => {
-        const matchesType = config!.productTypeConditions.some(
-          (tc) => pType === tc.toLowerCase() || pType.startsWith(tc.toLowerCase())
-        );
-        if (matchesType) return true;
-        if (!pType || pType === "default" || pType === "general") {
-          return config!.keywords.some((kw) => pTitle.includes(kw));
-        }
-        return false;
-      });
-    });
-
-    const sortedProducts = [...matchedProducts].sort((a, b) => {
-      const availA = !isProductSoldOut(a);
-      const availB = !isProductSoldOut(b);
-      if (availA && !availB) return -1;
-      if (!availA && availB) return 1;
-      return 0;
-    });
+    // Read each child collection directly: an older product must not disappear
+    // just because it is outside the site's latest 50 products.
+    const childCollections = await Promise.all(childConfigs.map(config => getCollectionByHandle(config!.handle, { first: 12 })));
+    const sortedProducts = Array.from(new Map(childCollections.flatMap(collection => collection?.products?.edges.map(edge => edge.node) ?? []).map(product => [product.id, product])).values());
 
     return (
       <div className="flex-1 pb-20 bg-[#FBF9F5]">
@@ -125,12 +106,15 @@ export default async function CollectionPage({ params }: PageProps) {
                 </div>
                 <span className="text-xs text-text-muted font-bold tracking-wide shrink-0">
                   {sortedProducts.length > 0
-                    ? `${sortedProducts.length} ${sortedProducts.length === 1 ? "Piece Available" : "Pieces Available"}`
+                    ? "Latest pieces"
                     : "Next Drop in Production"}
                 </span>
               </div>
             </div>
 
+            <nav aria-label="Product categories" className="mb-6 flex flex-wrap gap-2">
+              {childConfigs.map(config => <Link key={config!.handle} href={`/collections/${config!.handle}`} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-4 text-sm">{config!.title}</Link>)}
+            </nav>
             {sortedProducts.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {sortedProducts.map((product) => (
@@ -152,7 +136,9 @@ export default async function CollectionPage({ params }: PageProps) {
   // =========================================================================
   // Case B: Individual Smart Collection (e.g. /collections/jewelry-charms)
   // =========================================================================
-  const collection = await getCollectionByHandle(targetHandle);
+  const query = await searchParams;
+  const after = typeof query.after === 'string' ? query.after.slice(0, 2000) : null;
+  const collection = await getCollectionByHandle(targetHandle, { first: 48, after });
   const config = getCollectionConfig(targetHandle);
   const parentSuperCat = config?.superCategory ? getSuperCategory(config.superCategory) : undefined;
 
@@ -210,7 +196,7 @@ export default async function CollectionPage({ params }: PageProps) {
 
             <span className="text-[11px] sm:text-xs text-text-muted font-bold tracking-wider shrink-0">
               {products.length > 0
-                ? `${products.length} ${products.length === 1 ? "Piece" : "Pieces"}`
+                ? `${products.length} pieces${after || collection.products?.pageInfo?.hasNextPage ? " on this page" : ""}`
                 : "Next Drop"}
             </span>
           </div>
@@ -231,6 +217,10 @@ export default async function CollectionPage({ params }: PageProps) {
               categoryHandle={targetHandle}
             />
           )}
+          <nav aria-label="Collection pages" className="mt-6 flex flex-wrap gap-4">
+            {after && <Link className="inline-flex min-h-11 items-center underline" href={`/collections/${targetHandle}`}>Back to first page</Link>}
+            {collection.products?.pageInfo?.hasNextPage && collection.products.pageInfo.endCursor && <Link className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-5 text-sm" href={`/collections/${targetHandle}?${new URLSearchParams({ after: collection.products.pageInfo.endCursor })}`}>Next products →</Link>}
+          </nav>
         </div>
       </section>
     </div>

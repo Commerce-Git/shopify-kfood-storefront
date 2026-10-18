@@ -10,6 +10,7 @@ export interface ProductVariantOption {
   title: string;
   price: string;
   availableForSale: boolean;
+  stockLimit?: number | null;
   image?: {
     url: string;
     altText?: string | null;
@@ -35,10 +36,10 @@ export default function CartItemList({
     <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 sm:p-6 shadow-2xs">
       <div className="flex items-baseline justify-between mb-4 pb-3 border-b border-[#E8DFC8]/50">
         <h1
-          className="text-lg sm:text-xl font-extrabold text-[#18181B]"
+          className="text-base sm:text-xl font-extrabold text-[#18181B]"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          Your Selected Treasures
+          Your bag
         </h1>
         <span className="text-xs font-semibold text-[#71717A]">
           {items.length} {items.length === 1 ? "item" : "items"}
@@ -97,7 +98,7 @@ export default function CartItemList({
                           <select
                             value={item.variantId}
                             onChange={(e) => onOptionChange(item, e.target.value)}
-                            className="text-xs font-semibold text-[#18181B] bg-[#FAF9F6] border border-[#E8DFC8] rounded-lg px-2 py-0.5 hover:border-[#18181B] focus:border-[#18181B] transition-colors cursor-pointer outline-none shadow-2xs max-w-[200px] truncate"
+                            className="text-xs font-semibold text-[#18181B] bg-[#FAF9F6] border border-[#E8DFC8] rounded-lg px-2 py-0.5 hover:border-[#18181B] focus:border-[#18181B] transition-colors cursor-pointer outline-none shadow-2xs min-w-0 max-w-full truncate"
                             aria-label="Change variant option"
                           >
                             {variants.map((v) => (
@@ -143,7 +144,7 @@ export default function CartItemList({
                 </div>
 
                 {/* Lower Tier: Price & Quantity Controls */}
-                <div className="flex items-end justify-between gap-3 mt-3 pt-1">
+                <div className="flex flex-wrap items-end justify-between gap-3 mt-3 pt-1">
                   {/* Price Breakdown */}
                   <div className="min-w-0">
                     <p className="text-sm sm:text-base font-extrabold text-[#18181B] leading-none">
@@ -164,7 +165,7 @@ export default function CartItemList({
                         onClick={() =>
                           updateQuantity(item.variantId, item.quantity - 1)
                         }
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs cursor-pointer"
+                        className="w-10 h-10 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs cursor-pointer"
                         aria-label="Decrease quantity"
                       >
                         −
@@ -182,7 +183,7 @@ export default function CartItemList({
                           item.stockLimit !== null &&
                           item.quantity >= item.stockLimit
                         }
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-10 h-10 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                         aria-label="Increase quantity"
                       >
                         +
@@ -192,7 +193,7 @@ export default function CartItemList({
                       item.stockLimit !== null &&
                       item.quantity >= item.stockLimit && (
                         <span className="text-[9px] text-amber-600 font-semibold mt-1 select-none whitespace-nowrap text-right">
-                          Max stock ({item.stockLimit} left)
+                          Max available ({item.stockLimit})
                         </span>
                       )}
                   </div>

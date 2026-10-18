@@ -54,7 +54,7 @@ export function subscribeFollowedArtists(callback: () => void): () => void {
  * Fetches user's followed studios from Supabase, merges with local items,
  * upserts any new local items back to Supabase, and updates localStorage.
  */
-export async function syncFollowedArtistsWithSupabase(userId: string): Promise<string[]> {
+export async function syncFollowedArtistsWithSupabase(userId: string, isCurrent: () => boolean = () => true): Promise<string[]> {
   if (typeof window === "undefined" || !userId) return getFollowedArtists();
 
   try {
@@ -76,6 +76,8 @@ export async function syncFollowedArtistsWithSupabase(userId: string): Promise<s
     const remoteSlugs: string[] = (remoteRows || [])
       .filter((r) => r.status !== "unsubscribed")
       .map((r) => r.artist_slug.toLowerCase());
+
+    if (!isCurrent()) return getFollowedArtists();
 
     // 2. Current local items
     const localList = getFollowedArtists().map((s) => s.toLowerCase());
@@ -103,6 +105,8 @@ export async function syncFollowedArtistsWithSupabase(userId: string): Promise<s
         onConflict: "user_id,artist_slug",
       });
     }
+
+    if (!isCurrent()) return getFollowedArtists();
 
     // 5. Update localStorage and cache
     const rawUpdated = JSON.stringify(merged);

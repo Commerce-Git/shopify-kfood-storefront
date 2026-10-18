@@ -15,8 +15,9 @@ function load(file: string, env: Record<string, string>, extras: Record<string, 
       if (name === 'next/server') return { NextResponse: Response };
       if (name === '@/lib/errors') return { errorMessage: () => 'error' };
       if (name === '@/lib/shopify/cache' || name === './cache.ts') return { SHOPIFY_CATALOG_CACHE_TAG: 'shopify-catalog' };
-      if (name === '@/lib/shopify/storefront') return load('lib/shopify/storefront.ts', env, extras, dependencies);
-      if (name === '@/lib/shopify/queries') return { GET_PRODUCT_BY_HANDLE: 'query ProductPrice($handle: String!) { product(handle: $handle) { variants(first: 10) { edges { node { id price { amount currencyCode } } } } } }' };
+      if (name === '@/lib/shopify/api') return load('lib/shopify/api.ts', env, extras, dependencies);
+      if (name === '@/lib/shopify/storefront' || name === './storefront.ts') return load('lib/shopify/storefront.ts', env, extras, dependencies);
+      if (name === '@/lib/shopify/queries' || name === './queries.ts') return { GET_PRODUCT_BY_HANDLE: 'query ProductPrice($handle: String!) { product(handle: $handle) { variants(first: 10) { edges { node { id price { amount currencyCode } } } } } }' };
       if (name in dependencies) return dependencies[name];
       throw new Error(name);
     },
@@ -174,4 +175,26 @@ test('inquiry proxy does not send a bypass credential to HTTP localhost', async 
     return new Response('{}');
   } });
   assert.equal((await api.proxyInquiryRequest(request('http://localhost:3001/api/inquiries'))).status, 200);
+});
+
+test('price confirmation follows variant pages within one timeout budget', async () => {
+  const calls: RequestInit[] = [];
+  const api = load('app/api/revalidate/route.ts', { REVALIDATE_SECRET: 'fixture-secret',
+    NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: 'dev-shop.myshopify.com', NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN: 'token',
+  }, { fetch: async (_url: string, init: RequestInit) => {
+    calls.push(init);
+    const { variables } = JSON.parse(String(init.body));
+    return Response.json({ data: { product: { variants: {
+      pageInfo: { hasNextPage: !variables.after, endCursor: variables.after ? 'done' : 'next' },
+      edges: [{ node: { id: `gid://shopify/ProductVariant/${variables.after ? 101 : 1}`, price: { amount: '40', currencyCode: 'USD' } } }],
+    } } } });
+  } }, { 'next/cache': { revalidatePath() {}, revalidateTag() {} } });
+  const res = await api.POST(request('https://front.invalid/api/revalidate', {
+    secret: 'fixture-secret', handle: 'many-options', expectedPrice: { variantId: 'gid://shopify/ProductVariant/101', amountUsd: 40 },
+  }));
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).priceConfirmed, true);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].signal, calls[1].signal);
+  assert.deepEqual(JSON.parse(String(calls[1].body)).variables, { handle: 'many-options', after: 'next' });
 });

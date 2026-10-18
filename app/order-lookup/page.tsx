@@ -1,4 +1,5 @@
 "use client";
+import { readStoredValue, writeStoredValue } from "@/lib/browser-storage";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
@@ -62,7 +63,7 @@ function OrderLookupContent() {
   // Check localStorage for subscription status
   useEffect(() => {
     if (typeof window !== "undefined" && email) {
-      const saved = localStorage.getItem(`blank_seoul_subscribed_${email.trim().toLowerCase()}`);
+      const saved = readStoredValue(`blank_seoul_subscribed_${email.trim().toLowerCase()}`);
       if (saved === "true") {
         setIsLocallySubscribed(true);
       } else {
@@ -96,7 +97,7 @@ function OrderLookupContent() {
         setNewsletterStatus("success");
         setNewsletterMessage(data.message || "Thank you for subscribing! 🎉");
         if (typeof window !== "undefined" && newsletterEmail) {
-          localStorage.setItem(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
+          writeStoredValue(`blank_seoul_subscribed_${newsletterEmail.trim().toLowerCase()}`, "true");
           setIsLocallySubscribed(true);
         }
       } else {
@@ -136,10 +137,10 @@ function OrderLookupContent() {
         const key = `blank_seoul_subscribed_${emailVal.trim().toLowerCase()}`;
         if (data.isSubscribed) {
           setIsLocallySubscribed(true);
-          localStorage.setItem(key, "true");
+          writeStoredValue(key, "true");
         } else {
           setIsLocallySubscribed(false);
-          localStorage.removeItem(key);
+          writeStoredValue(key, null);
         }
       }
     } catch {
@@ -411,7 +412,7 @@ function OrderLookupContent() {
                                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                   </svg>
-                                  <span>{order.packages.length} Separate Packages</span>
+                                  <span>{order.packages.length} Maker Groups</span>
                                 </span>
                               )}
                             </div>
@@ -633,13 +634,14 @@ function OrderLookupContent() {
 }
 
 export default function OrderLookupPage() {
+  const { user } = useAuth();
   return (
     <Suspense fallback={
       <div className="min-h-[80vh] flex items-center justify-center">
         <span className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
-      <OrderLookupContent />
+      <OrderLookupContent key={`${user?.id}:${user?.email}`} />
     </Suspense>
   );
 }

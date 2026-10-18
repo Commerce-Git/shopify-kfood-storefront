@@ -1,11 +1,13 @@
 "use client";
 
+import { stockLimitForVariant, boundedQuantity } from "@/lib/cart/items";
 import { useState, useEffect, useSyncExternalStore } from "react";
 import QuantitySelector from "./QuantitySelector";
 import BuyButton from "./BuyButton";
 import { isWishlisted, toggleWishlist, subscribeWishlist } from "@/lib/wishlist";
 
 interface AddToCartSectionProps {
+  initialStockLimit?: number | null;
   productId?: string;
   variantId: string;
   price: string;
@@ -19,6 +21,7 @@ interface AddToCartSectionProps {
 }
 
 export default function AddToCartSection({
+  initialStockLimit = null,
   productId,
   variantId,
   price,
@@ -29,7 +32,7 @@ export default function AddToCartSection({
   image = null,
 }: AddToCartSectionProps) {
   const [quantity, setQuantity] = useState(1);
-  const [stockCount, setStockCount] = useState<number | null>(null);
+  const [stockCount, setStockCount] = useState<number | null>(initialStockLimit);
   const [currentlyNotInStock, setCurrentlyNotInStock] = useState(!availableForSale);
   const [loading, setLoading] = useState(true);
 
@@ -50,8 +53,10 @@ export default function AddToCartSection({
       .then((data) => {
         if (active) {
           if (data.success) {
-            setStockCount(data.quantityAvailable);
-            setCurrentlyNotInStock(data.currentlyNotInStock);
+            const limit = stockLimitForVariant(data);
+            setStockCount(limit);
+            setCurrentlyNotInStock(!data.availableForSale);
+            setQuantity(previous => boundedQuantity(previous, limit) || 1);
           }
           setLoading(false);
         }
@@ -132,11 +137,11 @@ export default function AddToCartSection({
             productTitle={productTitle}
             productHandle={productHandle}
             price={price}
-            quantity={quantity}
+            quantity={boundedQuantity(quantity, stockCount)}
             label={isSoldOut ? "Sold Out" : "Add to Cart"}
             size="lg"
             className="w-full min-h-14 whitespace-nowrap rounded-xl! px-4! text-base! shadow-none!"
-            disabled={isSoldOut}
+            disabled={isSoldOut || loading}
             variantTitle={variantTitle}
             image={image}
             stockLimit={stockCount}

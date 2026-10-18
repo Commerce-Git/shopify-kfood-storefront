@@ -208,3 +208,41 @@ test("Product page JSON-LD schema does not contain store-wide aggregateRating or
   assert.equal(jsonLd["@type"], "Product");
   assert.equal((jsonLd.offers as { price: string })?.price, "280.00");
 });
+
+test('product options follow every page, including variants after the first 100', async () => {
+  const previousFetch = globalThis.fetch;
+  const calls: unknown[] = [];
+  globalThis.fetch = async (_input, init) => {
+    const { variables } = JSON.parse(String(init?.body));
+    calls.push(variables);
+    return Response.json({ data: { product: { handle: 'many-options', variants: {
+      pageInfo: { hasNextPage: !variables.after, endCursor: variables.after ? 'done' : 'next' },
+      edges: [{ node: { id: variables.after ? 'variant-101' : 'variant-1' } }],
+    } } } });
+  };
+  try {
+    const product = await getProductByHandle('many-options');
+    assert.deepEqual(product?.variants.edges.map(edge => edge.node.id), ['variant-1', 'variant-101']);
+    assert.deepEqual(calls, [{ handle: 'many-options' }, { handle: 'many-options', after: 'next' }]);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('catalog outage does not masquerade as a missing product', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('Unavailable', { status: 503 });
+  try { await assert.rejects(() => getProductByHandle('existing-product'), /503/); }
+  finally { globalThis.fetch = previousFetch; }
+});
+
+test('saved IDs resolve directly even beyond the first catalog page', async () => {
+  const { getSavedProducts } = await import('../../lib/shopify/api.ts');
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async (_input, init) => {
+    const { query, variables } = JSON.parse(String(init?.body));
+    assert.match(query, /GetSavedProducts/);
+    assert.deepEqual(variables.ids, ['gid://shopify/Product/999']);
+    return Response.json({ data: { nodes: [{ id: 'gid://shopify/Product/999', handle: 'old-pouch' }, null] } });
+  };
+  try { assert.equal((await getSavedProducts(['gid://shopify/product/999']))[0].handle, 'old-pouch'); }
+  finally { globalThis.fetch = previousFetch; }
+});

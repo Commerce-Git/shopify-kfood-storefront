@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getAllProducts, isProductSoldOut } from "@/lib/shopify/api";
+import { getProductsPage, isProductSoldOut } from "@/lib/shopify/api";
 import ProductCard from "@/app/components/ProductCard";
 
 export const metadata: Metadata = {
@@ -9,8 +9,10 @@ export const metadata: Metadata = {
     "Browse our full collection of authentic Made in Korea goods — pouches, accessories, keyrings, wallets, and more. Dispatched direct from Korea.",
 };
 
-export default async function CollectionsPage() {
-  const rawProducts = await getAllProducts(50);
+export default async function CollectionsPage({ searchParams }: { searchParams: Promise<{ after?: string }> }) {
+  const params = await searchParams;
+  const after = typeof params.after === 'string' ? params.after.slice(0, 2000) : null;
+  const { products: rawProducts, pageInfo } = await getProductsPage({ first: 48, after });
   const products = [...rawProducts].sort((a, b) => {
     const availA = !isProductSoldOut(a);
     const availB = !isProductSoldOut(b);
@@ -39,11 +41,12 @@ export default async function CollectionsPage() {
             </div>
             <span className="text-[11px] sm:text-xs text-text-muted font-medium tracking-wider whitespace-nowrap">
               {products.length > 0
-                ? `${products.length} ${products.length === 1 ? "Piece" : "Pieces"}`
+                ? `${products.length} pieces${after || pageInfo.hasNextPage ? " on this page" : ""}`
                 : "Coming Soon"}
             </span>
           </div>
 
+          {after && <Link href="/collections" className="mb-4 inline-flex min-h-11 items-center text-sm underline">Back to first page</Link>}
           {/* Product Grid or Luxury Empty State */}
           {products.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -87,6 +90,7 @@ export default async function CollectionsPage() {
               </div>
             </div>
           )}
+          {pageInfo.hasNextPage && pageInfo.endCursor && <Link href={`/collections?${new URLSearchParams({ after: pageInfo.endCursor })}`} className="mt-6 inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-5 text-sm font-semibold">Next products →</Link>}
         </div>
       </section>
     </div>

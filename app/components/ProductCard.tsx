@@ -21,7 +21,7 @@ interface ProductCardProps {
 export default function ProductCard({
   product,
   priority = false,
-  currencyCode = "USD",
+  currencyCode,
 }: ProductCardProps) {
   const primaryImage = product.images?.edges?.[0]?.node;
   const secondaryImage = product.images?.edges?.[1]?.node;
@@ -39,7 +39,7 @@ export default function ProductCard({
         >
           <Link
             href={`/product/${product.handle}`}
-            className="block w-full h-full"
+            className="relative block w-full h-full"
             tabIndex={-1}
             aria-hidden="true"
           >
@@ -98,7 +98,8 @@ export default function ProductCard({
             className="text-lg font-bold text-primary"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            {formatPrice(price, currencyCode)}
+            {Number(product.priceRange.maxVariantPrice?.amount) > Number(price) && <span className="text-xs font-normal">From </span>}
+            {formatPrice(price, currencyCode || product.priceRange.minVariantPrice.currencyCode)}
           </span>
         </div>
       </div>

@@ -13,12 +13,14 @@ interface AccountOrdersSectionProps {
   orders: MappedOrder[];
   ordersLoading: boolean;
   ordersError: string | null;
+  onRetry: () => void;
 }
 
 export default function AccountOrdersSection({
   orders,
   ordersLoading,
   ordersError,
+  onRetry,
 }: AccountOrdersSectionProps) {
   const router = useRouter();
   const { addToCart } = useCart();
@@ -91,7 +93,8 @@ export default function AccountOrdersSection({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-stone-600 mb-5 text-sm">{ordersError}</p>
+          <p role="alert" className="text-stone-600 mb-5 text-sm">{ordersError}</p>
+          <button type="button" onClick={onRetry} className="px-4 py-2 mr-3 underline">Try again</button>
           <Link
             href="/"
             className="inline-block px-6 py-2.5 bg-[#C77B4A] hover:bg-[#b56b3c] text-white font-bold rounded-xl transition-all shadow-xs text-sm"
@@ -153,7 +156,7 @@ export default function AccountOrdersSection({
                           <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                           </svg>
-                          <span>{pkgs.length} Separate Packages</span>
+                          <span>{pkgs.length} Maker Groups</span>
                         </span>
                       )}
                     </div>

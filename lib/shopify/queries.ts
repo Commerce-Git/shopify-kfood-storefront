@@ -22,7 +22,7 @@ export const SEARCH_PRODUCTS = `
 
 /** Fetch a single product by its handle (URL slug) */
 export const GET_PRODUCT_BY_HANDLE = `
-  query GetProductByHandle($handle: String!) {
+  query GetProductByHandle($handle: String!, $after: String) {
     product(handle: $handle) {
       id
       handle
@@ -43,12 +43,15 @@ export const GET_PRODUCT_BY_HANDLE = `
           }
         }
       }
-      variants(first: 10) {
+      variants(first: 100, after: $after) {
+        pageInfo { hasNextPage endCursor }
         edges {
           node {
             id
             title
             availableForSale
+            quantityAvailable
+            currentlyNotInStock
             price {
               amount
               currencyCode
@@ -241,6 +244,11 @@ export const CREATE_CART = `
       cart {
         id
         checkoutUrl
+        discountCodes { code applicable }
+        lines(first: 250) {
+          pageInfo { hasNextPage }
+          edges { node { quantity merchandise { ... on ProductVariant { id } } } }
+        }
         cost {
           subtotalAmount {
             amount
@@ -252,9 +260,27 @@ export const CREATE_CART = `
           }
         }
       }
+      warnings { message }
       userErrors {
         field
         message
+      }
+    }
+  }
+`;
+
+/** Resolve saved product IDs directly instead of searching only the newest catalog page. */
+export const GET_SAVED_PRODUCTS = `
+  query GetSavedProducts($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id handle title vendor availableForSale
+        images(first: 1) { edges { node { url altText width height } } }
+        variants(first: 100) { edges { node {
+          id title availableForSale price { amount currencyCode }
+          compareAtPrice { amount currencyCode }
+          image { url altText width height }
+        } } }
       }
     }
   }

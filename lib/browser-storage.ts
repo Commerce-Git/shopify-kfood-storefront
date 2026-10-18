@@ -19,3 +19,11 @@ export function readStoredValue(key: string): string | null {
 
 // Hydration must start with the same snapshot as server rendering.
 export const serverStoredValue = (): null => null;
+
+export function writeStoredValue(key: string, value: string | null): boolean {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+    return true;
+  } catch { return false; }
+}

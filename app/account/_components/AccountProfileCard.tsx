@@ -7,7 +7,7 @@ interface AccountProfileCardProps {
   email?: string;
   avatarUrl?: string;
   activeOrdersCount: number;
-  onSignOut: () => void;
+  onSignOut: () => void | Promise<void>;
 }
 
 export default function AccountProfileCard({
@@ -17,6 +17,20 @@ export default function AccountProfileCard({
   activeOrdersCount,
   onSignOut,
 }: AccountProfileCardProps) {
+  const [signingOut, setSigningOut] = React.useState(false);
+  const [signOutFailed, setSignOutFailed] = React.useState(false);
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutFailed(false);
+    try {
+      await onSignOut();
+    } catch {
+      setSignOutFailed(true);
+    } finally {
+      setSigningOut(false);
+    }
+  }
   return (
     <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 mb-8 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
@@ -51,7 +65,7 @@ export default function AccountProfileCard({
                   <span className="text-stone-300 hidden sm:inline">•</span>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-800 text-xs font-medium border border-orange-200/80">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#C77B4A] animate-pulse" />
-                    {activeOrdersCount} in transit
+                    {activeOrdersCount} active orders
                   </span>
                 </>
               )}
@@ -62,7 +76,8 @@ export default function AccountProfileCard({
         {/* Quick Utility Action: Sign Out */}
         <div className="flex items-center self-start sm:self-auto pt-2 sm:pt-0 border-t border-stone-100 sm:border-t-0 w-full sm:w-auto justify-end">
           <button
-            onClick={onSignOut}
+            onClick={handleSignOut}
+            disabled={signingOut}
             className="text-xs font-semibold text-stone-500 hover:text-stone-900 border border-stone-200 hover:border-stone-400 bg-stone-50 hover:bg-white px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <svg
@@ -78,10 +93,11 @@ export default function AccountProfileCard({
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
-            Sign Out
+            {signingOut ? "Signing out…" : "Sign Out"}
           </button>
         </div>
       </div>
+      {signOutFailed && <p role="alert" className="mt-3 text-sm text-red-700">Could not sign out. Please try again.</p>}
     </div>
   );
 }

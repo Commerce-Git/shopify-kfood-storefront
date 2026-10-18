@@ -27,12 +27,18 @@ const TOKEN_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`;
 
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
+let tokenRequest: Promise<string> | null = null;
 
 /**
  * Get a valid Admin API access token.
  * Priority: in-memory cache → Supabase cache → fresh OAuth.
  */
 export async function getAdminToken(): Promise<string> {
+  if (!tokenRequest) tokenRequest = loadAdminToken().finally(() => { tokenRequest = null; });
+  return tokenRequest;
+}
+
+async function loadAdminToken(): Promise<string> {
   // Validate before reading any cache; unscoped legacy rows are never trusted.
   if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(SHOPIFY_STORE_DOMAIN)
     || !SHOPIFY_CLIENT_ID.trim() || !SHOPIFY_CLIENT_SECRET.trim()) {
@@ -67,6 +73,7 @@ export async function getAdminToken(): Promise<string> {
 
   // 3. Fresh OAuth token
   const response = await fetch(TOKEN_URL, {
+    signal: AbortSignal.timeout(10_000),
     method: "POST",
     redirect: "error",
     cache: "no-store",
@@ -125,11 +132,11 @@ async function adminFetch(
   retries = 3
 ): Promise<Response> {
   for (let attempt = 0; attempt < retries; attempt++) {
-    const response = await fetch(url, options);
+    const response = await fetch(url, { ...options, cache: "no-store", redirect: "error", signal: options.signal || AbortSignal.timeout(15_000) });
 
     if (response.status === 429 && attempt < retries - 1) {
       const retryAfter = parseFloat(response.headers.get("Retry-After") || "2");
-      const waitMs = retryAfter * 1000 * (attempt + 1); // exponential backoff
+      const waitMs = Math.min(5000, Math.max(0, Number.isFinite(retryAfter) ? retryAfter * 1000 : 2000));
       console.warn(`[Admin API] Rate limited. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${retries})`);
       await new Promise((r) => setTimeout(r, waitMs));
       continue;
@@ -191,6 +198,8 @@ export async function adminGraphQL(
       continue;
     }
 
+    if (data.errors?.length) throw new Error('[Admin GraphQL] Upstream query failed.');
+    if (!data.data) throw new Error('[Admin GraphQL] Missing response data.');
     return data;
   }
 
@@ -217,6 +226,7 @@ export interface AdminFulfillmentLineItem {
 }
 
 export interface AdminFulfillment {
+  shipment_status?: string | null;
   id: number;
   status: string;
   tracking_number: string | null;
@@ -226,6 +236,7 @@ export interface AdminFulfillment {
 }
 
 interface AdminOrder {
+  email: string | null;
   id: number;
   admin_graphql_api_id: string;
   name: string;
@@ -307,6 +318,10 @@ export interface MappedOrder {
 }
 
 // ---- API Functions ----
+function emailSearch(email: string): string {
+  return `email:${JSON.stringify(email.trim().toLowerCase())}`;
+}
+
 
 /**
  * Fetch orders by customer email using Shopify Admin REST API.
@@ -315,40 +330,31 @@ export interface MappedOrder {
 export async function getOrdersByEmail(
   email: string
 ): Promise<MappedOrder[]> {
+  const verifiedEmail = email.trim().toLowerCase();
+  if (!verifiedEmail) return [];
   const token = await getAdminToken();
-
-  const params = new URLSearchParams({
-    email,
-    status: "any",
-    limit: "20",
-    order: "processed_at desc",
-  });
-
-  const response = await adminFetch(
-    `${ADMIN_API_URL}/orders.json?${params.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        "X-Shopify-Access-Token": token,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
+  const params = new URLSearchParams({ email: verifiedEmail, status: 'any', limit: '250', order: 'processed_at desc' });
+  let next: string | null = `${ADMIN_API_URL}/orders.json?${params}`;
+  const visited = new Set<string>();
+  const orders = new Map<string, MappedOrder>();
+  while (next) {
+    const url = new URL(next);
+    const expected = new URL(`${ADMIN_API_URL}/orders.json`);
+    if (url.origin !== expected.origin || url.pathname !== expected.pathname || url.username || url.password || visited.has(next)) {
+      throw new Error('[Admin API] Invalid order pagination link.');
     }
-  );
-
-  if (!response.ok) {
-    const text = await response.text();
-    console.error("[Admin API] Error:", response.status, text);
-    throw new Error(
-      `[Admin API] HTTP ${response.status}: ${response.statusText}`
-    );
+    visited.add(next);
+    const response = await adminFetch(next, { method: 'GET', headers: { 'X-Shopify-Access-Token': token } });
+    if (!response.ok) throw new Error(`[Admin API] Order lookup failed: HTTP ${response.status}`);
+    const json = await response.json();
+    if (!Array.isArray(json.orders)) throw new Error('[Admin API] Invalid order response.');
+    for (const order of json.orders as AdminOrder[]) {
+      // Email filters are not authorization. Verify every returned order before exposing status URLs.
+      if (order.email?.trim().toLowerCase() === verifiedEmail) orders.set(order.admin_graphql_api_id, mapAdminOrder(order));
+    }
+    next = response.headers.get('link')?.match(/<([^>]+)>;\s*rel="next"/)?.[1] || null;
   }
-
-  const json = await response.json();
-  const orders: AdminOrder[] = json.orders || [];
-
-  // Map Admin REST format → existing UI format
-  return orders.map(mapAdminOrder);
+  return [...orders.values()];
 }
 
 /**
@@ -566,6 +572,7 @@ export async function isMarketingSubscribed(email: string): Promise<boolean> {
         customers(first: 1, query: $query) {
           edges {
             node {
+              email
               emailMarketingConsent {
                 marketingState
               }
@@ -576,11 +583,11 @@ export async function isMarketingSubscribed(email: string): Promise<boolean> {
     `;
 
     const result = await adminGraphQL(query, {
-      query: `email:${email}`,
+      query: emailSearch(email),
     });
 
     const customer = result?.data?.customers?.edges?.[0]?.node;
-    if (!customer) return false;
+    if (!customer || customer.email?.trim().toLowerCase() !== email.trim().toLowerCase()) return false;
 
     return customer.emailMarketingConsent?.marketingState === "SUBSCRIBED";
   } catch (err) {
@@ -605,6 +612,7 @@ export async function updateMarketingConsent(
         customers(first: 1, query: $query) {
           edges {
             node {
+              email
               id
             }
           }
@@ -613,10 +621,11 @@ export async function updateMarketingConsent(
     `;
 
     const searchResult = await adminGraphQL(searchQuery, {
-      query: `email:${email}`,
+      query: emailSearch(email),
     });
 
-    const customerId = searchResult?.data?.customers?.edges?.[0]?.node?.id;
+    const matchedCustomer = searchResult?.data?.customers?.edges?.[0]?.node;
+    const customerId = matchedCustomer?.email?.trim().toLowerCase() === email.trim().toLowerCase() ? matchedCustomer.id : null;
     if (!customerId) {
       return { success: false, error: "Customer not found in Shopify." };
     }
@@ -675,6 +684,7 @@ export async function checkIsSubscribed(email: string): Promise<boolean> {
         customers(first: 1, query: $query) {
           edges {
             node {
+              email
               emailMarketingConsent {
                 marketingState
               }
@@ -683,10 +693,10 @@ export async function checkIsSubscribed(email: string): Promise<boolean> {
           }
         }
       }`,
-      { query: `email:${email.trim().toLowerCase()}` }
+      { query: emailSearch(email) }
     );
     const node = result?.data?.customers?.edges?.[0]?.node;
-    if (!node) return false;
+    if (!node || node.email?.trim().toLowerCase() !== email.trim().toLowerCase()) return false;
 
     const marketingState = node.emailMarketingConsent?.marketingState;
     if (marketingState === "UNSUBSCRIBED" || marketingState === "NOT_SUBSCRIBED") {
@@ -725,16 +735,18 @@ export async function updateArtistFollowStatus(
         customers(first: 1, query: $query) {
           edges {
             node {
+              email
               id
               tags
             }
           }
         }
       }`,
-      { query: `email:${cleanEmail}` }
+      { query: emailSearch(cleanEmail) }
     );
 
     const customerNode = searchResult?.data?.customers?.edges?.[0]?.node;
+    if (customerNode && customerNode.email?.trim().toLowerCase() !== cleanEmail) throw new Error("Customer email did not match.");
     const customerId = customerNode?.id;
     const existingTags: string[] = Array.isArray(customerNode?.tags) ? customerNode.tags : [];
 

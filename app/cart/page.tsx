@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useStoredValue } from "@/lib/hooks/useStoredValue";
 import { useCart } from "@/app/components/CartProvider";
 import { useAuth } from "@/app/components/AuthProvider";
-import { storefrontFetch } from "@/lib/shopify/storefront";
-import { GET_PRODUCT_BY_HANDLE } from "@/lib/shopify/queries";
+import { getProductByHandle } from "@/lib/shopify/api";
+import { stockLimitForVariant } from "@/lib/cart/items";
 import type { CartItem } from "@/lib/shopify/types";
 import type { AvailableCoupon } from "@/lib/types/coupon";
 import { useCartCheckout } from "./_hooks/useCartCheckout";
@@ -39,7 +39,8 @@ export default function CartPage() {
   const [productVariantsMap, setProductVariantsMap] = useState<Record<string, ProductVariantOption[]>>({});
   const [couponResult, setCouponResult] = useState<{ email: string; coupon: AvailableCoupon | null } | null>(null);
   const availableCoupon = couponResult?.email === user?.email ? couponResult?.coupon ?? null : null;
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponSelection, setCouponSelection] = useState<{ email?: string; code: string } | null>(null);
+  const appliedCoupon = couponSelection?.email === user?.email && couponSelection?.code === availableCoupon?.code ? couponSelection?.code ?? null : null;
   const couponLoading = !!user?.email && couponResult?.email !== user.email;
 
   // Hook 1: Checkout execution & redirection
@@ -84,54 +85,27 @@ export default function CartPage() {
     return () => controller.abort();
   }, [user?.email]);
 
+  const productHandlesKey = JSON.stringify(Array.from(new Set(items.filter(item => item.variantTitle && item.variantTitle !== 'Default Title').map(item => item.productHandle))).sort());
+
   // Fetch product variants for multi-variant items in cart
   useEffect(() => {
-    const multiVariantHandles = Array.from(
-      new Set(
-        items
-          .filter((item) => item.variantTitle && item.variantTitle !== "Default Title")
-          .map((item) => item.productHandle)
-      )
-    );
-
-    multiVariantHandles.forEach((handle) => {
-      if (productVariantsMap[handle]) return;
-
-      storefrontFetch<{
-        product: {
-          variants: {
-            edges: Array<{
-              node: {
-                id: string;
-                title: string;
-                availableForSale: boolean;
-                price: { amount: string };
-                image?: { url: string; altText?: string } | null;
-              };
-            }>;
-          };
-        };
-      }>(GET_PRODUCT_BY_HANDLE, { handle })
-        .then((res) => {
-          const variantNodes =
-            res.product?.variants?.edges?.map((e) => ({
-              id: e.node.id,
-              title: e.node.title,
-              price: parseFloat(e.node.price.amount).toFixed(2),
-              availableForSale: e.node.availableForSale,
-              image: e.node.image,
-            })) || [];
-
-          if (variantNodes.length > 0) {
-            setProductVariantsMap((prev) => ({
-              ...prev,
-              [handle]: variantNodes,
-            }));
-          }
-        })
-        .catch(() => {});
-    });
-  }, [items, productVariantsMap]);
+    const controller = new AbortController();
+    const handles: string[] = JSON.parse(productHandlesKey);
+    void Promise.all(handles.map(async handle => {
+      try {
+        const product = await getProductByHandle(handle);
+        if (controller.signal.aborted || !product) return;
+        const variants = product.variants.edges.map(({ node }) => ({
+          id: node.id, title: node.title, price: Number(node.price.amount).toFixed(2),
+          availableForSale: node.availableForSale, image: node.image,
+          stockLimit: stockLimitForVariant(node),
+        }));
+        setProductVariantsMap(previous => ({ ...previous, [handle]: variants }));
+      } catch { /* Checkout performs authoritative availability validation. */ }
+    }));
+    return () => controller.abort();
+    // Quantity edits do not change the product handles that need fetching.
+  }, [productHandlesKey]);
 
   const handleOptionChange = (item: CartItem, newVariantId: string) => {
     const variants = productVariantsMap[item.productHandle];
@@ -142,6 +116,7 @@ export default function CartPage() {
       variantId: targetVariant.id,
       variantTitle: targetVariant.title,
       price: targetVariant.price,
+      stockLimit: targetVariant.stockLimit,
       image: targetVariant.image
         ? {
             url: targetVariant.image.url,
@@ -225,7 +200,7 @@ export default function CartPage() {
     <div className="flex-1 pb-32 lg:pb-24 bg-[#FAF9F6]">
       {/* 1. Header Bar */}
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mb-4 sm:mb-6">
-        <div className="grid grid-cols-3 items-center py-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-2">
           <div>
             <Link
               href="/"
@@ -285,7 +260,8 @@ export default function CartPage() {
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Items, Upsells, and Coupons */}
-          <div className="lg:col-span-7 xl:col-span-7 space-y-6">
+          <fieldset disabled={loading} className="lg:col-span-7 xl:col-span-7 min-w-0 space-y-6">
+            {backup && <CartBackupModal backup={backup} onRestore={restoreFromBackup} onDismiss={dismissBackup} />}
             <CartItemList
               items={items}
               productVariantsMap={productVariantsMap}
@@ -306,10 +282,10 @@ export default function CartPage() {
               availableCoupon={availableCoupon}
               appliedCoupon={appliedCoupon}
               couponLoading={couponLoading}
-              onApplyCoupon={(code: string) => setAppliedCoupon(code)}
-              onRemoveCoupon={() => setAppliedCoupon(null)}
+              onApplyCoupon={(code: string) => setCouponSelection({ email: user?.email, code })}
+              onRemoveCoupon={() => setCouponSelection(null)}
             />
-          </div>
+          </fieldset>
 
           {/* Right Column: Order Summary */}
           <CartOrderSummary

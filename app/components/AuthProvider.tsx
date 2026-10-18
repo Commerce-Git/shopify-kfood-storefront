@@ -5,12 +5,13 @@ import {
   useContext,
   useEffect,
   useState,
-  useCallback,
+  useRef,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { StorefrontCustomer } from "@/lib/supabase/types";
 import dynamic from "next/dynamic";
+import { prepareAccountStorage } from "@/lib/security/account-storage";
 import { syncWishlistWithSupabase } from "@/lib/wishlist";
 import { syncFollowedArtistsWithSupabase } from "@/lib/followed-artists";
 
@@ -46,69 +47,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [supabase] = useState(() => createClient());
 
-  // Fetch customer profile from storefront_customers
-  const fetchCustomer = useCallback(
-    async (userId: string) => {
-      const { data } = await supabase
-        .from("storefront_customers")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      setCustomer(data);
-    },
-    [supabase]
-  );
+  const authVersion = useRef(0);
+  const profileOwner = useRef<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    const getSession = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
-        if (user) {
-          await fetchCustomer(user.id);
-          syncWishlistWithSupabase(user.id).catch(() => {});
-          syncFollowedArtistsWithSupabase(user.id).catch(() => {});
-        }
-      } catch (error) {
-        console.error("Auth session error:", error);
-      } finally {
-        setIsLoading(false);
+    let active = true;
+    const apply = (current: User | null) => {
+      if (!active) return;
+      authVersion.current++;
+      if (profileOwner.current !== (current?.id || null)) {
+        profileOwner.current = current?.id || null;
+        setCustomer(null);
       }
+      try { prepareAccountStorage(localStorage, current?.id || null); } catch { /* Storage blocked. */ }
+      window.dispatchEvent(new Event('storage'));
+      setUser(current);
+      setIsLoading(false);
     };
+    const initialVersion = authVersion.current;
+    // Callback only updates local state; profile requests run outside Supabase's auth lock.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => apply(session?.user || null));
+    supabase.auth.getUser().then(({ data }) => {
+      if (authVersion.current === initialVersion) apply(data.user);
+    }).catch(() => { if (authVersion.current === initialVersion) apply(null); });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, [supabase]);
 
-    getSession();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        const currentUser = session?.user ?? null;
-        
-        // Only update if the user ID actually changed to prevent infinite loops on token refresh
-        setUser((prevUser) => {
-          if (prevUser?.id !== currentUser?.id) {
-            if (currentUser) {
-              fetchCustomer(currentUser.id);
-              syncWishlistWithSupabase(currentUser.id).catch(() => {});
-              syncFollowedArtistsWithSupabase(currentUser.id).catch(() => {});
-            } else {
-              setCustomer(null);
-            }
-          }
-          return currentUser;
-        });
-
-      } finally {
-        setIsLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase, fetchCustomer]);
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    const id = user.id;
+    const isCurrent = () => active && profileOwner.current === id;
+    supabase.from('storefront_customers').select('*').eq('id', id).single()
+      .then(({ data }) => { if (isCurrent()) setCustomer(data); }, () => { if (isCurrent()) setCustomer(null); });
+    syncWishlistWithSupabase(id, isCurrent).catch(() => {});
+    syncFollowedArtistsWithSupabase(id, isCurrent).catch(() => {});
+    return () => { active = false; };
+  }, [supabase, user?.id]);
 
   const signInWithEmail = async (
     email: string
@@ -132,7 +107,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    authVersion.current++;
+    profileOwner.current = null;
+    try { prepareAccountStorage(localStorage, null); } catch { /* Storage blocked. */ }
+    window.dispatchEvent(new Event("storage"));
     setUser(null);
     setCustomer(null);
   };
@@ -141,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        customer,
+        customer: customer?.id === user?.id ? customer : null,
         isLoggedIn: !!user,
         isLoading,
         signInWithEmail,

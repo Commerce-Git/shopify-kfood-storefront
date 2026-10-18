@@ -1,6 +1,6 @@
 import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
-import { getAllProducts } from "@/lib/shopify/api";
+import { getAllProducts, getSavedProducts } from "@/lib/shopify/api";
 import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
 import type { ShopifyImage, ShopifyProduct } from "@/lib/shopify/types";
 
@@ -24,7 +24,7 @@ export interface WishlistProductItem {
 function formatProduct(p: ShopifyProduct): WishlistProductItem {
   const vendorSlug = getArtistSlug(p.vendor || "");
   const artistProfile = getArtistBySlug(vendorSlug, p.vendor);
-  const selectedVariant = p.variants?.edges?.[0]?.node;
+  const selectedVariant = p.variants?.edges?.find(edge => edge.node.availableForSale)?.node || p.variants?.edges?.[0]?.node;
   const imageNode = selectedVariant?.image || p.images?.edges?.[0]?.node || null;
 
   const currencyPrefix = selectedVariant?.price?.currencyCode === "USD" ? "$" : "";
@@ -83,17 +83,12 @@ export async function GET(request: Request) {
     }
 
     // 1. Fetch live products from Shopify (benefiting from Next.js Data Cache revalidate: 60)
-    const allProducts = await getAllProducts(50);
+    const allProducts = cleanSlugs.length ? await getAllProducts(50) : [];
 
     // 2. Dual-matching for individual wishlist handles/IDs
     let products: WishlistProductItem[] = [];
     if (cleanItems.length > 0) {
-      const matchingProducts = allProducts.filter((p) => {
-        const pId = p.id.toLowerCase();
-        const pHandle = p.handle.toLowerCase();
-        return cleanItems.includes(pId) || cleanItems.includes(pHandle);
-      });
-      products = matchingProducts.map(formatProduct);
+      products = (await getSavedProducts(cleanItems)).map(formatProduct);
     }
 
     // 3. Match top 3 newest signature works for each requested followed artist slug

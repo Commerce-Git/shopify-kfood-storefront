@@ -1,5 +1,6 @@
 "use client";
 
+import { stockLimitForVariant, boundedQuantity } from "@/lib/cart/items";
 import { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import type { ShopifyProduct } from "@/lib/shopify/types";
@@ -72,7 +73,9 @@ export default function MobileStickyBottomBar({
 
   // Image for active variant or product thumbnail
   const activeImage = selectedVariant?.image || product.images.edges[0]?.node || null;
-  const isSoldOut = !selectedVariant?.availableForSale;
+  const stockLimit = selectedVariant ? stockLimitForVariant(selectedVariant) : 0;
+  const selectedQuantity = boundedQuantity(quantity, stockLimit) || 1;
+  const isSoldOut = !selectedVariant?.availableForSale || stockLimit === 0;
 
   // Selected options summary (e.g., "RED / Small")
   const selectedOptionsSummary = Object.values(selectedOptions).filter(Boolean).join(" · ");
@@ -87,7 +90,8 @@ export default function MobileStickyBottomBar({
       title: product.title,
       variantTitle: selectedVariant.title || selectedOptionsSummary,
       price: price,
-      quantity: quantity,
+      quantity: selectedQuantity,
+      stockLimit,
       image: activeImage
         ? {
             url: activeImage.url,
@@ -287,7 +291,8 @@ export default function MobileStickyBottomBar({
                           <button
                             key={value}
                             type="button"
-                            onClick={() =>
+                            aria-pressed={isSelected}
+                          onClick={() =>
                               setSelectedOptions((prev) => ({
                                 ...prev,
                                 [option.name]: value,
@@ -327,19 +332,21 @@ export default function MobileStickyBottomBar({
                 <div className="flex items-center border border-[#E8DFC8] rounded-xl bg-white shadow-2xs">
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1 || isSoldOut}
+                    onClick={() => setQuantity(Math.max(1, selectedQuantity - 1))}
+                    aria-label="Decrease quantity"
+                    disabled={selectedQuantity <= 1 || isSoldOut}
                     className="w-9 h-9 flex items-center justify-center text-sm font-bold text-[#18181B] disabled:opacity-30 hover:bg-stone-50 rounded-l-xl transition-colors"
                   >
                     −
                   </button>
                   <span className="w-8 text-center text-xs font-bold text-[#18181B]">
-                    {quantity}
+                    {selectedQuantity}
                   </span>
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => q + 1)}
-                    disabled={isSoldOut}
+                    onClick={() => setQuantity(selectedQuantity + 1)}
+                    aria-label="Increase quantity"
+                    disabled={isSoldOut || (stockLimit != null && selectedQuantity >= stockLimit)}
                     className="w-9 h-9 flex items-center justify-center text-sm font-bold text-[#18181B] disabled:opacity-30 hover:bg-stone-50 rounded-r-xl transition-colors"
                   >
                     +

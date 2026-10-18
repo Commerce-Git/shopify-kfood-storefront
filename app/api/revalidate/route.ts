@@ -2,9 +2,7 @@ import { errorMessage } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { SHOPIFY_CATALOG_CACHE_TAG } from '@/lib/shopify/cache';
-import { GET_PRODUCT_BY_HANDLE } from '@/lib/shopify/queries';
-import { storefrontFetch } from '@/lib/shopify/storefront';
-import type { ShopifyProduct } from '@/lib/shopify/types';
+import { getProductByHandle } from '@/lib/shopify/api';
 
 export const dynamic = "force-dynamic";
 
@@ -62,11 +60,8 @@ async function handleRevalidation(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Product handle required for price confirmation' }, { status: 400 });
       }
       // Match the page's endpoint, credentials, query and variables; only bypass its cache.
-      const result = await storefrontFetch<{ product: ShopifyProduct | null }>(
-        GET_PRODUCT_BY_HANDLE, { handle },
-        { cache: 'no-store', signal: AbortSignal.timeout(4000) },
-      );
-      const price = result.product?.variants?.edges?.find(
+      const product = await getProductByHandle(handle, { signal: AbortSignal.timeout(4000) });
+      const price = product?.variants?.edges?.find(
         (edge) => edge.node.id === expectedPrice.variantId)?.node?.price;
       if (price?.currencyCode !== 'USD' || Number(price?.amount) !== expectedPrice.amountUsd) {
         return NextResponse.json({ success: false, code: 'SHOPIFY_PRICE_PENDING' },

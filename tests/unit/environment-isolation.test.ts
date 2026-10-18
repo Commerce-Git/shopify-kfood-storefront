@@ -82,7 +82,7 @@ function client(rows: Map<string, Row>, shop = "dev.myshopify.com", app = "fixtu
     } }) }),
     upsert: async (row: Row) => { if (brokenDb) throw new Error("offline"); rows.set(row.id, row); return { error: null }; },
   }) };
-  const context = vm.createContext({ module: mod, exports: mod.exports, console: { warn() {}, error() {} }, URLSearchParams,
+  const context = vm.createContext({ module: mod, exports: mod.exports, console: { warn() {}, error() {} }, URLSearchParams, AbortSignal,
     process: { env: { NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: shop, SHOPIFY_CLIENT_ID: app, SHOPIFY_CLIENT_SECRET: secret } },
     fetch: async (url: string, options: RequestInit) => {
       assert.equal(options.redirect, "error"); calls.push(url);

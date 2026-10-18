@@ -38,6 +38,7 @@ export function getOrderStep(
 }
 
 import { getArtistSlug, getArtistBySlug } from "@/lib/artists";
+import { aggregateWmsStatus } from "@/lib/orders/status";
 import type { OrderPackage, OrderPackageItem, AdminFulfillment } from "@/lib/shopify/admin";
 
 /**
@@ -136,55 +137,37 @@ export function splitOrderIntoVendorPackages(params: {
       artistStatusMap[vendorSlug] ||
       "";
 
-    let wmsStatus: "placed" | "crafting" | "packaging" | "shipped" | "delivered" = "placed";
-
-    if (artistRawStatus === "delivered" || orderWmsStatus === "delivered") {
-      wmsStatus = "delivered";
-    } else if (artistRawStatus === "shipped" || orderFulfillmentStatus === "FULFILLED") {
-      wmsStatus = "shipped";
-    } else if (artistRawStatus === "received") {
-      wmsStatus = "packaging";
-    } else if (artistRawStatus === "confirmed") {
-      wmsStatus = "crafting";
-    } else if (orderWmsStatus === "placed" || orderWmsStatus === "crafting" || orderWmsStatus === "packaging" || orderWmsStatus === "shipped") {
-      wmsStatus = orderWmsStatus;
+    const matched = (fulfillments || []).filter(f => f.status === 'success' && f.line_items?.some(line =>
+      items.some(item => item.variantId === `gid://shopify/ProductVariant/${line.variant_id}`)));
+    const shippedQuantities = new Map<string, number>();
+    for (const fulfillment of matched) for (const line of fulfillment.line_items || []) {
+      const id = `gid://shopify/ProductVariant/${line.variant_id}`;
+      shippedQuantities.set(id, (shippedQuantities.get(id) || 0) + line.quantity);
     }
-
-    const { step } = getOrderStep(orderFulfillmentStatus || "", wmsStatus);
-
-    // Multi-fulfillment matching: Check if any fulfillment in Shopify specifically contains this package's variant IDs
-    let tracking = null;
-    if (fulfillments && fulfillments.length > 0) {
-      const packageVariantIds = new Set(
-        items
-          .map((it) => (it.variantId ? String(it.variantId).replace(/\D/g, "") : null))
-          .filter(Boolean)
-      );
-
-      const matchedFulfillment = fulfillments.find((f) =>
-        f.line_items?.some((fl) => fl.variant_id && packageVariantIds.has(String(fl.variant_id).replace(/\D/g, "")))
-      );
-
-      if (matchedFulfillment?.tracking_number && (wmsStatus === "shipped" || wmsStatus === "delivered")) {
-        tracking = {
-          number: matchedFulfillment.tracking_number,
-          company: matchedFulfillment.tracking_company || "Korea Post EMS",
-          url:
-            getCarrierTrackingUrl(matchedFulfillment.tracking_number, matchedFulfillment.tracking_company) ||
-            matchedFulfillment.tracking_url ||
-            null,
-        };
-      }
+    const required = new Map<string, number>();
+    for (const item of items) {
+      const key = item.variantId || 'unknown';
+      required.set(key, (required.get(key) || 0) + item.quantity);
     }
+    const fullyShipped = [...required].every(([id, quantity]) => (shippedQuantities.get(id) || 0) >= quantity);
+    const fullyDelivered = fullyShipped && matched.every(f => f.shipment_status === 'delivered');
+    const wmsStatus = fullyDelivered || orderWmsStatus === 'delivered'
+      ? 'delivered'
+      : fullyShipped || orderFulfillmentStatus === 'FULFILLED' || orderWmsStatus === 'shipped'
+        ? 'shipped'
+        : aggregateWmsStatus('', artistRawStatus ? [artistRawStatus] : [], null);
+    const { step } = getOrderStep(orderFulfillmentStatus || '', wmsStatus);
 
-    // Fallback to order-level tracking
-    if (!tracking && orderTracking?.number && (wmsStatus === "shipped" || wmsStatus === "delivered")) {
-      tracking = {
-        number: orderTracking.number,
-        company: orderTracking.company || "Korea Post EMS",
-        url: getCarrierTrackingUrl(orderTracking.number, orderTracking.company) || orderTracking.url || null,
-      };
-    }
+    // Never attach another maker's tracking to an unfulfilled group.
+    const shipment = matched.find(f => f.tracking_number);
+    const canUseOrderTracking = orderFulfillmentStatus === 'FULFILLED' || ['shipped', 'delivered'].includes(orderWmsStatus || '');
+    const source = shipment ? {
+      number: shipment.tracking_number, company: shipment.tracking_company, url: shipment.tracking_url,
+    } : canUseOrderTracking ? orderTracking : null;
+    const tracking = source?.number && ['shipped', 'delivered'].includes(wmsStatus) ? {
+      number: source.number, company: source.company || 'Korea Post',
+      url: getCarrierTrackingUrl(source.number, source.company) || source.url || null,
+    } : null;
 
     packages.push({
       packageId,

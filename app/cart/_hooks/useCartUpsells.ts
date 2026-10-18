@@ -78,8 +78,8 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
 
   // React 19 Derived State: calculate during render to avoid cascading renders in useEffect
   const cachedData = handlesKey ? companionCache.get(handlesKey) : null;
-  const activeCompanions = handlesKey ? (cachedData?.companions ?? companions) : [];
-  const activeArtistsToFollow = handlesKey ? (cachedData?.artistsToFollow ?? artistsToFollow) : [];
+  const activeCompanions = handlesKey ? (cachedData?.companions ?? (fetchedKey === handlesKey ? companions : [])) : [];
+  const activeArtistsToFollow = handlesKey ? (cachedData?.artistsToFollow ?? (fetchedKey === handlesKey ? artistsToFollow : [])) : [];
   const activeIsLoading = Boolean(handlesKey && !cachedData && fetchedKey !== handlesKey);
 
   return {

@@ -56,7 +56,7 @@ export function PartialDeliveryNotice({
           Partial Delivery Notice
         </p>
         <p className={isDark ? "text-white/80 text-xs sm:text-sm" : "text-amber-900/90 text-xs sm:text-sm"}>
-          Your package from <strong>{deliveredNames}</strong> has arrived! Your remaining piece from{" "}
+          Your items from <strong>{deliveredNames}</strong> have arrived! Your remaining piece from{" "}
           <strong>{pendingNames}</strong> is safely on its way.
         </p>
       </div>
@@ -161,7 +161,7 @@ export default function OrderPackageCard({
                 : "bg-stone-100 text-stone-700 border border-stone-200"
             }`}
           >
-            Package {packageIndex} of {totalPackages}
+            Maker {packageIndex} of {totalPackages}
           </span>
         )}
       </div>

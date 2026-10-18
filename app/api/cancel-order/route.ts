@@ -152,7 +152,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { shopify_order_id, order_number, reason } = body;
+    const { shopify_order_id, reason } = body;
 
     if (typeof shopify_order_id !== "string" || !/^gid:\/\/shopify\/Order\/\d+$/.test(shopify_order_id)) {
       return NextResponse.json(
@@ -256,7 +256,7 @@ export async function POST(request: Request) {
         await sendOrderCancellationEmail({
           to: emailTo,
           customerName: emailTo.split("@")[0],
-          orderNumber: order_number,
+          orderNumber: ownedOrder.name,
           refundAmount: result.refundAmount,
           unsubscribeUrl: generateUnsubscribeUrl(emailTo),
         }).catch((err) =>
@@ -266,7 +266,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Order ${order_number} has been cancelled. Your refund of $${result.refundAmount || "0"} is being processed.`,
+        message: `Order ${ownedOrder.name} has been cancelled. Your refund of $${result.refundAmount || "0"} is being processed.`,
         refundAmount: result.refundAmount,
       });
     } else {

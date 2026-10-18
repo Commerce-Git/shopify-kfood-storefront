@@ -1,23 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { storefrontFetch } from "@/lib/shopify/storefront";
 import { CREATE_CART } from "@/lib/shopify/queries";
 import type { CartItem } from "@/lib/shopify/types";
 import { isStoreLive } from "@/lib/constants";
 
-interface CartResponse {
-  cartCreate: {
-    cart: {
-      id: string;
-      checkoutUrl: string;
-    };
-    userErrors: {
-      field: string[];
-      message: string;
-    }[];
-  };
-}
+import { checkoutDestination, checkoutErrorMessage, type CheckoutResponse } from "@/lib/cart/checkout";
 
 interface UseCartCheckoutProps {
   items: CartItem[];
@@ -30,12 +19,21 @@ export function useCartCheckout({
   appliedCoupon,
   backupToStorageOnly,
 }: UseCartCheckoutProps) {
+  const inFlight = useRef(false);
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const resume = () => { inFlight.current = false; setLoading(false); setIsRedirecting(false); };
+    window.addEventListener('pageshow', resume);
+    return () => window.removeEventListener('pageshow', resume);
+  }, []);
+
   const handleCheckout = async () => {
-    if (!isStoreLive() || items.length === 0) return;
+    if (!isStoreLive() || items.length === 0 || inFlight.current) return;
+    inFlight.current = true;
+    let redirected = false;
 
     setLoading(true);
     setError(null);
@@ -46,17 +44,12 @@ export function useCartCheckout({
         quantity: item.quantity,
       }));
 
-      const data = await storefrontFetch<CartResponse>(CREATE_CART, {
+      const data = await storefrontFetch<CheckoutResponse>(CREATE_CART, {
         lines,
         discountCodes: appliedCoupon ? [appliedCoupon] : undefined,
-      });
+      }, { cache: "no-store", signal: AbortSignal.timeout(20000) });
 
-      const { cart, userErrors } = data.cartCreate;
-
-      if (userErrors.length > 0) {
-        setError(userErrors[0].message);
-        return;
-      }
+      const destination = checkoutDestination(data, items, appliedCoupon);
 
       // Show redirect overlay before redirecting
       setIsRedirecting(true);
@@ -64,12 +57,13 @@ export function useCartCheckout({
       // Backup to localStorage for abandonment recovery
       backupToStorageOnly(items.map((i) => i.variantId));
 
-      window.location.href = cart.checkoutUrl;
+      window.location.assign(destination);
+      redirected = true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(checkoutErrorMessage(err));
       setIsRedirecting(false);
     } finally {
-      setLoading(false);
+      if (!redirected) { inFlight.current = false; setLoading(false); }
     }
   };
 

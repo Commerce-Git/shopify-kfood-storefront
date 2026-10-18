@@ -48,7 +48,7 @@ export async function GET() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user?.email) {
+    if (!user?.email || !user.email_confirmed_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

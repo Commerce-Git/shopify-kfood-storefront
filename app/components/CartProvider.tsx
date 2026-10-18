@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useStoredValue, notifyStorageChanged } from "@/lib/hooks/useStoredValue";
+import { parseCart, mergeCartItems, changeCartVariant, boundedQuantity } from "@/lib/cart/items";
 import type { CartItem } from "@/lib/shopify/types";
 
 export interface CheckoutBackup {
@@ -43,20 +44,6 @@ const CART_STORAGE_KEY = "blank-seoul-cart";
 const BACKUP_STORAGE_KEY = "blank-seoul-checkout-backup";
 const BACKUP_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
-function parseCart(stored: string | null): CartItem[] {
-  try {
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    // Self-healing: filter out any corrupted items lacking variantId or price
-    return parsed.filter(
-      (item) => item && typeof item === "object" && item.variantId && item.price
-    );
-  } catch {
-    return [];
-  }
-}
-
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try { return parseCart(localStorage.getItem(CART_STORAGE_KEY)); } catch { return []; }
@@ -83,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
       if (raw) {
         const backup: CheckoutBackup = JSON.parse(raw);
-        if (Date.now() - new Date(backup.timestamp).getTime() > BACKUP_EXPIRY_MS) {
+        if (!Number.isFinite(Date.parse(backup.timestamp)) || Date.now() - Date.parse(backup.timestamp) > BACKUP_EXPIRY_MS) {
           localStorage.removeItem(BACKUP_STORAGE_KEY);
           notifyStorageChanged();
         }
@@ -95,42 +82,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addToCart = useCallback((newItem: CartItem) => {
-    setItems((prev) => {
-      const existing = prev.find((item) => item.variantId === newItem.variantId);
-      if (existing) {
-        return prev.map((item) => {
-          if (item.variantId === newItem.variantId) {
-            const potentialQty = item.quantity + newItem.quantity;
-            const limit = item.stockLimit !== undefined ? item.stockLimit : newItem.stockLimit;
-            const newQty = limit !== undefined && limit !== null
-              ? Math.min(potentialQty, limit)
-              : potentialQty;
-            return { ...item, quantity: newQty, stockLimit: limit };
-          }
-          return item;
-        });
-      }
-      return [...prev, newItem];
-    });
+    setItems(prev => mergeCartItems(prev, [newItem]));
   }, [setItems]);
 
   const addBundleToCart = useCallback((bundleItems: CartItem[]) => {
-    setItems((prev) => {
-      const updated = [...prev];
-      for (const newItem of bundleItems) {
-        const idx = updated.findIndex((item) => item.variantId === newItem.variantId);
-        if (idx > -1) {
-          const existing = updated[idx];
-          const potentialQty = existing.quantity + newItem.quantity;
-          const limit = existing.stockLimit ?? newItem.stockLimit;
-          const newQty = limit != null ? Math.min(potentialQty, limit) : potentialQty;
-          updated[idx] = { ...existing, quantity: newQty };
-        } else {
-          updated.push(newItem);
-        }
-      }
-      return updated;
-    });
+    setItems(prev => mergeCartItems(prev, bundleItems));
     setIsCartOpen(true);
   }, [setItems]);
 
@@ -139,6 +95,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [setItems]);
 
   const updateQuantity = useCallback((variantId: string, quantity: number) => {
+    if (!Number.isSafeInteger(quantity)) return;
     if (quantity <= 0) {
       setItems((prev) => prev.filter((item) => item.variantId !== variantId));
       return;
@@ -146,9 +103,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) =>
       prev.map((item) => {
         if (item.variantId === variantId) {
-          const newQty = item.stockLimit !== undefined && item.stockLimit !== null
-            ? Math.min(quantity, item.stockLimit)
-            : quantity;
+          const newQty = boundedQuantity(quantity, item.stockLimit);
+          if (!newQty) return item;
           return { ...item, quantity: newQty };
         }
         return item;
@@ -167,51 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         stockLimit?: number | null;
       }
     ) => {
-      setItems((prev) => {
-        const oldItem = prev.find((item) => item.variantId === oldVariantId);
-        if (!oldItem) return prev;
-
-        // If target variant already exists in cart, merge quantity
-        const existingTarget = prev.find(
-          (item) =>
-            item.variantId === newVariant.variantId &&
-            item.variantId !== oldVariantId
-        );
-        if (existingTarget) {
-          const mergedQty = existingTarget.quantity + oldItem.quantity;
-          const limit =
-            newVariant.stockLimit !== undefined
-              ? newVariant.stockLimit
-              : existingTarget.stockLimit;
-          const finalQty =
-            limit !== undefined && limit !== null
-              ? Math.min(mergedQty, limit)
-              : mergedQty;
-
-          return prev
-            .filter((item) => item.variantId !== oldVariantId)
-            .map((item) =>
-              item.variantId === newVariant.variantId
-                ? { ...item, quantity: finalQty, stockLimit: limit }
-                : item
-            );
-        }
-
-        // Otherwise, mutate the existing item in place
-        return prev.map((item) => {
-          if (item.variantId === oldVariantId) {
-            return {
-              ...item,
-              variantId: newVariant.variantId,
-              variantTitle: newVariant.variantTitle,
-              price: newVariant.price,
-              image: newVariant.image || item.image,
-              stockLimit: newVariant.stockLimit,
-            };
-          }
-          return item;
-        });
-      });
+      setItems(prev => changeCartVariant(prev, oldVariantId, newVariant));
     },
     [setItems]
   );
@@ -246,22 +158,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!raw) return;
       const backup: CheckoutBackup = JSON.parse(raw);
 
-      setItems((prev) => {
-        let merged = [...prev];
-        for (const backupItem of backup.items) {
-          const existing = merged.find((i) => i.variantId === backupItem.variantId);
-          if (existing) {
-            merged = merged.map((i) =>
-              i.variantId === backupItem.variantId
-                ? { ...i, quantity: i.quantity + backupItem.quantity }
-                : i
-            );
-          } else {
-            merged.push(backupItem);
-          }
-        }
-        return merged;
-      });
+      if (!Number.isFinite(Date.parse(backup.timestamp)) || Date.now() - Date.parse(backup.timestamp) > BACKUP_EXPIRY_MS) return;
+      setItems(prev => mergeCartItems(prev, parseCart(JSON.stringify(backup.items))));
 
       localStorage.removeItem(BACKUP_STORAGE_KEY);
       notifyStorageChanged();
@@ -286,10 +184,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
       if (!raw) return null;
       const backup: CheckoutBackup = JSON.parse(raw);
-      if (Date.now() - new Date(backup.timestamp).getTime() > BACKUP_EXPIRY_MS) {
+      if (!Number.isFinite(Date.parse(backup.timestamp)) || Date.now() - Date.parse(backup.timestamp) > BACKUP_EXPIRY_MS) {
         return null;
       }
-      return backup;
+      const validItems = parseCart(JSON.stringify(backup.items));
+      return validItems.length ? { ...backup, items: validItems } : null;
     } catch {
       return null;
     }

@@ -161,7 +161,7 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                        className="w-6 h-6 rounded bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] cursor-pointer"
+                        className="w-10 h-10 rounded bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] cursor-pointer disabled:opacity-40"
                         aria-label="Decrease quantity"
                       >
                         −
@@ -172,7 +172,8 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                        className="w-6 h-6 rounded bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] cursor-pointer"
+                        disabled={item.stockLimit != null && item.quantity >= item.stockLimit}
+                        className="w-10 h-10 rounded bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] cursor-pointer disabled:opacity-40"
                         aria-label="Increase quantity"
                       >
                         +

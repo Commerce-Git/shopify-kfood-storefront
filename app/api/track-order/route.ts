@@ -1,15 +1,16 @@
 /**
  * Track Order API — verified-account order tracking.
  *
- * Returns only non-sensitive order data (no addresses, names, amounts, or product details).
+ * Returns the verified account’s order summary, line items and shipment progress.
  * Rate limited to prevent abuse.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getOrdersByEmail, checkIsSubscribed } from "@/lib/shopify/admin";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getOrderProgress } from "@/lib/orders/enrichment";
+import { aggregateWmsStatus } from "@/lib/orders/status";
 import { splitOrderIntoVendorPackages } from "@/lib/shopify/order-utils";
-import { getArtistSlug } from "@/lib/artists";
+
 import { createClient } from "@/lib/supabase/server";
 import { verifyOrderLookupEmail } from "@/lib/security/orderOwnership";
 
@@ -52,26 +53,7 @@ function maskEmail(email: string): string {
 }
 
 // Helper to aggregate multiple item statuses into a single order status (fallback logic)
-function aggregateWmsStatus(
-  shopifyStatus: string,
-  artistStatuses: string[] | undefined,
-  deliveryStatus?: string | null
-): "placed" | "crafting" | "packaging" | "shipped" | "delivered" {
-  if (deliveryStatus === "delivered") return "delivered";
-  if (shopifyStatus === "FULFILLED") return "shipped";
-  if (!artistStatuses || artistStatuses.length === 0) return "placed";
 
-  // If any item is pending (WMS initial state), the overall order is at "placed"
-  if (artistStatuses.includes("pending")) return "placed";
-
-  // If any item is confirmed (WMS crafting state), the overall order is at "crafting"
-  if (artistStatuses.includes("confirmed")) return "crafting";
-
-  // If all items are shipped or received by warehouse, the overall order is at "packaging"
-  if (artistStatuses.includes("shipped") || artistStatuses.includes("received")) return "packaging";
-
-  return "placed";
-}
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -88,7 +70,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const body = await request.json();
-    const email = body.email?.trim()?.toLowerCase();
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
 
     if (!email || !isValidEmail(email)) {
       return NextResponse.json(
@@ -108,57 +90,11 @@ export async function POST(request: NextRequest) {
     // Filter out cancelled/refunded orders
     const activeOrders = orders.filter(
       (o) =>
-        o.financialStatus !== "REFUNDED" &&
+        !o.cancelledAt && o.financialStatus !== "REFUNDED" &&
         o.financialStatus !== "VOIDED"
     );
 
-    const shopifyIds = activeOrders.map((o) => o.id);
-    const viewStatusMap: Record<string, { customer_status: "placed" | "crafting" | "packaging" | "shipped" | "delivered"; delivered_at: string | null }> = {};
-    const artistOrdersMap: Record<string, string[]> = {};
-    const artistStatusByOrderAndVendor: Record<string, Record<string, string>> = {};
-
-    if (shopifyIds.length > 0) {
-      // 1. Try querying unified order_status_view first
-      const { data: viewData, error: viewError } = await supabaseAdmin
-        .from("order_status_view")
-        .select("shopify_id, customer_status, delivered_at")
-        .in("shopify_id", shopifyIds);
-
-      if (!viewError && viewData && viewData.length > 0) {
-        for (const row of viewData) {
-          if (row.shopify_id && row.customer_status) {
-            viewStatusMap[row.shopify_id] = {
-              customer_status: row.customer_status,
-              delivered_at: row.delivered_at || null,
-            };
-          }
-        }
-      }
-
-      // 2. Query artist_orders for artist-specific crafting status
-      const { data: artistOrders, error: dbError } = await supabaseAdmin
-        .from("artist_orders")
-        .select("shopify_order_id, artist_name, status")
-        .in("shopify_order_id", shopifyIds);
-
-      if (!dbError && artistOrders) {
-        for (const row of artistOrders) {
-          const sId = row.shopify_order_id;
-          const aName = (row.artist_name || "").toLowerCase().trim();
-          const aSlug = getArtistSlug(row.artist_name || "");
-          const aStatus = (row.status || "").toLowerCase().trim();
-
-          if (!artistOrdersMap[sId]) artistOrdersMap[sId] = [];
-          artistOrdersMap[sId].push(aStatus);
-
-          if (!artistStatusByOrderAndVendor[sId]) artistStatusByOrderAndVendor[sId] = {};
-          artistStatusByOrderAndVendor[sId][aName] = aStatus;
-          if (aSlug) {
-            artistStatusByOrderAndVendor[sId][aSlug] = aStatus;
-          }
-        }
-      }
-    }
+    const { viewStatusMap, artistOrdersMap, artistStatusByOrderAndVendor } = await getOrderProgress(activeOrders);
 
     const publicOrders = activeOrders.map((order) => {
       const viewResult = viewStatusMap[order.id];
@@ -218,7 +154,7 @@ export async function POST(request: NextRequest) {
       maskedEmail: maskEmail(verifiedEmail),
       isSubscribed,
       orders: publicOrders,
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (err) {
     console.error("[Track Order API] Error:", err);
     return NextResponse.json(

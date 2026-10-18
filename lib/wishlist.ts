@@ -117,7 +117,7 @@ export function toggleWishlist(
  * Fetches user's wishlisted items from Supabase, merges with local items,
  * upserts any new local items back to Supabase, and updates localStorage.
  */
-export async function syncWishlistWithSupabase(userId: string): Promise<string[]> {
+export async function syncWishlistWithSupabase(userId: string, isCurrent: () => boolean = () => true): Promise<string[]> {
   if (typeof window === "undefined" || !userId) return getWishlist();
 
   try {
@@ -137,6 +137,8 @@ export async function syncWishlistWithSupabase(userId: string): Promise<string[]
 
     const remoteHandles: string[] = (remoteRows || []).map((r) => r.product_handle);
 
+    if (!isCurrent()) return getWishlist();
+
     // 2. Current local items
     const localList = getWishlist();
 
@@ -154,6 +156,8 @@ export async function syncWishlistWithSupabase(userId: string): Promise<string[]
         onConflict: "user_id,product_handle",
       });
     }
+
+    if (!isCurrent()) return getWishlist();
 
     // 5. Update localStorage and cache
     const rawUpdated = JSON.stringify(merged);

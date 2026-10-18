@@ -1,0 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node test preload. */
+const user = { id: '11111111-1111-4111-8111-111111111111', email: 'buyer-fixture@example.com', email_confirmed_at: '2026-01-01T00:00:00Z', aud: 'authenticated', role: 'authenticated', created_at: '2026-01-01T00:00:00Z', app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {} };
+const session = { access_token: [ {alg:'HS256',typ:'JWT'}, {sub:user.id,exp:4102444800,iat:1700000000,aud:'authenticated',role:'authenticated'} ].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.')+'.fixture-signature',refresh_token:'fixture-refresh',expires_at:4102444800,expires_in:86400,token_type:'bearer',user };
+const order = {id:'gid://shopify/Order/123',name:'#QA-123',processedAt:'2026-10-16T00:00:00Z',cancelledAt:null,fulfillmentStatus:'UNFULFILLED',financialStatus:'PAID',totalPrice:{amount:'33',currencyCode:'USD'},lineItems:{edges:[]},tracking:null,wmsStatus:'placed',packages:[]};
+module.exports={user,session,order};
