@@ -10,7 +10,7 @@ export default function ShippingPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Shipping Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: August 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -119,10 +119,10 @@ export default function ShippingPolicyPage() {
         </li>
       </ul>
 
-      <h2>5. Shipping Rates & Zero Hidden Fees</h2>
+      <h2>5. Shipping Rates</h2>
       <p>
         We currently provide <strong>Free International Tracked Shipping</strong> on all orders.
-        There are no hidden handling surcharges, unexpected delivery fees, or checkout markups calculated at payment.
+        Shipping charges and any taxes or duties collected by us are shown before payment. Free shipping does not itself mean that import taxes or customs charges are waived.
       </p>
 
       <h2>6. Customs, Import Duties & Destination Taxes</h2>
@@ -130,48 +130,11 @@ export default function ShippingPolicyPage() {
         Every Blank Seoul order is dispatched directly from Korea with complete, compliant international postal customs documentation (CN22/CN23) and accurate HS tariff classifications.
       </p>
 
-      {/* 2026 Key Regional Customs Fast-Facts Grid */}
-      <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-4 sm:p-5 my-5 shadow-2xs not-prose">
-        <h4
-          className="text-xs font-bold uppercase tracking-wider text-[#C25E38] mb-3 flex items-center gap-1.5"
-          style={{ fontFamily: "var(--font-heading)" }}
-        >
-          <span>🌐</span> Regional Customs & Duty Status
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-[#3F3F46]">
-          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-lg shrink-0">🇺🇸</span>
-            <div>
-              <strong className="block text-[#18181B] font-bold">United States</strong>
-              <span className="text-[#52525B]">Pre-cleared DDP express dispatch. Zero unexpected customs duties or handling fees upon delivery.</span>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-lg shrink-0">🇭🇰</span>
-            <div>
-              <strong className="block text-[#18181B] font-bold">Hong Kong</strong>
-              <span className="text-[#52525B]">Free Port. Zero customs tariffs and 0% VAT on all Korean lifestyle goods and accessories.</span>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-lg shrink-0">🇸🇬</span>
-            <div>
-              <strong className="block text-[#18181B] font-bold">Singapore</strong>
-              <span className="text-[#52525B]">Duty-free postal import relief for personal orders under CIF S$400 (~$300 USD).</span>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-[#E8DFC8]/60">
-            <span className="text-lg shrink-0">🇦🇺</span>
-            <div>
-              <strong className="block text-[#18181B] font-bold">Australia</strong>
-              <span className="text-[#52525B]">Duty-free postal import threshold for personal craft orders under AUD $1,000 (~$650 USD).</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <p>
-        For destinations outside these primary regions, or for high-value wholesale consignments, shipments are dispatched on standard international DDU (Delivered Duty Unpaid) terms, where applicable local VAT, GST, or postal handling fees assessed by destination authorities remain the recipient&apos;s responsibility.
+        Customs treatment depends on the destination and the shipping service available for your order.
+        Any duties or import taxes we collect are shown at checkout. Where we offer delivery with duties paid (DDP),
+        the applicable coverage will be stated before purchase. We do not promise tax-free entry for any destination.
+        Contact <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> before ordering if the treatment of destination charges is unclear.
       </p>
 
       <h2>7. 30-Day Safe Delivery & Lost Package Guarantee</h2>

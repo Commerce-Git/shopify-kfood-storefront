@@ -37,6 +37,7 @@ const browser=await chromium.launch({executablePath:browserPath, headless:true})
 const context=await browser.newContext({viewport:{width:390,height:844}});
 const {user:accountUser,session:accountSession,order:accountOrder}=require('./account-fixtures.cjs');
 let ordersMode='success';
+let authMode='success';let emailAttempts=0;
 const errors=[];let checkoutCalls=0;let checkoutMode='fail';
 await context.route('**/*', async route=>{
  const url=route.request().url();
@@ -52,6 +53,11 @@ await context.route('**/*', async route=>{
   return route.fulfill({json:graphql(query,variables)});
  }
  if(url.startsWith('https://checkout.example.com/')) return route.fulfill({contentType:'text/html',body:'<h1>Checkout destination fixture</h1>'});
+ if(url.includes('.supabase.co/auth/v1/otp')){
+  emailAttempts++;
+  if(authMode==='email-failure')return route.fulfill({status:400,json:{code:'over_email_send_rate_limit',msg:'Please wait before trying again.'}});
+  return route.fulfill({json:{}});
+ }
  if(url.includes('.supabase.co/auth/v1/user'))return route.fulfill({json:accountUser});
  if(url.includes('.supabase.co/rest/v1/storefront_customers'))return route.fulfill({json:{id:accountUser.id,email:accountUser.email,first_name:'Fixture'}});
  if(url.includes('.supabase.co/'))return route.fulfill({json:[]});
@@ -65,11 +71,41 @@ await context.route('**/*', async route=>{
  return route.continue();
 });
 const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
+page.setDefaultTimeout(20_000);
 const checks=[];
 async function check(name,fn){await fn();checks.push(name);console.log('PASS',name);}
 const cart=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('blank-seoul-cart')||'[]'));
 async function goto(path){await page.goto('http://localhost:3021'+path);await page.waitForLoadState('networkidle');}
 try{
+await check('Failed callback explains retry without exposing provider details',async()=>{
+ await goto('/auth/callback?error=access_denied&error_description=private-provider-details');
+ await page.waitForURL('**/account/login?error=auth_failed');
+ await page.getByRole('alert').filter({hasText:'couldn’t complete your sign-in'}).waitFor();
+ assert.equal(await page.getByText('private-provider-details',{exact:false}).count(),0);
+ await page.getByText('To find an order, sign in with the same email you used at checkout.',{exact:true}).waitFor();
+});
+await check('Google initiation failure is visible and email sign-in remains available',async()=>{
+ await page.evaluate(()=>{window.restoreAuthDigest=crypto.subtle.digest.bind(crypto.subtle);crypto.subtle.digest=async()=>{throw new Error('Fixture crypto unavailable');};});
+ await page.getByRole('button',{name:'Continue with Google',exact:true}).click();
+ await page.getByRole('alert').filter({hasText:'couldn’t connect to Google sign-in'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Continue with Google',exact:true}).isEnabled(),true);
+ await page.evaluate(()=>{crypto.subtle.digest=window.restoreAuthDigest;delete window.restoreAuthDigest;});
+ authMode='email-failure';
+ await page.getByLabel('Email Address',{exact:true}).fill('buyer-fixture@example.com');
+ await page.getByRole('button',{name:'Yes, Send My Access Link! ✉️',exact:true}).click();
+ await page.getByRole('alert').filter({hasText:'Please wait before trying again.'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Yes, Send My Access Link! ✉️',exact:true}).isEnabled(),true);
+ authMode='success';
+ await page.getByRole('button',{name:'Yes, Send My Access Link! ✉️',exact:true}).click();
+ await page.getByRole('heading',{name:'Check Your Email',exact:true}).waitFor();
+ assert.equal(emailAttempts,2);
+});
+await check('Guest tracking link opens sign-in rather than claiming to send email',async()=>{
+ await goto('/order-lookup');
+ await page.getByRole('link',{name:'Sign in to track your order →',exact:true}).click();
+ await page.waitForURL('**/account/login');
+ assert.equal(emailAttempts,2);
+});
 await check('Home, wishlist and mobile product layout',async()=>{
  await goto('/'); await page.getByRole('heading',{level:1}).waitFor();
  await goto('/product/qa-pouch-1'); await page.getByRole('button',{name:'Save to wishlist',exact:true}).first().click();

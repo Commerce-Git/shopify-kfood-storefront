@@ -4,7 +4,7 @@
 
 프론트·어드민을 하나의 서비스로 보고 기능·데이터·요구사항·개선 작업을 연결한 문서다. 이후 개발자는 이 문서에서 시작해 관련 요구사항과 실제 코드 근거를 확인한다.
 
-플랫폼 공통 목표·운영 정책·프로젝트 간 분석 원본은 **`docs/platform-analysis/`**에서 관리한다. 프로젝트 전용 업무·화면·구현 설계는 해당 프로젝트에 둔다: admin은 `doc/`, storefront는 `docs/`. 이 공통 목차에서 각 원본으로 연결하며 복사본은 만들지 않는다.
+플랫폼 전체 목표·프로젝트 간 분석/계약은 **`docs/platform-analysis/`**에서 관리한다. 개별 운영 정책·업무·계약은 주제와 기존 관리 위치의 원본 하나에서 관리하고, 업무별 결정을 공통 목표 문서에 반복 요약하지 않는다. 플랫폼 전체 목표나 실제 프로젝트 간 계약이 바뀔 때 관련 공통 문서를 수정한다. 작업은 해당 주제 원본에서 시작하고 필요한 경우 이 목차에서 관련 문서를 찾는다. admin은 `doc/`, storefront는 `docs/`의 해당 원본을 유지하며 목차는 탐색에 필요한 링크만 연결한다. 판매국 선정·국가별 배송/관세 검토 원본은 [Admin 우체국 문서](../../../blank-seoul-admin/doc/epost/country_shipping_guide.md)다.
 
 **현재 사업 방향:** 한국 제조 상품을 중심으로 진행한다. K-Food는 통관과 작가 모집의 어려움 때문에 추후로 보류했다. 궁극적 목표·과거 전략의 참조 범위·남은 결정은 [목표 문서 D015/D016](PROJECT_DIRECTION.md)에 기록한다. 이번 사업 범위 확정으로 기존 코드가 변경되거나 검증된 것은 아니다.
 
@@ -13,6 +13,14 @@
 **2026-09-27 현재 물류 설계 작업:** [작가·물류 기본 설계](../../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md)에 역할별 정상 흐름과 화면 구성안을 작성했다. 다음은 기존 기능 비교와 동일 상품 배정 기준 구체화다. 예외 처리는 이후 단계에 붙이며 이번 작업은 코드 구현·운영 검증을 포함하지 않는다. 운영 정책과 설계 제안은 [목표 문서 §4.3 및 D018/D019](PROJECT_DIRECTION.md)를 따른다.
 
 ## 작업 시작 시 확인할 기준
+
+**현재 인증 유지 점검(2026-10-25):** 사용자 요청으로 운영 홈페이지가 운영 Supabase 인증을 사용함을 실제 Google 인증 시작 호스트·반환 주소와 대조하고, 비로그인 주문 API 401·페이지 표시·계정 도메인 리디렉션을 확인했다. 운영에서 로그인 실패 안내 누락을 재현하고, 로컬에 인증 실패·재시도 복구와 구매 이메일 안내·주문 조회 링크 문구를 보완했다. 관련 단위20개·가상 외부 응답의 Chrome19흐름·타입·격리 빌드를 통과했다. 본인 로그인 완료·실제 메일 수신·수정본 운영 반영은 미검증이며 Shopify 인증 전환·DB·운영 설정 변경은 없다. [Storefront 원본·검증 경계](../technical/integration-review.md#headless-auth-current-review)를 따른다.
+
+**입고 전표별 최초 실측(2026-10-24):** 사용자 결정에 따라 같은 전표·SKU의 첫 상품1개를 측정하고 이후 동일 SKU 스캔에는 재사용하도록 Admin을 변경했다. 새 전표/검수 초기화에는 다시 측정하며 기존 상품/주문 단중·가격과 출고 계산은 변경하지 않는다. [Admin 입고 규칙·실행 범위](../../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md#inbound-slip-first-unit-weight)를 따른다. TEST 적용이며 운영 DB·배포는 보류다.
+
+**공유 검수·전표별 정산(2026-10-24):** 사용자 D074 승인으로 Admin에 작가 조회 전용 입고 검수·물류센터 기록 정정·판매 당시 단가/정상 입고 수량 기반 전표별 정산과 지급/차액 원장을 연결했다. TEST 적용·로컬 검증 범위와 과거 지급 자료의 대조 경계는 [Admin 원본](../../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md#inbound-inspection-settlement)을 따른다. 운영 DB·실제 송금·배포는 미적용이다.
+
+**작가·물류 정밀 검토·보강(2026-10-24):** 사용자 일괄 진행 요청으로 Admin 검토의 F01~F09를 수정하고 물류 조회/스캔·옵션 식별·정산 저장 책임을 분리했다. 실제 로컬 API+TEST DB의 창고 격리·동시/재시도·원자 마감·무게/원문 보존과 브라우저 실패 복구·모바일 표시를 검증했다. TEST 마이그레이션5개 적용 후 가상 데이터를 정리하고 기존 업무 데이터 해시 일치를 확인했다. 원문 HS 구조·기존 주문 스냅샷은 유지했다. 후속 사용자 푸시 ba40b7b의 dev/READY·실제 TEST API/화면·모바일/오류 복구를 검증하고 임시 데이터를 정리했다. 운영 DB 반영은 사용자 요청으로 보류하며 [배포 검증 범위](../../../blank-seoul-admin/doc/performance_optimization/README.md#artist-logistics-refactor-deployed)를 따른다. [Admin 구현·완료 증거·배포 경계](../../../blank-seoul-admin/doc/performance_optimization/README.md#artist-logistics-refactor-implementation)가 원본이다. 아래 수정 전 재현과 과거 모듈화 계획을 현재 미수정 상태로 해석하지 않는다.
 
 **Storefront 추가 개선(2026-10-16):** 개발도구 잔여 5건의 원인 의존성 경로를 버전 한정 ESLint 어댑터로 제거했고 깨끗한 재설치 후 전체 보안 감사는 0건이다. 계정별 주문 격리·전체 이력 페이지 조회·작가/구매자 배송 구분·쿠폰 동시 발급·구독 실패 판정과 관련 공통 코드를 수정했다. 아래 최초 구매 흐름 기록의 잔여 5건은 이 후속 작업으로 해소됐다. 최신 실행 결과와 유지관리·검증 한계는 [Storefront 원본](../technical/integration-review.md#추가-프론트엔드-검토리팩토링)을 따른다. 사용자 결정대로 미커밋·미푸시·미배포다.
 
@@ -182,7 +190,8 @@
 | [목표·운영 원칙](PROJECT_DIRECTION.md) | 사용자가 결정한 정책과 R01–R12 요구사항 |
 | [분석 계획](PLATFORM_ANALYSIS_PLAN.md) | 분석 범위·절차·판정 기준 |
 | [작가·물류 기본 설계](../../../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md) | 작가/물류/시스템 역할, 정상 흐름, 화면 구성, 후속 예외 설계 |
-| [해외법인 관리](../../../blank-seoul-admin/doc/overseas_entity/README.md) | 설립 후 업무·기한·증빙, Mercury→한국 작가 대금/개인 사용 송금 안내와 로컬 검증 범위. 실제 계약·신고·지급 완료와 구분 |
+| [판매국·K-Packet 배송 검토](../../../blank-seoul-admin/doc/epost/country_shipping_guide.md) | 구매자의 추가 비용·통관 처리 없는 검토 기준, 요금과 향후 국가별 확인 항목. 현재는 기준 수립 단계 |
+| [해외법인 관리](../../../blank-seoul-admin/doc/overseas_entity/README.md) | 마켓토리 직접 판매 전환·새 결제사 준비·LLC 과거 기록 및 세무사 종료 결과 확인. 계약·신고·실제 지급·운영 배포 완료와 구분 |
 | [USER_JOURNEYS.md](USER_JOURNEYS.md) | 역할별 전체 흐름·인수 기준 초안·Q01–Q12 정책 질문 |
 | [FEATURE_MAP.md](FEATURE_MAP.md) | 12개 업무 모듈·35개 기능과 실제 화면·코드 연결 |
 | [DATA_AND_FLOWS.md](DATA_AND_FLOWS.md) | 필드·사건별 데이터 책임·업무 흐름·C01–C12 모듈 계약 |

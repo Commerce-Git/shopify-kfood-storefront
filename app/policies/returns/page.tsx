@@ -12,7 +12,7 @@ export default function ReturnPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Return & Refund Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: August 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -122,7 +122,7 @@ export default function ReturnPolicyPage() {
           <strong>Custom & Bespoke Pieces:</strong> Custom-made, engraved, or personalized items crafted to order cannot be returned or exchanged.
         </li>
         <li>
-          <strong>Unclaimed & Refused Parcels:</strong> In the event that a parcel is returned to South Korea due to customer refusal to pay destination customs/taxes or an invalid address, actual round-trip courier fees and customs clearance costs will be deducted from any refund.
+          <strong>Unclaimed & Refused Parcels:</strong> In the event that a parcel is returned to South Korea due to an invalid address or refusal to pay destination charges that were disclosed as the customer’s responsibility before purchase, actual round-trip courier fees and customs clearance costs will be deducted from any refund.
         </li>
       </ul>
       <p>
@@ -131,8 +131,7 @@ export default function ReturnPolicyPage() {
 
       <h2>5. Refund Processing Timeline</h2>
       <p>
-        Approved refunds are processed through Shopify Payments within <strong>3–5 business days</strong> and returned to your original payment method (Credit Card, PayPal, Apple Pay, Google Pay).
-        Please allow an additional 5–10 business days for the credit to appear on your bank statement depending on your financial institution.
+        Approved refunds are returned to the original payment method. Processing and bank posting times depend on the payment provider and your financial institution. We will confirm when your refund has been submitted.
       </p>
 
       <h2>6. Dedicated Concierge Support</h2>

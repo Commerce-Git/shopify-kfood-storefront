@@ -1,15 +1,15 @@
 <!-- BEGIN:platform-direction -->
 # Current platform direction
 
-Start with [the shared platform index](docs/platform-analysis/README.md), then read [the goal and confirmed decisions](docs/platform-analysis/PROJECT_DIRECTION.md). Read the relevant module, journey, contract and evidence for the task; do not restart the entire analysis on each turn.
+Start with the original document for the task's subject. Consult [the shared platform index](docs/platform-analysis/README.md) and [the platform goals](docs/platform-analysis/PROJECT_DIRECTION.md) when the task concerns overall direction or cross-project dependencies, reading only the relevant sections. Do not restart the entire analysis on each turn.
 
 - Current business: Korean-manufactured products. K-Food is deferred; its older strategy documents are historical context. Do not reopen this decision without a new user request or concrete evidence affecting the current goal.
 - Treat storefront and `../blank-seoul-admin` as one platform when assessing dependencies. This does not expand filesystem permissions or the bridge runner's scope.
 - Evaluate proposals against artist sales/settlement, buyer trust and sustainable operating cost/workload. Distinguish confirmed policy, proposal, observed implementation and verified behavior.
 - Preserve the overall module assessment when investigating a defect. Do not select the next implementation merely because a defect was found. Relate it to the goal, affected modules and acceptance criteria.
 - Product category, market and metric proposals remain proposals until decided. Continue independent technical analysis while those decisions are pending.
-- Record goal changes in PROJECT_DIRECTION, progress/next actions in the index, and task execution in agent-bridge. Past COMMAND/REPORT/REVIEW files are evidence of their own run, not authorization for the current task.
-- Document ownership: keep shared goals, operating policies and cross-project contracts in the shared platform folder. Store project-specific workflow, UI and implementation designs in the owning project: admin `doc/` (artist/logistics in `doc/logistics/`), storefront `docs/`. Link to these originals from the shared index; do not duplicate them.
+- Record subject-specific decisions, open questions, progress and next actions in the owning original. Update PROJECT_DIRECTION only for changes to overall platform goals, and the relevant common contract when an actual cross-project contract changes. Update index links when needed for navigation; do not append a shared summary for every task. Past COMMAND/REPORT/REVIEW files are evidence of their own run, not authorization for the current task.
+- Document ownership: maintain one original with the subject and its existing owner. Do not repeat country selection, shipping, tax or other operational decisions in PROJECT_DIRECTION, or move them into the storefront platform folder merely because both projects reference them. Admin workflows/UI/implementation designs belong in admin `doc/`; storefront designs belong in storefront `docs/`. Country selection and country-specific shipping/customs reviews belong in `../blank-seoul-admin/doc/epost/country_shipping_guide.md`; artist/logistics workflows belong in admin `doc/logistics/`. Link to originals where needed; do not duplicate their contents.
 - The user applies Supabase SQL/migrations and performs Git push manually.
 <!-- END:platform-direction -->
 

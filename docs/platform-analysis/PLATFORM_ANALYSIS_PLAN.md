@@ -199,7 +199,7 @@ docs/platform-analysis/
   journey-evidence.json    # 2차 진입점 분류·참조·해시·문서 확인 결과
 ```
 
-모든 문서는 storefront의 공통 문서 위치를 원본으로 유지하되, admin 관련 항목에는 대상 저장소를 명시한다. `FEATURE_MAP`은 경로 목록, `REQUIREMENTS_MATRIX`는 판정, `FINDINGS`는 결함 상세를 맡고 서로 링크해 중복 갱신을 줄인다. 실제 코드 수정은 이 분석 결과를 근거로 작업 단위로 이어간다.
+위 플랫폼 분석 산출물은 storefront의 공통 분석 폴더에서 유지한다. 개별 운영 정책·업무·계약의 상세 원본은 주제와 기존 관리 프로젝트에 두고 이 목차에서 연결한다. 공통 참조 여부만으로 상세 문서 위치를 강제하지 않는다. `FEATURE_MAP`은 경로 목록, `REQUIREMENTS_MATRIX`는 판정, `FINDINGS`는 결함 상세를 맡고 서로 링크해 중복 갱신을 줄인다. 실제 코드 수정은 이 분석 결과를 근거로 작업 단위로 이어간다.
 
 ## 변경 기록
 

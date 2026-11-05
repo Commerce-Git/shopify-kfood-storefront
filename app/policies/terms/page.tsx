@@ -1,17 +1,18 @@
+import { BUSINESS } from "@/lib/config/business";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms of Service and legal agreements for Blank Seoul, operated by Blank Palette LLC.",
+    "Terms of Service and legal agreements for Blank Seoul, operated by Marketory, a Korean sole proprietorship.",
 };
 
 export default function TermsPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Terms of Service</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: August 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -26,7 +27,7 @@ export default function TermsPage() {
             <span className="text-base shrink-0">🏢</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Operator</strong>
-              <span>Blank Palette LLC (Sheridan, WY, USA)</span>
+              <span>{BUSINESS.name} (South Korea)</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -40,7 +41,7 @@ export default function TermsPage() {
             <span className="text-base shrink-0">⚖️</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Governing Law</strong>
-              <span>State of Wyoming, United States</span>
+              <span>Republic of Korea</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -55,7 +56,7 @@ export default function TermsPage() {
 
       <h2>1. Agreement to Terms & Platform Scope</h2>
       <p>
-        By accessing or purchasing from the Blank Seoul website, operated by Blank Palette LLC (&quot;Blank Seoul&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;),
+        By accessing or purchasing from the Blank Seoul website, operated by {BUSINESS.name} (&quot;Blank Seoul&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;),
         you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not access or use our store.
       </p>
 
@@ -74,7 +75,7 @@ export default function TermsPage() {
 
       <h2>3. Orders, Secure Payments & Cancellation</h2>
       <p>
-        All transactions are securely processed through Shopify Payments using industry-standard 256-bit SSL encryption (PCI-DSS Level 1 compliant).
+        Orders use Shopify checkout and the payment options available there. The final currency and total are shown before you confirm payment.
         We do not store or have direct access to your full credit card numbers.
       </p>
       <p>
@@ -98,8 +99,7 @@ export default function TermsPage() {
 
       <h2>6. Intellectual Property & Partner Rights</h2>
       <p>
-        All original artwork, designs, pattern motifs, trademarks, photographs, and branding on this website
-        are the protected intellectual property of Blank Palette LLC and its partnering Korean makers and brands (including Barneulkkot Lalabi, Miyu, Kkamagwi, and Sosimhan Gomson).
+        Original artwork, designs, trademarks, photographs, and other materials on this website remain the property of their respective rights holders. Displaying these materials does not transfer ownership.
         Unauthorized reproduction, scraping, copying, or commercial distribution of any visual or textual assets without written permission is strictly prohibited.
       </p>
 
@@ -121,23 +121,23 @@ export default function TermsPage() {
 
       <h2>8. Limitation of Liability</h2>
       <p>
-        To the maximum extent permitted by applicable law, Blank Seoul and Blank Palette LLC shall not be liable for any indirect, incidental, punitive, or consequential damages resulting from the use or inability to use our products or website.
+        To the maximum extent permitted by applicable law, Blank Seoul and {BUSINESS.name} shall not be liable for any indirect, incidental, punitive, or consequential damages resulting from the use or inability to use our products or website.
         Our total aggregate liability for any claim shall not exceed the total amount paid by you for the specific order giving rise to such claim.
       </p>
 
       <h2>9. Governing Law & Jurisdiction</h2>
       <p>
-        These Terms of Service shall be governed by and construed in accordance with the laws of the State of Wyoming, United States, without regard to principles of conflicts of law.
-        Any legal proceeding or dispute arising out of these terms shall be submitted to the exclusive jurisdiction of the state or federal courts located in Sheridan County, Wyoming.
+        These Terms are governed by the laws of the Republic of Korea. This choice of law does not limit mandatory consumer protections that apply in your country of residence. Disputes will be handled by courts with jurisdiction under applicable law.
       </p>
 
-      <h2>10. Corporate Legal Contact</h2>
+      <h2>10. Business Contact</h2>
       <p>
         If you have questions regarding these Terms of Service or corporate inquiries, please contact our legal and customer relations team:
       </p>
       <p className="bg-white p-4 rounded-xl border border-[#E8DFC8]/60 text-xs text-[#3F3F46] not-prose space-y-1">
-        <strong className="block text-[#18181B] font-bold text-sm">Blank Palette LLC</strong>
-        <span>30 N Gould St, STE R, Sheridan, WY 82801, USA</span>
+        <strong className="block text-[#18181B] font-bold text-sm">{BUSINESS.name}</strong>
+        <span>Representative: {BUSINESS.representative}</span><br />
+        <span>{BUSINESS.address}</span>
         <br />
         <span>Email: <a href="mailto:support@blankseoul.com" className="text-[#C25E38] font-medium underline">support@blankseoul.com</a></span>
       </p>

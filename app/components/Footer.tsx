@@ -1,3 +1,4 @@
+import { BUSINESS } from "@/lib/config/business";
 import Link from "next/link";
 import SupportTrigger from "./SupportTrigger";
 import { getFooterLinks } from "@/lib/config/collections";
@@ -200,58 +201,17 @@ export default function Footer() {
           {/* Business Info */}
           <div className="text-[11px] text-white/40 space-y-1 text-center lg:text-left">
             <p className="font-semibold text-white/60 mb-2">
-              © {new Date().getFullYear()} Blank Palette LLC. All rights reserved.
+              © {new Date().getFullYear()} BLANK SEOUL. All rights reserved.
             </p>
             <p>
-              US: Blank Palette LLC · EIN: 30-1488569 · 30 N Gould St, STE R, Sheridan, WY 82801
+              Seller: {BUSINESS.name} · Representative: {BUSINESS.representative}
             </p>
             <p className="break-keep">
-              KR: 마켓토리 · 사업자등록번호: 579-11-02683 · 인천광역시 남동구 남동서로236번길 30, 222-J217호(논현동)
+              Business registration: {BUSINESS.registrationNumber}<br />{BUSINESS.address} · {BUSINESS.email}
             </p>
           </div>
 
-          {/* Global Payment Badges & Shopify Checkout */}
-          <div className="flex flex-col items-center lg:items-end gap-2.5 shrink-0">
-            {/* Clean SVG Payment Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              {/* Visa */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#1A1F71] flex items-center justify-center font-black text-[10px] tracking-wider shadow-2xs">
-                VISA
-              </div>
-              {/* Mastercard */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#EB001B] flex items-center justify-center font-black text-[10px] tracking-wider shadow-2xs">
-                MC
-              </div>
-              {/* AMEX */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#006FCF] flex items-center justify-center font-black text-[10px] tracking-wider shadow-2xs">
-                AMEX
-              </div>
-              {/* Apple Pay */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#000000] flex items-center justify-center font-bold text-[10px] shadow-2xs">
-                 Pay
-              </div>
-              {/* Google Pay */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#5F6368] flex items-center justify-center font-bold text-[10px] shadow-2xs">
-                G Pay
-              </div>
-              {/* PayPal */}
-              <div className="h-6 px-2 rounded bg-white/90 text-[#003087] flex items-center justify-center font-bold text-[10px] shadow-2xs">
-                PayPal
-              </div>
-              {/* Shop Pay */}
-              <div className="h-6 px-2 rounded bg-[#5A31F4] text-white flex items-center justify-center font-bold text-[10px] shadow-2xs">
-                shop
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-[11px] text-white/50">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-              <span>Encrypted 256-Bit Checkout powered by Shopify</span>
-            </div>
-          </div>
+          <div className="text-[11px] text-white/50">Secure checkout powered by Shopify</div>
         </div>
       </div>
     </footer>

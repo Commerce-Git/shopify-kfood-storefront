@@ -115,6 +115,9 @@ export default function AccountOrdersSection({
           <p className="text-stone-500 text-sm mb-6 max-w-sm mx-auto">
             Your collection is waiting. Explore authentic Made in Korea goods curated directly from Seoul.
           </p>
+          <p className="text-stone-500 text-sm mb-6 max-w-sm mx-auto">
+            Already placed an order? If you used a different email at checkout, sign out and sign in with that email to view it.
+          </p>
           <Link
             href="/collections"
             className="inline-block px-7 py-3 bg-[#C77B4A] hover:bg-[#b56b3c] text-white font-bold rounded-xl transition-all shadow-xs text-sm"

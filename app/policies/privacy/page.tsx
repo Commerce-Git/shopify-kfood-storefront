@@ -1,3 +1,4 @@
+import { BUSINESS } from "@/lib/config/business";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Privacy Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: October 3, 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -25,7 +26,7 @@ export default function PrivacyPolicyPage() {
             <span className="text-base shrink-0">🏢</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Data Controller</strong>
-              <span>Blank Palette LLC (Sheridan, WY, USA)</span>
+              <span>{BUSINESS.name} (South Korea)</span>
             </div>
           </div>
           <div className="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-[#E8DFC8]/60">
@@ -53,7 +54,7 @@ export default function PrivacyPolicyPage() {
       </div>
 
       <p>
-        Blank Palette LLC operates this store and website, including all related
+        {BUSINESS.name} operates this store and website, including all related
         information, content, features, tools, products and services, in order to
         provide you, the customer, with a curated shopping experience (the
         &quot;Services&quot;). Our store is powered by Shopify, which enables us
@@ -443,11 +444,12 @@ export default function PrivacyPolicyPage() {
         <a href="mailto:support@blankseoul.com?subject=Privacy%20Data%20Request" className="text-[#C25E38] font-semibold underline">
           support@blankseoul.com
         </a>{" "}
-        (Subject: Privacy Data Request) or write to our corporate legal office:
+        (Subject: Privacy Data Request) or write to our business contact address:
       </p>
       <p className="bg-white p-4 rounded-xl border border-[#E8DFC8]/60 text-xs text-[#3F3F46] not-prose space-y-1">
-        <strong className="block text-[#18181B] font-bold text-sm">Blank Palette LLC</strong>
-        <span>30 N Gould St, STE R, Sheridan, WY 82801, USA</span>
+        <strong className="block text-[#18181B] font-bold text-sm">{BUSINESS.name}</strong>
+        <span>Representative: {BUSINESS.representative}</span><br />
+        <span>{BUSINESS.address}</span>
         <br />
         <span>Email: <a href="mailto:support@blankseoul.com" className="text-[#C25E38] font-medium underline">support@blankseoul.com</a></span>
       </p>

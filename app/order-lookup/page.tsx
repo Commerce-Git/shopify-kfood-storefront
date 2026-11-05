@@ -209,7 +209,7 @@ function OrderLookupContent() {
                 href="/account/login"
                 className="block w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/25"
               >
-                Yes, Send My Secure Access Link →
+                Sign in to track your order →
               </Link>
             </div>
           ) : (
