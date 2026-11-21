@@ -36,6 +36,7 @@ const browserPath = process.env.BROWSER_EXECUTABLE || (process.platform === 'dar
 const browser=await chromium.launch({executablePath:browserPath, headless:true});
 const context=await browser.newContext({viewport:{width:390,height:844}});
 const {user:accountUser,session:accountSession,order:accountOrder}=require('./account-fixtures.cjs');
+let activeAccountUser=accountUser;
 let ordersMode='success';
 let authMode='success';let emailAttempts=0;
 const errors=[];let checkoutCalls=0;let checkoutMode='fail';
@@ -58,8 +59,8 @@ await context.route('**/*', async route=>{
   if(authMode==='email-failure')return route.fulfill({status:400,json:{code:'over_email_send_rate_limit',msg:'Please wait before trying again.'}});
   return route.fulfill({json:{}});
  }
- if(url.includes('.supabase.co/auth/v1/user'))return route.fulfill({json:accountUser});
- if(url.includes('.supabase.co/rest/v1/storefront_customers'))return route.fulfill({json:{id:accountUser.id,email:accountUser.email,first_name:'Fixture'}});
+ if(url.includes('.supabase.co/auth/v1/user'))return route.fulfill({json:activeAccountUser});
+ if(url.includes('.supabase.co/rest/v1/storefront_customers'))return route.fulfill({json:{id:activeAccountUser.id,email:activeAccountUser.email,first_name:'Fixture'}});
  if(url.includes('.supabase.co/'))return route.fulfill({json:[]});
  if(new URL(url).pathname==='/api/orders')return ordersMode==='fail'?route.fulfill({status:503,json:{error:'Fixture outage'}}):route.fulfill({json:{orders:[accountOrder],isSubscribed:false}});
 
@@ -106,6 +107,30 @@ await check('Guest tracking link opens sign-in rather than claiming to send emai
  await page.waitForURL('**/account/login');
  assert.equal(emailAttempts,2);
 });
+await check('Korean seller identity and policy copy agree on mobile and desktop',async()=>{
+ for(const width of [320,390,1280]){
+  await page.setViewportSize({width,height:900});
+  for(const route of ['/','/policies/terms','/policies/privacy','/policies/returns','/policies/shipping']){
+   await goto(route);
+   const footer=page.locator('footer');
+   assert.match(await footer.innerText(),/Marketory \(마켓토리\)/);
+   assert.match(await footer.innerText(),/South Korea/);
+   assert.doesNotMatch(await page.locator('body').innerText(),/Blank Palette LLC|Sheridan|Wyoming|Shopify Payments|Pre-Cleared/);
+   const sizes=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+   assert.ok(sizes.scroll<=sizes.client+1,JSON.stringify({route,width,...sizes}));
+   if(route==='/policies/returns'){
+    await page.getByRole('heading',{name:/30-Day Safe Delivery & Damage Protection/}).waitFor();
+    await page.getByText('Refund timing depends on your payment provider and bank.',{exact:true}).first().waitFor();
+   }
+  }
+  await page.screenshot({path:path.join(output,`seller-shipping-${width}.png`),fullPage:true});
+ }
+ await page.setViewportSize({width:390,height:844});
+ await goto('/faq');
+ await page.getByRole('button',{name:'Do I have to pay customs duties or import taxes?',exact:false}).click();
+ await page.getByText('Free shipping does not mean that import charges are waived.',{exact:false}).waitFor();
+ assert.doesNotMatch(await page.locator('main').innerText(),/duty-free|zero surprise customs fees/);
+});
 await check('Home, wishlist and mobile product layout',async()=>{
  await goto('/'); await page.getByRole('heading',{level:1}).waitFor();
  await goto('/product/qa-pouch-1'); await page.getByRole('button',{name:'Save to wishlist',exact:true}).first().click();
@@ -122,7 +147,7 @@ await check('Unavailable option combination never adds first variant',async()=>{
 await check('Available option add respects stock and stores selected price',async()=>{await page.getByRole('button',{name:'S',exact:true}).click();const add=page.locator('#buy-now-button');await add.waitFor();await page.waitForFunction(()=>!document.querySelector('#buy-now-button').disabled);await add.click();await page.getByRole('dialog').waitFor();assert.equal((await cart())[0].variantId,variants[2].id);assert.equal((await cart())[0].price,'42');assert.equal((await cart())[0].quantity,1);await page.keyboard.press('Escape');});
 await check('Sold-out variant cannot be added',async()=>{await page.getByRole('button',{name:'Green',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#buy-now-button')?.textContent.includes('Sold Out'));assert.equal(await page.locator('#buy-now-button').isDisabled(),true);});
 await check('Cart option change, quantity, and page reload',async()=>{await goto('/cart');const select=page.getByLabel('Change variant option');await select.waitFor();await select.selectOption(variants[0].id);await page.getByRole('button',{name:'Increase quantity',exact:true}).click();assert.equal((await cart())[0].quantity,2);await select.selectOption(variants[2].id);assert.equal((await cart())[0].quantity,1);assert.equal(await page.getByRole('button',{name:'Increase quantity',exact:true}).isDisabled(),true);await page.reload();await page.getByRole('heading',{name:'Your bag',exact:true}).waitFor();assert.equal((await cart())[0].price,'42.00');});
-await check('320/390/768/1440 cart has no horizontal overflow',async()=>{for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.waitForTimeout(150);const size=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(size.scroll<=size.client+1,JSON.stringify({width,...size}));await page.screenshot({path:path.join(output, `cart-${width}.png`),fullPage:true});}});
+await check('320/390/768/1440 cart has no horizontal overflow',async()=>{for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.waitForTimeout(150);const size=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(size.scroll<=size.client+1,JSON.stringify({width,...size}));await page.getByText('Any taxes or duties we collect are shown at checkout.',{exact:true}).waitFor();assert.doesNotMatch(await page.locator('main').innerText(),/Taxes and shipping included|Pre-Cleared Customs/);await page.screenshot({path:path.join(output, `cart-${width}.png`),fullPage:true});}});
 await check('Checkout failure retains cart, duplicate clicks create one request',async()=>{await page.setViewportSize({width:390,height:844});const button=page.getByRole('button',{name:'Checkout →',exact:true});await button.evaluate(b=>{b.click();b.click();});await page.getByRole('alert').first().waitFor();assert.equal(checkoutCalls,1);assert.equal((await cart()).length,1);assert.equal(await button.isEnabled(),true);});
 await check('Partial checkout adjustment keeps requested local quantities',async()=>{
  await page.getByLabel('Change variant option').selectOption(variants[0].id);
@@ -159,6 +184,37 @@ await check('Sign-out failure preserves the account and allows retry',async()=>{
  await context.route('**/auth/v1/logout*',route=>route.fulfill({status:204}));
  await page.getByRole('button',{name:'Sign Out',exact:true}).click();
  await page.waitForURL('**/account/login');
+});
+await check('Account switch discards a delayed previous order response and sign-out clears orders',async()=>{
+ const cookieName='sb-zijvqethklunvydtqmak-auth-token';
+ const setSession=async session=>context.addCookies([{name:cookieName,value:'base64-'+Buffer.from(JSON.stringify(session)).toString('base64url'),domain:'localhost',path:'/'}]);
+ await setSession(accountSession);
+ let releaseFirst,firstSeen;
+ const captured=new Promise(resolve=>{firstSeen=resolve;});
+ const release=new Promise(resolve=>{releaseFirst=resolve;});
+ let requests=0;
+ const handle=async route=>{
+  requests++;
+  if(requests===1){firstSeen();await release;await route.fulfill({json:{orders:[{...accountOrder,name:'#STALE-A'}],isSubscribed:false}}).catch(()=>{});return;}
+  await route.fulfill({json:{orders:[{...accountOrder,id:'gid://shopify/Order/456',name:'#ONLY-B'}],isSubscribed:false}});
+ };
+ await context.route('**/api/orders',handle);
+ try {
+  await page.goto('http://localhost:3021/account',{waitUntil:'domcontentloaded'});
+  await Promise.race([captured,new Promise((_,reject)=>setTimeout(()=>reject(Error('No delayed account request')),15000))]);
+  activeAccountUser={...accountUser,id:'22222222-2222-4222-8222-222222222222',email:'buyer-b@example.invalid'};
+  const sessionB={...accountSession,user:activeAccountUser};
+  await setSession(sessionB);
+  await page.evaluate(({name,session})=>{const channel=new BroadcastChannel(name);channel.postMessage({event:'SIGNED_IN',session});channel.close();},{name:cookieName,session:sessionB});
+  await page.getByText('#ONLY-B',{exact:false}).first().waitFor();
+  releaseFirst();await page.waitForTimeout(300);
+  assert.equal(await page.getByText('#STALE-A',{exact:false}).count(),0);
+  assert.equal(await page.getByText('#QA-123',{exact:false}).count(),0);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('blank_seoul_storage_owner')),activeAccountUser.id);
+  await page.getByRole('button',{name:'Sign Out',exact:true}).click();
+  await page.waitForURL('**/account/login');
+  assert.equal(await page.getByText('#ONLY-B',{exact:false}).count(),0);
+ } finally {releaseFirst();activeAccountUser=accountUser;await context.unroute('**/api/orders',handle);}
 });
 assert.deepEqual(errors,[]);
 fs.writeFileSync(path.join(output, 'results.json'),JSON.stringify({passed:true,checks,errors,checkoutCalls},null,2));

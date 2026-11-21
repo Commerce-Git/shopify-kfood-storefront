@@ -9,6 +9,7 @@ import {
 } from "@/emails";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { verifyOrderLookupEmail } from "@/lib/security/orderOwnership";
 
 // ---- 쿠폰 재발급 헬퍼 ----
 
@@ -145,9 +146,11 @@ export async function POST(request: Request) {
     // Check auth
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user?.email || !user.email_confirmed_at) {
+    const ownership = verifyOrderLookupEmail(authError ? null : user, user?.email);
+    if (!user || !ownership.ok) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -175,7 +178,7 @@ export async function POST(request: Request) {
     );
 
     const ownedOrder = orderData?.order;
-    if (!ownedOrder || typeof ownedOrder.email !== 'string' || ownedOrder.email.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+    if (!ownedOrder || typeof ownedOrder.email !== 'string' || ownedOrder.email.trim().toLowerCase() !== ownership.email) {
       return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
     }
     if (ownedOrder.cancelledAt) return NextResponse.json({ error: 'Order is already cancelled.' }, { status: 409 });

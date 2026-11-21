@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import { BUSINESS } from "@/lib/config/business";
+import { REFUND_TIMING_NOTICE } from "@/lib/config/customer-service";
 
 export const metadata: Metadata = {
   title: "Return & Refund Policy",
   description:
-    "Learn about our 3-hour zero-risk cancellation, 30-day delivery protection, and hassle-free refund process for Blank Seoul craft orders.",
+    `Learn about our ${CANCEL_WINDOW_HOURS}-hour cancellation, 30-day delivery protection, and refund process for Blank Seoul orders.`,
 };
 
 export default function ReturnPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Return & Refund Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 6, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -48,13 +50,13 @@ export default function ReturnPolicyPage() {
             <span className="text-base shrink-0">⏱️</span>
             <div>
               <strong className="block text-[#18181B] font-bold">Refund Timeline</strong>
-              <span>Processed in 3–5 business days to original card</span>
+              <span>{REFUND_TIMING_NOTICE}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <h2>1. 3-Hour Zero-Risk Cancellation (Before Dispatch)</h2>
+      <h2>1. {CANCEL_WINDOW_HOURS}-Hour Zero-Risk Cancellation (Before Dispatch)</h2>
       <p>
         We want you to shop with complete peace of mind. You may cancel your order for a <strong>full refund</strong> within{" "}
         <strong>{CANCEL_WINDOW_HOURS} hours</strong> of placing your order — no questions asked.
@@ -64,8 +66,8 @@ export default function ReturnPolicyPage() {
         <Link href="/account" className="font-bold underline text-[#C25E38]">
           Account Dashboard
         </Link>{" "}
-        and click <strong>&quot;Cancel this order&quot;</strong>. Your refund will be initiated immediately.
-        You may also email us at <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> before your package is dispatched.
+        and click <strong>&quot;Cancel this order&quot;</strong>. {REFUND_TIMING_NOTICE}
+        You may also email us at <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a> before your package is dispatched.
       </p>
 
       <h2>2. 30-Day Safe Delivery & Damage Protection</h2>
@@ -87,7 +89,7 @@ export default function ReturnPolicyPage() {
           <div className="bg-white p-3 rounded-xl border border-[#E8DFC8]/60 space-y-1">
             <span className="w-5 h-5 rounded-full bg-[#C25E38] text-white flex items-center justify-center text-[10px] font-bold">2</span>
             <strong className="block text-[#18181B] font-bold pt-1">Email Support</strong>
-            <p className="text-[11px] text-[#71717A]">Send order # and photos to <span className="text-[#C25E38] font-medium">support@blankseoul.com</span>.</p>
+            <p className="text-[11px] text-[#71717A]">Send order # and photos to <span className="text-[#C25E38] font-medium">{BUSINESS.email}</span>.</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-[#E8DFC8]/60 space-y-1">
             <span className="w-5 h-5 rounded-full bg-[#2E7D32] text-white flex items-center justify-center text-[10px] font-bold">3</span>
@@ -131,7 +133,7 @@ export default function ReturnPolicyPage() {
 
       <h2>5. Refund Processing Timeline</h2>
       <p>
-        Approved refunds are returned to the original payment method. Processing and bank posting times depend on the payment provider and your financial institution. We will confirm when your refund has been submitted.
+        Approved refunds are returned to the original payment method. {REFUND_TIMING_NOTICE} We will confirm when your refund has been submitted.
       </p>
 
       <h2>6. Dedicated Concierge Support</h2>
@@ -141,7 +143,7 @@ export default function ReturnPolicyPage() {
       <ul>
         <li>
           <strong>Email:</strong>{" "}
-          <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>
+          <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>
         </li>
         <li>
           <strong>Response Time:</strong> Within 24 hours (Monday – Friday)

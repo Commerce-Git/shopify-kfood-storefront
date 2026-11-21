@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BUSINESS } from "@/lib/config/business";
 
 export const metadata: Metadata = {
   title: "Shipping Policy",
@@ -10,7 +11,7 @@ export default function ShippingPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Shipping Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 6, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -67,29 +68,22 @@ export default function ShippingPolicyPage() {
         </li>
       </ul>
 
-      <h2>2. Global Delivery Times & Regional Destinations</h2>
+      <h2>2. Shipping Destinations</h2>
       <p>
-        We ship across the globe from South Korea. Estimated transit times by destination region are outlined below:
+        Our initial shipping destinations are the United States, Germany, the Netherlands, and Sweden.
+        Orders are dispatched from South Korea. Available destinations and shipping options for your order
+        are confirmed at checkout.
       </p>
       <ul>
-        <li>
-          <strong>United States (Contiguous 48 States):</strong> 7–14 business days (Direct South Korea dispatch via Korea Post ➔ USPS Priority · Free Tracked Shipping)
-        </li>
-        <li>
-          <strong>United States (Alaska, Hawaii, Puerto Rico, Guam & US Territories):</strong> 10–18 business days
-        </li>
-        <li>
-          <strong>Military Addresses (APO / FPO / DPO):</strong> 12–20 business days
-        </li>
-        <li>
-          <strong>Major International Destinations (Canada, United Kingdom, European Union, Australia, Japan & Singapore):</strong> 8–15 business days (Tracked International Airmail / EMS)
-        </li>
-        <li>
-          <strong>Rest of the World (Custom Concierge Dispatch):</strong> 10–18 business days. If your country is not selectable at checkout, please email our support team at <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> for personalized international courier arrangements.
-        </li>
+        <li>United States</li>
+        <li>Germany</li>
+        <li>Netherlands</li>
+        <li>Sweden</li>
       </ul>
       <p>
-        <em>* Note: Delivery estimates are calculated in business days (excluding weekends and statutory public holidays in South Korea and destination countries). Transit times may vary slightly during peak holiday carrier volume or severe weather events.</em>
+        Delivery estimates exclude weekends and public holidays in South Korea and the destination country.
+        Customs processing, carrier availability, and peak periods can affect delivery times.
+        Contact <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a> if your destination is unavailable.
       </p>
 
       <h2>3. Order Preparation & Quality Inspection</h2>
@@ -127,14 +121,15 @@ export default function ShippingPolicyPage() {
 
       <h2>6. Customs, Import Duties & Destination Taxes</h2>
       <p>
-        Every Blank Seoul order is dispatched directly from Korea with complete, compliant international postal customs documentation (CN22/CN23) and accurate HS tariff classifications.
+        Customs documentation is prepared using the product and order details required for the applicable shipping service.
       </p>
 
       <p>
-        Customs treatment depends on the destination and the shipping service available for your order.
-        Any duties or import taxes we collect are shown at checkout. Where we offer delivery with duties paid (DDP),
-        the applicable coverage will be stated before purchase. We do not promise tax-free entry for any destination.
-        Contact <a href="mailto:support@blankseoul.com">support@blankseoul.com</a> before ordering if the treatment of destination charges is unclear.
+        Import duties and import taxes are calculated using your shipping destination and product details,
+        and added as separate charges at checkout where applicable. The final amount, including any duties
+        and import taxes collected by us, is shown before you confirm payment. We arrange delivery with
+        duties paid (DDP) for supported destinations. Free shipping does not waive duties or import taxes.
+        Contact <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a> before ordering if the treatment of destination charges is unclear.
       </p>
 
       <h2>7. 30-Day Safe Delivery & Lost Package Guarantee</h2>
@@ -142,7 +137,7 @@ export default function ShippingPolicyPage() {
         We take full responsibility for ensuring your order arrives safely at your doorstep. If your package has not arrived
         within 20 business days of dispatch, or if tracking shows delivered but you cannot locate the package, please contact our
         dedicated support team at{" "}
-        <a href="mailto:support@blankseoul.com">support@blankseoul.com</a>.
+        <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
       </p>
       <p>
         Under our <strong>30-Day Safe Delivery Guarantee</strong>, we will immediately investigate with Korea Post and either

@@ -20,6 +20,7 @@ import {
   type EmailPipelineMetadata,
 } from "../pipeline-config";
 import { IS_MARKETING_EMAIL_ENABLED } from "../senders";
+import { BUSINESS } from "../../lib/config/business";
 
 export const PipelineStatusDashboard = () => {
   const allPipelines = getAllPipelineMetadata();
@@ -558,19 +559,19 @@ export const PipelineStatusDashboard = () => {
             {/* 2026 Google/Yahoo DMARC/SPF/DKIM Authentication Checklist */}
             <Section className="mb-6">
               <Heading className="text-white text-[15px] font-semibold mb-3 m-0">
-                🛡️ 2026 Google & Yahoo Sender Authentication (DMARC / SPF / DKIM)
+                🛡️ Sender Identity & Authentication Checklist
               </Heading>
               <div style={{ backgroundColor: "#161f30", borderRadius: "8px", padding: "14px", border: "1px solid #26354a" }}>
                 <Text className="text-[11px] text-[#cbd5e1] leading-[22px] m-0">
-                  ✅ <strong>Shopify CNAME Sender Verification:</strong> tv7r0x-zn 매장에서 blankseoul.com 도메인 인증 완료.
+                  <strong>Shopify Sender Verification:</strong> 실제 발신 도메인 인증 상태는 Shopify 관리자에서 확인합니다.
                   <br />
-                  ✅ <strong>Resend Dedicated DKIM Records:</strong> Resend API가 blankseoul.com 서명으로 메일을 전송.
+                  <strong>Resend DKIM Records:</strong> 실제 발신 도메인과 서명 상태는 Resend에서 확인합니다.
                   <br />
-                  ✅ <strong>DMARC Alignment:</strong> 두 엔진 모두 _dmarc.blankseoul.com 정합성을 충족하여 스팸함 직행 방어.
+                  <strong>DMARC Alignment:</strong> 발신 도메인의 SPF·DKIM·DMARC 정합성은 별도 확인 대상입니다.
                   <br />
-                  ✅ <strong>1-Click Unsubscribe (RFC 8058):</strong> 상업성 마케팅 메일(리뷰/쿠폰)에 필수 헤더 및 링크 탑재.
+                  <strong>Unsubscribe:</strong> 현재 사용 경로의 수신거부 링크·헤더와 중지된 발송 기능의 상태를 구분합니다.
                   <br />
-                  ✅ <strong>Physical Address Requirement:</strong> Blank Palette LLC, 30 N Gould St, Sheridan, WY 82801 표기.
+                  <strong>Current Seller Identity:</strong> {BUSINESS.name} · {BUSINESS.address}. 고객용 메일은 공통 판매자 설정을 참조합니다.
                 </Text>
               </div>
             </Section>

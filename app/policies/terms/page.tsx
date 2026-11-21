@@ -1,18 +1,19 @@
 import { BUSINESS } from "@/lib/config/business";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms of Service and legal agreements for Blank Seoul, operated by Marketory, a Korean sole proprietorship.",
+    `Terms of Service and legal agreements for Blank Seoul, operated by ${BUSINESS.name}, a Korean sole proprietorship.`,
 };
 
 export default function TermsPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Terms of Service</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 6, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -79,7 +80,7 @@ export default function TermsPage() {
         We do not store or have direct access to your full credit card numbers.
       </p>
       <p>
-        <strong>3-Hour Self-Cancellation:</strong> You may cancel any order for a full refund within 3 hours of placement directly through your{" "}
+        <strong>{CANCEL_WINDOW_HOURS}-Hour Self-Cancellation:</strong> You may cancel any order for a full refund within {CANCEL_WINDOW_HOURS} hours of placement directly through your{" "}
         <Link href="/account" className="font-bold underline text-[#C25E38]">
           Account Dashboard
         </Link>.
@@ -139,7 +140,7 @@ export default function TermsPage() {
         <span>Representative: {BUSINESS.representative}</span><br />
         <span>{BUSINESS.address}</span>
         <br />
-        <span>Email: <a href="mailto:support@blankseoul.com" className="text-[#C25E38] font-medium underline">support@blankseoul.com</a></span>
+        <span>Email: <a href={`mailto:${BUSINESS.email}`} className="text-[#C25E38] font-medium underline">{BUSINESS.email}</a></span>
       </p>
     </>
   );

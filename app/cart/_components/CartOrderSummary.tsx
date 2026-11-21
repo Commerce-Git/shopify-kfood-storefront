@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CANCEL_WINDOW_HOURS, isStoreLive } from "@/lib/constants";
 import { useLaunchWaitlist } from "@/lib/hooks/useLaunchWaitlist";
 import PrelaunchWaitlistCard from "@/app/components/PrelaunchWaitlistCard";
+import { CHECKOUT_COST_NOTICE } from "@/lib/config/customer-service";
 
 interface CartOrderSummaryProps {
   subtotal: number;
@@ -99,7 +100,7 @@ export default function CartOrderSummary({
                 Estimated total (USD)
               </span>
               <p className="text-[10px] text-[#71717A]">
-                Taxes and shipping included
+                {CHECKOUT_COST_NOTICE}
               </p>
             </div>
             <div className="text-right">
@@ -205,7 +206,7 @@ export default function CartOrderSummary({
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <svg className="w-3 h-3 text-[#71717A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                  Pre-Cleared Customs
+                  Dispatch from Korea
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">

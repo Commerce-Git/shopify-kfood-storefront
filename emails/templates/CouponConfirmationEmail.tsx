@@ -14,6 +14,7 @@ import {
   Tailwind,
 } from "@react-email/components";
 import { DevInspectorRibbon } from "./components/DevInspectorRibbon";
+import { SellerIdentity } from "./components/SellerIdentity";
 
 export interface CouponConfirmationEmailProps {
   customerName?: string;
@@ -103,9 +104,7 @@ export const CouponConfirmationEmail = ({
               order a Blank Seoul Box, please ignore this email.
             </Text>
             <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
-              Blank Palette LLC
-              <br />
-              30 N Gould St, STE R, Sheridan, WY 82801, USA
+              <SellerIdentity />
               <br />
               <br />
               <Link href={unsubscribeUrl} className="text-[#999999] underline">

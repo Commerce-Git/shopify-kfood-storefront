@@ -35,8 +35,8 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const ownership = verifyOrderLookupEmail(user, user?.email);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const ownership = verifyOrderLookupEmail(authError ? null : user, user?.email);
     if (!ownership.ok) return NextResponse.json({ error: ownership.error }, { status: ownership.status });
 
     const orders = await getOrdersByEmail(ownership.email);

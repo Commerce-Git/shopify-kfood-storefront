@@ -2,6 +2,66 @@
 
 공통 기준: [플랫폼 목차](platform-analysis/README.md), [운영 확인 항목](platform-analysis/OPERATIONS.md). Admin 구현은 [Shopify 연동 가이드](../../blank-seoul-admin/doc/Shopify_API_2026_Guide.md)를 참조한다.
 
+<a id="email-confirmation-audit-2026-11-05"></a>
+### 이메일 확인 설정과 주문 소유권 — 2026-11-05 읽기 전용 점검
+
+한국 사업자 전환의 현재 설정 검토 중, 운영 `feezosccyvecmrhqrkgl`·개발 `zijvqethklunvydtqmak`의 `/auth/v1/settings`가 모두 HTTP 200으로 `disable_signup=false`, `external.email=true`, `mailer_autoconfirm=true`를 반환했다. Google·Kakao도 양쪽 true다. 이 조회는 가입·로그인·설정 변경을 수행하지 않는다.
+
+현재 [주문 소유권 검사](../lib/security/orderOwnership.ts)는 `user.email`과 `email_confirmed_at`의 존재 및 요청 이메일 일치를 요구한다. 그러나 Supabase는 [Confirm Email을 끄면 이메일을 DB에서 암묵적으로 확인 처리](https://supabase.com/docs/guides/auth/general-configuration)한다고 설명한다. 따라서 확인된 날짜의 존재만으로 실제 이메일 소유 확인을 증명한다는 코드 전제와 원격 자동 확인 설정이 충돌할 위험이 있다. UI가 [이메일 링크 로그인](../app/components/AuthProvider.tsx)을 사용한다는 것만으로 공개 Auth API의 다른 가입 경로까지 차단됐다고 판정하지 않는다.
+
+**후속 우선 확인(2026-11-06 개발 우선 결정 반영):** 먼저 TEST의 Confirm Email 정책과 허용 가입 경로/훅을 대조하고 이메일 소유 확인을 요구하는 설정·인가 계약을 검증한다. 운영 설정 검토·변경은 이후 운영 전환 단계로 남긴다. 기존 계정의 확인 시각을 일괄 변경하거나 특정 사용자를 신뢰 계정으로 자동 지정하지 않는다. 양쪽 앱이 같은 Auth를 사용하므로 구매자·작가·관리자 신규 가입과 Google/Kakao 로그인에 미치는 영향도 확인한다. 실제 타인 이메일로 가입·주문 조회·취소를 재현하지 않았으며 정보 유출·공격 성공으로 확정한 결과는 아니다. 이메일 보유 확인과 관리자 role 인가를 서로 대체하지 않는다.
+
+관련 전환 검토는 [업무 원본](../../blank-seoul-admin/doc/overseas_entity/README.md#현재-설정-종합-재검토--2026-11-05), 읽기 결과는 Admin `.agent-bridge/korean-entity-settings-audit.json`의 `supabasePublicAuthSettings`를 따른다. 위 설정값을 자동 수정하지 않았다.
+
+<a id="auth-access-isolated-verification-2026-11-06"></a>
+### 인증·주문 접근 격리 검증 — 2026-11-06
+
+사용자는 **코드·격리 테스트 우선**을 선택했다. 이번 단계는 완료했지만 실제 이메일 소유 확인과 운영 보안 검증은 완료하지 않았다. 업무상 목표는 구매자 주문 정보 보호와 작가·본사 권한 분리이며, 구매/물류/정산 전체 모듈의 완료 판정을 대체하지 않는다.
+
+**TEST 읽기 전용 관찰:** 두 프로젝트의 `.env.local`이 `zijvqethklunvydtqmak`를 가리키는지 확인하고, 이 프로젝트의 공개 Auth settings와 Management API 설정을 GET으로 조회했다. 양쪽 응답은 가입 허용·이메일 자동 확인 활성화를 보여 준다. Google/Kakao/email Provider가 켜져 있고, Before User Created·Password Verification Attempt·Custom Access Token 훅은 비활성이다. 허용 반환 URL은 로컬 3001/3003 및 두 dev Preview다. 설정 원문 전체나 Secret은 보존하지 않고 필요한 비밀이 아닌 항목만 결과 파일에 기록했다. 운영 설정은 이번에 재조회하지 않았다.
+
+| 경계 | 구현 관찰·이번 검증 | 판정의 제한 |
+| --- | --- | --- |
+| Storefront 로그인 | 이메일 링크/Google → Supabase 코드 교환 → 고객 프로필 → 로컬 경로 복귀. 반환 경로 `next`가 외부 호스트로 해석될 수 있던 문제를 수정 | 실제 메일 수신·Google 인증 완료를 수행하지 않음 |
+| 주문 조회·취소 | 서버 `getUser()`의 오류를 명시적으로 거절. 이메일 공백값 거절과 취소의 공통 검사 적용. 본인 주문 허용, 다른 이메일/주문 거절, 거절 시 취소·환불·기록·쿠폰·발송 없음 | 테스트는 SDK 사용자 응답과 외부 업무 시스템을 대체함. 토큰 서명/만료 검증 자체를 재구현하거나 실서비스 공격을 재현한 것이 아님 |
+| 계정 전환 | 브라우저에서 A의 주문 응답을 지연시킨 후 B로 전환. B 주문만 표시되고 늦은 A 응답은 표시되지 않음. 로그아웃 후 주문 제거 | 가상 Supabase 인증 이벤트 사용 |
+| 관리자·작가 | 서버 관리 역할 및 `auth_user_id`에 연결된 활성 작가만 허용. 타 작가 거절 | [Admin 실행 원본](../../blank-seoul-admin/doc/security_roadmap/FRONT_ADMIN_IMPLEMENTATION_PLAN_2026-09-23.md#auth-access-isolated-verification-2026-11-06) 참조 |
+| 고객 문의 | 기존 대화 토큰 권한 유지. 잘못된/만료된 토큰과 직원 사칭 거절. 저장소 SQL 함수를 로컬 PostgreSQL에서 실행해 대화·공개 메시지 범위 확인 | 로컬 최소 스키마 시험이며 원격 RLS·전체 마이그레이션 적용 상태를 검증한 것이 아님 |
+
+**미해결: 자동 확인과 실제 이메일 소유권.** 현재 입력 필드(`email`, `email_confirmed_at`)만으로 자동 확인 계정과 메일함 인증 완료 계정을 구분할 수 없다. 동일한 확인 시각을 가진 가상 계정이 검사에 통과하는 회귀 사례를 남겼다. 이는 한계를 재현하는 시험이며 보안 통과 증거가 아니다. UI에 비밀번호 가입 버튼이 없거나 관리자 역할 검사가 존재한다는 사실은 이메일 기반 주문 소유권 문제의 해결 근거가 아니다. 원격 가입 시도·기존 계정 조사는 하지 않았으므로 실제 타인 계정 탈취나 주문 노출이 확인됐다고 표현하지 않는다.
+
+**검증 결과:** Storefront 단위 61/61, Admin 관련 단위 40/40(신규 로컬 SQL 함수 시험 포함), Chrome 구매·계정 흐름 21/21·페이지 오류 0. 양쪽 타입 검사 및 이번 변경 파일 린트 통과. 기존 전체 Admin 린트 문제 해결이나 전체 기능 전수 검증을 의미하지 않는다. 새 패키지·DB 스키마·공개 API 형식 변경은 없다.
+
+재실행: Storefront `npm run test:unit`, `npm run test:purchase`, 양쪽 `npm run typecheck`. Admin은 `node --import tsx --test --test-concurrency=1 tests/unit/auth-access-contract.test.ts tests/unit/inquiry-capability-sql.test.ts tests/unit/oauth-callback.test.ts tests/unit/admin-auth-body.test.ts tests/unit/security-boundaries.test.ts tests/unit/inquiry-routes.test.ts tests/unit/inquiry-delivery.test.ts`를 실행한다. 외부 업무 요청은 fixture로 대체하거나 차단하며 SQL 함수 시험은 메모리 PGlite에만 적용한다. Admin 로컬 파일에는 여전히 `BYPASS_AUTH=true`가 있으므로 실제 후속 인증 시험은 서버 시작 환경에서 **false를 명시**해야 한다. 이번 권한 시험의 VM은 false를 강제했다.
+
+**다음 실행 단계(당시 미수행):** TEST의 Confirm Email 활성화 등 설정 보완안을 기존 구매자/작가/관리자 가입 방식과 대조한 후 적용하고, 사용자 소유 시험 계정으로 신규 가입 전/후·이메일 링크·Google/Kakao·주문 접근을 확인한다. 기존 자동 확인 계정은 설정 변경만으로 소유 검증이 보완됐다고 간주하지 않으며, 대상 파악과 재확인/세션 처리 절차가 필요하다. 기존 사용자를 일괄 신뢰하거나 확인 시각·역할을 임의 수정하지 않는다. 실제 인증 검증을 마친 뒤 구매 → Admin 주문 수신/물류/취소/정산 연결 계획을 이어간다. 아래 [TEST 실제 검증 후속](#test-auth-live-verification-2026-11-06)이 현재 상태다.
+
+실행 근거: [auth-access-verification.json](../.agent-bridge/auth-access-verification.json). 원격 Auth 설정 변경·계정 생성·메일/카카오 발송·실제 주문/환불·Supabase SQL 적용·Git push·배포는 수행하지 않았다.
+
+<a id="test-auth-live-verification-2026-11-06"></a>
+### TEST 이메일 확인 적용·실제 인증 후속 — 2026-11-06
+
+사용자는 실제 TEST 설정 변경과 본인 로그인 검증, `thec9rqwer@gmail.com` 인증 메일 수신을 선택하고 실행을 요청했다. 이 절은 위 격리 검증 이후의 별도 실행이다. **TEST 설정 적용·미확인 계정 로그인 차단・사용자 메일 안내 후의 실제 계정 진입을 확인했다. 새 Google/Kakao 로그인은 사용자 확인 대기다.** 운영의 이메일 자동 확인 위험이 해결됐다는 뜻은 아니다.
+
+- 전용 프로필로 TEST 설정을 읽고 **`mailer_autoconfirm`만 true → false로 PATCH**했다. Management API와 공개 Auth settings에서 false를 재조회했다. 가입 허용·Google/Kakao/email 활성화·반환 URL·SMTP·발송 훅은 유지했다. 변경 전후 필요한 비밀이 아닌 설정만 실행 증거에 보존한다.
+- 기존 TEST 사용자 3개의 상세 identity는 Google 관리자 2개와 Kakao 1개였다. 이메일 방식 identity는 없었다. 사용자 ID/소셜 identity ID는 해시로 비교했고 기존 역할·연결 보존을 확인했다. 기존 사용자 확인 시각·비밀번호·역할을 일괄 수정하거나 세션을 강제로 폐기하지 않았다.
+- `.invalid` 주소와 서버 관리 실행 표식이 있는 임시 계정 하나를 Auth Admin API로 미확인 상태 생성했다. 실제 password token endpoint는 HTTP 400·`email_not_confirmed`를 반환했고 세션을 발급하지 않았다. 정확한 이메일과 표식이 일치하는 이번 계정만 삭제하고 부재를 재조회했다. **공개 signUp 경로의 메일 수신 시험을 대체하지 않는다.**
+- 선택한 메일함이 Supabase 팀 구성원임을 확인했다. 별도 SMTP·Send Email 훅은 비활성이므로 기본 서비스를 사용했고 Storefront 로그인 화면의 실제 OTP 요청은 HTTP 200으로 접수됐다. 발송 접수는 실제 배달/인증 완료를 증명하지 않는다. 기본 서비스는 팀 구성원 수신자 제한 및 시간당 2회 제한이 있어 반복 요청을 피한다. [공식 SMTP 안내](https://supabase.com/docs/guides/auth/auth-smtp).
+- 사용자는 기존 Kakao 이메일의 계정이 보인다고 보고했다. 별도 검증 Chrome은 로그인 전 상태였고 서버에는 실패한 콜백이 관찰됐다. 선택 계정 및 기존 Kakao 계정의 `last_sign_in_at`도 시험 전과 같았다. 따라서 계정 변경이나 메일 인증 성공으로 판정하지 않고 기존 세션/다른 브라우저 가능성으로 남겼다. 사용자가 평소 브라우저에서 로그아웃→선택 주소로 새 링크 요청→같은 브라우저에서 열기를 진행하도록 안내했다. 인증 링크·코드·비밀번호를 채팅으로 수집하지 않는다.
+- **사용자 후속 확인:** 위 같은 브라우저 안내 이후 사용자가 선택한 Gmail 주소와 계정 화면·주문 0건이 표시된 화면을 제공했다. 해당 Auth 사용자의 새 `last_sign_in_at`(2026-11-06T06:12:20.575004Z)과 서버의 callback 307 → account 200, 주문 API 200을 대조했다. 기대 계정의 실제 로그인과 계정/빈 주문 목록 접근은 확인했다. 주문 0건을 실제 주문 소유권 대조 성공으로 확대하지 않으며, 인증 방식에 관한 JWT/AMR을 수집한 검증은 아니다. 최초 타 계정 표시만으로 계정 연결 오류로 판정하지 않는다.
+- Storefront 3001은 실제 TEST 연결로 실행했다. Admin은 기존 3002 서버를 보존하고 3003에 별도 시험 프로세스를 실행했다. Admin 시험 프로세스는 `BYPASS_AUTH=false`, 산출물은 무시되는 `.next/auth-verification/`, 임시 TS 설정은 `node_modules/.cache/auth-verification/`로 분리했다. 기존 `.env.local`의 우회 값을 바꾸지는 않았다. 서버 기동이 임시 추가한 tracked tsconfig 항목은 원본과 의미 비교 후 제거했다.
+- 실제 로컬 서버에서 무세션 주문 목록·조회·취소, Admin 관리 API와 Kakao 세션 API의 401을 확인했다. 실제 주문 생성·취소·환불은 실행하지 않았다.
+
+설정/임시 계정 재검증 도구는 `node scripts/verify-test-auth.mjs inspect|apply|unconfirmed|observe`다. 기본 inspect는 읽기 전용이다. apply는 TEST의 단일 설정만 바꾸며 기존 적용 기록이 있으면 재적용을 거절한다. unconfirmed는 확인 설정을 검사한 뒤 임시 계정 생성·로그인 거절·정리를 실행한다. observe는 기존 역할·identity 보존 및 공개/관리 설정을 대조한다. 관리자가 생성한 인증 링크로 실제 수신을 우회하지 않는다. 실행 결과 원본은 [test-auth-live-verification.json](../.agent-bridge/test-auth-live-verification.json)이다.
+
+이번 설정 적용 이후 회귀: Storefront 단위 61/61, Admin 인증 관련 선택 시험 25/25, fixture Chrome 흐름 21/21·페이지 오류 0. 검증 스크립트는 `node --check`와 `npx eslint --no-ignore scripts/verify-test-auth.mjs`를 통과했다. 앱 소스·API·타입 변경이 없어 기존 타입 검사를 반복하지 않았다. fixture 브라우저 통과는 위 실제 메일 인증 대기를 해소하지 않는다. 사용자 인증을 이어갈 수 있도록 로컬 시험 서버를 실행 상태로 두었으며, 확인 후 이번 시험 프로세스만 정리한다.
+
+**사용자의 직접 검토 요청 후 실행:** 별도 Playwright 컨텍스트에서 Storefront Google·Admin Google·작가 Kakao 버튼을 실제 클릭했다. 세 경로 모두 TEST 프로젝트, 각 앱의 올바른 `redirect_to`, PKCE 사용을 확인하고 Google/Kakao 로그인 화면까지 도달했다. 또한 세 앱 콜백에 인증 취소 오류를 전달해 307과 각각 `/account/login`, `/login`, `/artist`의 `auth_failed` 복귀를 확인했다. Admin 분리 시험의 임시 TS 설정/번들러와 클릭 시점을 보완한 뒤 최종 세 경로를 통과했다. 이 과정은 임시 시험 도구 조정이며 앱 코드 수정은 아니다.
+
+현재 사용자 Chrome은 AppleScript JavaScript 실행이 꺼져 있어 기존 로그인 세션을 직접 검사하지 않았다. 브라우저 보안 설정 변경·쿠키/토큰 추출·개인 계정 자격증명 입력은 하지 않았다. **소셜 로그인 화면 도달과 개인 계정 인증 후 대시보드 진입은 다른 검증이다. 후자는 미검증으로 유지한다.** 추가 검증 Chrome과 3003 시험 서버는 종료했고, 사용자가 사용 중인 Storefront 3001과 기존 Admin 3002는 유지했다. Admin의 생성된 타입 참조도 기존 `.next/dev/`로 복원했다.
+
+남은 인수: 본인 Google/Kakao의 새 인증 완료 및 역할별 화면 진입. 사용자 직접 검토 요청에 따라 자동으로 가능한 연결·권한 회귀 점검까지 완료했으며 추가 로그인 작업을 반복 요청하지 않았다. 인증 실패가 발생해도 자동 확인을 다시 켜서 통과 처리하지 않는다. 새 앱 코드/API/DB 스키마 변경은 없으며 운영 설정·SQL 적용·push·배포는 수행하지 않았다.
+
 ### Admin 재고 위치 — 2026-10-03
 
 `getPrimaryLocationId()`는 운영·테스트 모두 같은 코드로 Shopify `location(id: null)`의 기본 위치를 조회한다. `locations(first: 1)`은 정렬상 첫 위치일 뿐 기본 위치가 아니므로 사용하지 않는다. 서버 전역 위치 캐시를 제거하여 다른 스토어/설정의 ID를 재사용하지 않는다. `SHOPIFY_LOCATION_ID`를 명시한 경우 해당 스토어의 활성·온라인 주문 가능 위치인지 검증하며, 잘못된 ID를 기본 위치로 조용히 대체하지 않는다.

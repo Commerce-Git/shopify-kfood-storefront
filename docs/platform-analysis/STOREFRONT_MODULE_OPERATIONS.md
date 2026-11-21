@@ -1,5 +1,7 @@
 # M04 구매 경험 운영 지도 (Storefront Operations Map)
 
+**현재 구매·주문 연결 검증(2026-11-06):** 구매·계정의 최신 구현/실행 결과와 Admin 연결 판정은 [구매 원본](../technical/integration-review.md#order-lifecycle-verification)을 따른다. 아래 9월 기준 지도는 담당 화면·모듈 탐색용이며 과거 코드 설명/미검증 항목을 현재 상태로 사용하지 않는다. 실제 개발 게이트웨이 결제 #1015는 후속 확인됐지만, 이번 로컬 연결 시험을 운영 전체 인수로 해석하지 않는다.
+
 **2026-10-04 모바일 구매 흐름 후속:** 담기 CTA·장바구니 고정 결제 버튼, 실제 상품 검색, 터치 이미지 확대와 공통 모달을 로컬에서 개선했다. [모바일 UX 검토·검증](MOBILE_UX_AUDIT.md)을 현재 후속 근거로 연결한다. 실물 모바일·실제 결제·배포 후 성능은 별도 확인 대상이다.
 
 > 기준일: 2026-09-24 · 대상 모듈: `M04 구매 경험` (`M04-F001 상품 탐색`, `M04-F002 장바구니`)  
@@ -21,7 +23,7 @@
 
 M04는 한국 제조 상품 사업 방향 아래 구매자가 Shopify 카탈로그를 탐색하고 구매 결정을 내려 결제로 진입하기까지의 프론트엔드 경험을 담당한다. 카탈로그 쿼리는 제조 국가 속성을 조회하거나 검증하지 않으므로, 화면에 노출된 상품이 한국 제조 상품이라는 조건은 프론트 코드만으로 보장되지 않는다. **[확인한 코드 사실]** / 한국 제조 확인 기준과 카탈로그 등록·검증 책임은 Q01 **[정책 미결정]**.
 
-- **R01 헤드리스 아키텍처 연결**: R01("프론트는 Shopify 헤드리스 프로젝트다")에 따라 Next.js 기반 헤드리스 프론트엔드로 구현되어 있다. Storefront GraphQL API를 통해 카탈로그 탐색(`M04-F001`)과 장바구니/체크아웃 생성(`M04-F002`)을 분리 수행하며, 구매자 여정 B01(발견·탐색) → B02(상세·옵션 확인) → B05(장바구니·Shopify 결제 인계)를 클라이언트에서 책임진다. 단, R01의 "구매 흐름 전체 통합 검증"은 라이브 결제 및 주문 생성까지 수행되지 않은 상태다. **[확인한 코드 사실]** / **[실행하지 않은 검증]**
+- **R01 헤드리스 아키텍처 연결**: R01("프론트는 Shopify 헤드리스 프로젝트다")에 따라 Next.js 기반 헤드리스 프론트엔드로 구현되어 있다. Storefront GraphQL API를 통해 카탈로그 탐색(`M04-F001`)과 장바구니/체크아웃 생성(`M04-F002`)을 분리 수행하며, 구매자 여정 B01(발견·탐색) → B02(상세·옵션 확인) → B05(장바구니·Shopify 결제 인계)를 클라이언트에서 책임진다. 후속 개발 게이트웨이 테스트 결제/주문 생성은 확인됐다. 현재 로컬 검증·과거 외부 검증·미검증인 운영 실제 청구는 [구매 원본](../technical/integration-review.md#order-lifecycle-verification)에서 구분한다.
 - **M04-F001 상품 탐색 (B01, B02)**: 홈, 컬렉션, 작가 디렉터리, 상품 상세 화면에서 Shopify에 게시된 상품 카탈로그와 작가 스토리, 옵션/가격/가용성 정보를 제공한다. 상품의 한국 제조 여부를 확인하는 필드나 필터는 [카탈로그 쿼리](../../lib/shopify/queries.ts#L68)에서 확인되지 않았다. Shopify 게시 상태는 관리자 승인이나 한국 제조 확인의 증거가 되지 않는다. **[확인한 코드 사실]**
 - **M04-F002 장바구니 (B05)**: 장바구니 담기, 수량/옵션 변경, 장바구니 보관·복원, 쿠폰 적용 후 Shopify Storefront API의 `cartCreate`를 통해 `checkoutUrl`로 이동시킨다.
 - **B01 발견·탐색**: 구매자가 [app/page.tsx](../../app/page.tsx) 홈 쉘프, [app/collections/page.tsx](../../app/collections/page.tsx), [app/artists/page.tsx](../../app/artists/page.tsx)를 통해 작품 및 제작 스튜디오를 확인한다.
@@ -67,11 +69,11 @@ flowchart TD
 
 ### 2.1 상품 탐색 경로 (M04-F001)
 - **홈 화면 (`app/page.tsx`)**:
-  - 읽기: [lib/shopify/api.ts](../../lib/shopify/api.ts) `getAllProducts(50)` 호출 → [lib/shopify/storefront.ts](../../lib/shopify/storefront.ts) `storefrontFetch` (GraphQL 2024-01, Next.js ISR `revalidate: 60`).
+  - 읽기: [lib/shopify/api.ts](../../lib/shopify/api.ts)의 `getProductsPage({ first: 50 })`로 홈 미리보기를 조회한다. 전체 카탈로그 목록과 구분한다. API 판본·캐시 설정은 실제 공통 fetch 구현을 따른다.
   - 작가 결합: [lib/artists.ts](../../lib/artists.ts) `getEnrichedArtistsWithProducts` → Supabase `artist_accounts` 조회 결합. **[확인한 코드 사실]**
   - 모드 분기: `isStoreLive()`가 `false`(preview)이면 상단 프리런칭 매니페스토 배너 노출.
 - **컬렉션 허브/목록 (`app/collections/page.tsx`, `app/collections/[handle]/page.tsx`)**:
-  - 읽기: `getAllProducts(50)` 또는 `getCollectionByHandle(targetHandle)`로 Shopify 카탈로그 조회. 품절 상품을 후순위 정렬. **[확인한 코드 사실]**
+  - 읽기: 전체 목록은 `getProductsPage({ first: 48, after })`, 개별 컬렉션은 `getCollectionByHandle(targetHandle, { first: 48, after })`와 다음 페이지 링크를 사용한다. 상위 컬렉션은 하위 컬렉션별 12개 미리보기다. **[확인한 코드 사실]**
 - **작가 디렉터리 (`app/artists/page.tsx`, `app/artists/[slug]/page.tsx`)**:
   - 읽기: `getAllProducts(100)` 후 `getEnrichedArtistsWithProducts` 결합. **[확인한 코드 사실]**
 - **상품 상세 (`app/product/[handle]/page.tsx`)**:
@@ -84,8 +86,8 @@ flowchart TD
   - 아이템 추가: [app/components/BuyButton.tsx](../../app/components/BuyButton.tsx) 클릭 시 `addToCart` 호출.
 - **결제 실행 (`app/cart/_hooks/useCartCheckout.ts`)**:
   - 실행 조건: `isStoreLive()`가 `true`이고 장바구니 아이템이 1개 이상일 때만 동작. preview 모드에서는 결제 버튼 대신 [app/components/PrelaunchWaitlistCard.tsx](../../app/components/PrelaunchWaitlistCard.tsx) 대기열 등록 폼 렌더링. **[확인한 코드 사실]**
-  - 백업 쓰기: 결제 직전 `backupToStorageOnly`가 호출되어 `blank-seoul-checkout-backup`에 1시간 만료 백업을 저장하고 `blank-seoul-cart` 본체는 비움. **[확인한 코드 사실]**
-  - Shopify 결제 생성: `storefrontFetch(CREATE_CART)` 호출 → `cartCreate(lines, discountCodes)` mutation 실행 → 반환된 `cart.checkoutUrl`로 `window.location.href` 리다이렉트. `userErrors` 발생 시 `setError(userErrors[0].message)` 후 이동 차단 처리 존재. **[확인한 코드 사실]**
+  - 백업 쓰기: Shopify 응답 검증에 성공한 뒤 `backupToStorageOnly`로 이탈 복원용 백업을 저장한다. 실패 때 장바구니를 먼저 비우지 않는다. **[확인한 코드 사실]**
+  - Shopify 결제 생성: `storefrontFetch(CREATE_CART)`에 20초 제한·no-store를 적용하고 `checkoutDestination`에서 행·수량·경고·쿠폰을 확인한 후 `window.location.assign`으로 이동한다. 실행 잠금과 실패/뒤로가기 복구를 갖춘다. **[확인한 코드 사실]**
 
 ---
 
@@ -195,7 +197,9 @@ flowchart TD
 
 ## 6. 근거가 있는 정리 후보(제안) 및 모듈 기록 템플릿
 
-### 6.1 조사 출발점 4대 정리 후보 분석
+### 6.1 조사 출발점 4대 정리 후보 분석 — 2026-09-24 이력
+
+아래는 수정 전 조사다. 목록·검색 페이지 처리, 조회 오류 표시, 구매 흐름의 후속 수정·실행 결과는 [구매 원본](../technical/integration-review.md#order-lifecycle-verification)을 따른다. 아래 제안을 일괄 미완료 작업으로 재등록하지 않는다.
 1. **`getAllProducts` 호출 화면의 50/100개 단일 페이지 제한**:
    - 근거: [app/page.tsx](../../app/page.tsx) 홈 쉘프(50), [app/collections/page.tsx](../../app/collections/page.tsx) 허브(50), [app/collections/[handle]/page.tsx](../../app/collections/[handle]/page.tsx#L71) 슈퍼 카테고리 허브(50), [app/artists/page.tsx](../../app/artists/page.tsx)(100), [app/artists/[slug]/page.tsx](../../app/artists/[slug]/page.tsx#L44) 작가 상세 작품 목록(100), [app/api/cart-companions/route.ts](../../app/api/cart-companions/route.ts#L52) 장바구니 추천 API(50)가 `getAllProducts(count)`를 호출. [lib/shopify/api.ts#L116](../../lib/shopify/api.ts#L116)은 커서 페이지네이션 없이 단일 페이지만 반환함.
    - 영향: 전체 시스템에서 상품이 영구 누락되는 것은 아니며, [개별 컬렉션 화면](../../app/collections/[handle]/page.tsx#L156)은 별도 조회(`getCollectionByHandle`)를 사용해 최대 250개 상품을 조회하고 [상품 상세](../../app/product/[handle]/page.tsx)도 핸들로 직접 조회 가능함. 그러나 `getAllProducts`를 사용하는 홈 쉘프·컬렉션 허브·슈퍼 카테고리뿐만 아니라, [작가 상세](../../app/artists/[slug]/page.tsx#L44)의 전체 작품 목록(101번째 이후 작품 누락) 및 [장바구니 추천](../../app/api/cart-companions/route.ts#L52)(51번째 이후 추천 후보 누락)에서도 초기 노출 대상에서 제외되는 누락 위험이 존재함.

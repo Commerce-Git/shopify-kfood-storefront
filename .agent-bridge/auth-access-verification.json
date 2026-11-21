@@ -1,0 +1,161 @@
+{
+  "checkedAt": "2026-11-06T05:34:56.970Z",
+  "executor": "Codex direct; no Gemini pipeline run",
+  "scope": "Code and isolated tests; TEST Auth settings GET only",
+  "status": "completed_with_unresolved_email_ownership_risk",
+  "sourceHeads": {
+    "storefront": "ac7026237ad59b430a4a9dfbf67aed1e188843ca",
+    "admin": "f4c1c28afc6bc7f89b4605615c729b934a6f766d"
+  },
+  "authSettings": {
+    "checkedAt": "2026-11-06T05:26:53.639Z",
+    "project": "zijvqethklunvydtqmak",
+    "httpStatus": 200,
+    "disable_signup": false,
+    "mailer_autoconfirm": true,
+    "external": {
+      "email": true,
+      "google": true,
+      "kakao": true
+    },
+    "management": {
+      "httpStatus": 200,
+      "settings": {
+        "disable_signup": false,
+        "mailer_autoconfirm": true,
+        "external_email_enabled": true,
+        "external_google_enabled": true,
+        "external_kakao_enabled": true,
+        "hook_before_user_created_enabled": false,
+        "hook_password_verification_attempt_enabled": false,
+        "hook_custom_access_token_enabled": false,
+        "site_url": "https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app",
+        "uri_allow_list": "http://localhost:3001/**,http://localhost:3003/**,https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app/**,https://blank-seoul-admin-git-dev-thec9rqwer-4072s-projects.vercel.app/**"
+      }
+    },
+    "localBindings": {
+      "storefront": {
+        "supabaseHost": "zijvqethklunvydtqmak.supabase.co",
+        "localAuthBypass": false
+      },
+      "admin": {
+        "supabaseHost": "zijvqethklunvydtqmak.supabase.co",
+        "localAuthBypass": true
+      }
+    }
+  },
+  "changes": [
+    "Validate storefront OAuth next as a local path; reject host/userinfo injection, backslashes and controls",
+    "Explicitly reject getUser errors across three order endpoints",
+    "Reject blank normalized session email; share order email guard with cancellation",
+    "Add actual-handler, role/capability and repository SQL regression tests",
+    "Add browser delayed-order/account-switch regression"
+  ],
+  "tests": {
+    "storefrontUnit": {
+      "command": "npm run test:unit",
+      "exitCode": 0,
+      "passed": 61,
+      "log": "/tmp/blank-auth-storefront-unit.log"
+    },
+    "adminTargeted": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/unit/auth-access-contract.test.ts tests/unit/inquiry-capability-sql.test.ts tests/unit/oauth-callback.test.ts tests/unit/admin-auth-body.test.ts tests/unit/security-boundaries.test.ts tests/unit/inquiry-routes.test.ts tests/unit/inquiry-delivery.test.ts",
+      "exitCode": 0,
+      "passed": 40,
+      "log": "/tmp/blank-auth-admin-unit.log"
+    },
+    "browser": {
+      "command": "npm run test:purchase",
+      "exitCode": 0,
+      "passed": true,
+      "checks": [
+        "Failed callback explains retry without exposing provider details",
+        "Google initiation failure is visible and email sign-in remains available",
+        "Guest tracking link opens sign-in rather than claiming to send email",
+        "Korean seller identity and policy copy agree on mobile and desktop",
+        "Home, wishlist and mobile product layout",
+        "Shop all pagination reaches product 65",
+        "Collection pagination and group category links",
+        "Search results, next page and empty result",
+        "Unavailable option combination never adds first variant",
+        "Available option add respects stock and stores selected price",
+        "Sold-out variant cannot be added",
+        "Cart option change, quantity, and page reload",
+        "320/390/768/1440 cart has no horizontal overflow",
+        "Checkout failure retains cart, duplicate clicks create one request",
+        "Partial checkout adjustment keeps requested local quantities",
+        "Shopify warnings preserve local cart",
+        "Accepted checkout redirects and back navigation restores bag",
+        "Removing last item returns accessible empty state",
+        "Account details ignore another account cache and recover after an order API failure",
+        "Sign-out failure preserves the account and allows retry",
+        "Account switch discards a delayed previous order response and sign-out clears orders"
+      ],
+      "errors": [],
+      "checkoutCalls": 4,
+      "evidenceDirectory": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/storefront-purchase-hr4aOW",
+      "log": "/tmp/blank-auth-browser.log"
+    },
+    "typecheck": {
+      "storefront": {
+        "exitCode": 0,
+        "log": "/tmp/blank-auth-storefront-types.log"
+      },
+      "admin": {
+        "exitCode": 0,
+        "log": "/tmp/blank-auth-admin-types.log"
+      }
+    },
+    "changedFileLint": {
+      "storefront": {
+        "exitCode": 0,
+        "log": "/tmp/blank-auth-storefront-lint.log"
+      },
+      "admin": {
+        "exitCode": 0,
+        "log": "/tmp/blank-auth-admin-lint.log"
+      }
+    },
+    "beforeFix": {
+      "passed": 3,
+      "failed": 3,
+      "log": "/tmp/blank-auth-before.log",
+      "note": "Added tests first exposed unchecked redirect and blank email; error+user SDK response is defensive hardening, not an observed SDK failure."
+    },
+    "sql": {
+      "engine": "PGlite in-memory",
+      "source": "admin/supabase/migrations/20260930_07_inquiry_delivery.sql:get_customer_inquiry",
+      "coverage": "Actual function on minimal schema; token/thread/public-message scope and expiry; no remote SQL or RLS certification"
+    }
+  },
+  "unresolved": [
+    {
+      "id": "EMAIL_OWNERSHIP",
+      "status": "open",
+      "evidence": "TEST public and management settings enable signup and auto-confirm; before-user-created and password-verification hooks disabled. email_confirmed_at alone cannot distinguish automatic confirmation from actual mailbox proof.",
+      "notDemonstrated": "No real signup, impersonation, login or unauthorized order access attempted.",
+      "next": "Prepare TEST Confirm Email and existing-account re-verification/session handling; then validate with user-owned email/Google/Kakao accounts."
+    }
+  ],
+  "limitations": [
+    "Real OAuth, mailbox receipt, remote RLS and deployment were not tested",
+    "Admin local .env.local still has BYPASS_AUTH=true; isolated guards tested with false",
+    "Admin full suite/full lint not claimed; targeted suites plus both typechecks passed",
+    "No remote mutation, SQL/migration application, email/Kakao send, real order/refund, Git push or deploy",
+    "Existing shared working-tree changes preserved; hashes include any prior edits in shared files"
+  ],
+  "fileHashes": {
+    "app/auth/callback/route.ts": "303302d8b0271baf68fbabdc3944d0eb797c45a09b4461cc7c72247e9a5d7a8d",
+    "lib/security/orderOwnership.ts": "3cbc3cd00eb8183eff47881fa1568064ebe15ec4f90296027b270eca30f9b8e6",
+    "app/api/orders/route.ts": "1f1261d1dbe3c4aaf47d3ee295e570f8de7099350d5f300c7eb53e91a38f22ec",
+    "app/api/track-order/route.ts": "e3b00324df02f8a941f33abcaafc041313f78437181bfc3bd5beaf4ee4e601bf",
+    "app/api/cancel-order/route.ts": "c72f8c9326d71652adbbb9d349a1b24ff9f603f26d0a65c93df71eacba8d80f5",
+    "tests/unit/auth-boundaries.test.ts": "b743b8835473798d7b637d2c2910301c5cb9ac13e15b1109691cffb3658c6718",
+    "tests/browser/purchase.mjs": "f6bb07b35cb8a6b0e398c416d4067dc1bf6bbc76ac6d3b6f525ca515cfbbbe26",
+    "docs/environment-isolation.md": "882f87ff7b43e4cc62d1401d1edfcbe7e5d55d701cc0c9f687bdae169dc6516c",
+    "docs/technical/integration-review.md": "9ac9c94c03dd5efa7e98380d3afc3bc268ade1ac91eeed263be90ce57538ddec",
+    "../blank-seoul-admin/tests/unit/auth-access-contract.test.ts": "415faca398557bed11d651bbf938a9011394e50b1011d9f58b4a0a9760e56e91",
+    "../blank-seoul-admin/tests/unit/inquiry-capability-sql.test.ts": "039c47a60d557dbef56f3a3a406a838503990adb77a4fde48ca0aa9a07c2115b",
+    "../blank-seoul-admin/doc/security_roadmap/FRONT_ADMIN_IMPLEMENTATION_PLAN_2026-09-23.md": "a584f01e87a8a77d419c69b26c538a09a7e0d2dd78297e1311c1293dd508a53b"
+  }
+}

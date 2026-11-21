@@ -120,7 +120,7 @@
 ## 🔗 6. 관련 상세 가이드
 
 * **스토어프론트 단일 카테고리 마스터 소스코드:** [`lib/config/categoryMaster.ts`](../lib/config/categoryMaster.ts)
-* **글로벌 D2C 공예품 안전·취급 표준 정책서:** [`docs/Craft_Care_and_Safety_Standards_Policy.md`](./Craft_Care_and_Safety_Standards_Policy.md)
+* **글로벌 D2C 공예품 안전·취급 표준 정책서:** [`docs/Craft_Care_and_Safety_Standards_Policy.md`](<Craft_Care_and_Safety_Standards_Policy.md>)
 * **세관 통관 & HS 코드 통합 총괄 가이드 (Control Tower):** `blank-seoul-admin/doc/hscode/README.md`
 * **현재 HS 분류 설계·완료 기준:** [HS 설계 원본](../../blank-seoul-admin/doc/hscode/HS_CLASSIFICATION_DESIGN.md)
-* **카테고리·상품 종류 및 작가 안내 기준:** `blank-seoul-admin/doc/hscode/Category_Selection_and_Notice_Policy.md`
+* **카테고리·상품 종류 및 작가 안내 기준:** `blank-seoul-admin/doc/hscode/legacy/Category_Selection_and_Notice_Policy.md`

@@ -1,0 +1,357 @@
+{
+  "project": "zijvqethklunvydtqmak",
+  "createdAt": "2026-11-06T06:02:18.787Z",
+  "selectedMailbox": "thec9rqwer@gmail.com",
+  "realEmail": {
+    "status": "user_screenshot_and_fresh_login_confirmed",
+    "requestedAt": "2026-11-06T06:03:58.395Z",
+    "httpStatus": 200,
+    "errorCode": null,
+    "location": "http://localhost:3001/account/login",
+    "confirmedAt": "2026-11-06T06:13:36.431Z",
+    "lastSignInAt": "2026-11-06T06:12:20.575004Z",
+    "evidence": {
+      "userProvidedScreenshot": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/codex-clipboard-vlBERV.png",
+      "accountEmailMatchesSelected": true,
+      "visibleOrderCount": 0,
+      "serverCallbackRedirect": 307,
+      "accountHttpStatus": 200,
+      "ordersHttpStatus": 200,
+      "source": "User screenshot after same-browser email-link instructions; fresh Auth last_sign_in_at and server requests corroborated. No JWT or session captured.",
+      "screenshotSha256": "e5f0d272c71d12ee5e3703ed4f8de4fa7d571f1536e6c856efc73bcc3627cab1"
+    }
+  },
+  "google": {
+    "status": "storefront_and_admin_provider_initiation_verified",
+    "baselineLastSignInAt": "2026-11-06T06:12:20.575004Z",
+    "credentialAuthentication": "not_performed"
+  },
+  "kakao": {
+    "status": "artist_provider_initiation_verified",
+    "credentialAuthentication": "not_performed"
+  },
+  "latestSettings": {
+    "mailer_autoconfirm": false,
+    "disable_signup": false,
+    "external_email_enabled": true,
+    "external_google_enabled": true,
+    "external_kakao_enabled": true,
+    "site_url": "https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app",
+    "uri_allow_list": "http://localhost:3001/**,http://localhost:3003/**,https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app/**,https://blank-seoul-admin-git-dev-thec9rqwer-4072s-projects.vercel.app/**",
+    "hook_send_email_enabled": false,
+    "smtpConfigured": false
+  },
+  "latestUsers": [
+    {
+      "userHash": "d6f395de2ac17e8a4007dd95e4c586fc898ac000314b30f4a47191d0ed20dbfe",
+      "selectedMailbox": true,
+      "role": "admin",
+      "roles": [],
+      "providers": [
+        "google"
+      ],
+      "identities": [
+        "8cae88db9f12eafcb9a6a90316b446308a7a58f44cde743bfd8fa5bbcde35679"
+      ],
+      "lastSignInAt": "2026-11-06T06:12:20.575004Z",
+      "emailConfirmed": true
+    },
+    {
+      "userHash": "7fc4824145bcebaa7ddc4bb1a6fedbe4d8e1c360a475710a9ba9b83dd7cc671b",
+      "selectedMailbox": false,
+      "role": "admin",
+      "roles": [],
+      "providers": [
+        "google"
+      ],
+      "identities": [
+        "23ae8186ecb49ae3f0fa03212ee8d210d61d87534318c3c568dda7441d75741f"
+      ],
+      "lastSignInAt": "2026-09-30T21:23:46.174004Z",
+      "emailConfirmed": true
+    },
+    {
+      "userHash": "6de14db78ddb8760cd28551223b854f9ff6548424a4f68d33bae06cb5c956a8b",
+      "selectedMailbox": false,
+      "role": null,
+      "roles": [],
+      "providers": [
+        "kakao"
+      ],
+      "identities": [
+        "c34f0fbdd5e2b2ea451bc8ea4a98b3c1d23f4e9cd525bd886e5a1f32533b05fc"
+      ],
+      "lastSignInAt": "2026-10-03T01:23:10.801069Z",
+      "emailConfirmed": true
+    }
+  ],
+  "inspectedAt": "2026-11-06T06:02:19.711Z",
+  "before": {
+    "settings": {
+      "mailer_autoconfirm": true,
+      "disable_signup": false,
+      "external_email_enabled": true,
+      "external_google_enabled": true,
+      "external_kakao_enabled": true,
+      "site_url": "https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app",
+      "uri_allow_list": "http://localhost:3001/**,http://localhost:3003/**,https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app/**,https://blank-seoul-admin-git-dev-thec9rqwer-4072s-projects.vercel.app/**",
+      "hook_send_email_enabled": false,
+      "smtpConfigured": false
+    },
+    "users": [
+      {
+        "userHash": "d6f395de2ac17e8a4007dd95e4c586fc898ac000314b30f4a47191d0ed20dbfe",
+        "selectedMailbox": true,
+        "role": "admin",
+        "roles": [],
+        "providers": [
+          "google"
+        ],
+        "identities": [
+          "8cae88db9f12eafcb9a6a90316b446308a7a58f44cde743bfd8fa5bbcde35679"
+        ],
+        "lastSignInAt": "2026-10-15T14:23:29.400411Z",
+        "emailConfirmed": true
+      },
+      {
+        "userHash": "7fc4824145bcebaa7ddc4bb1a6fedbe4d8e1c360a475710a9ba9b83dd7cc671b",
+        "selectedMailbox": false,
+        "role": "admin",
+        "roles": [],
+        "providers": [
+          "google"
+        ],
+        "identities": [
+          "23ae8186ecb49ae3f0fa03212ee8d210d61d87534318c3c568dda7441d75741f"
+        ],
+        "lastSignInAt": "2026-09-30T21:23:46.174004Z",
+        "emailConfirmed": true
+      },
+      {
+        "userHash": "6de14db78ddb8760cd28551223b854f9ff6548424a4f68d33bae06cb5c956a8b",
+        "selectedMailbox": false,
+        "role": null,
+        "roles": [],
+        "providers": [
+          "kakao"
+        ],
+        "identities": [
+          "c34f0fbdd5e2b2ea451bc8ea4a98b3c1d23f4e9cd525bd886e5a1f32533b05fc"
+        ],
+        "lastSignInAt": "2026-10-03T01:23:10.801069Z",
+        "emailConfirmed": true
+      }
+    ],
+    "at": "2026-11-06T06:02:28.980Z"
+  },
+  "afterSettings": {
+    "mailer_autoconfirm": false,
+    "disable_signup": false,
+    "external_email_enabled": true,
+    "external_google_enabled": true,
+    "external_kakao_enabled": true,
+    "site_url": "https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app",
+    "uri_allow_list": "http://localhost:3001/**,http://localhost:3003/**,https://blank-seoul-storefront-git-dev-thec9rqwer-4072s-projects.vercel.app/**,https://blank-seoul-admin-git-dev-thec9rqwer-4072s-projects.vercel.app/**",
+    "hook_send_email_enabled": false,
+    "smtpConfigured": false
+  },
+  "appliedAt": "2026-11-06T06:02:29.338Z",
+  "unconfirmed": {
+    "status": "passed",
+    "marker": "auth-verification-9b9268ed-a79d-479d-b39c-f4101d50ccb1",
+    "createdAt": "2026-11-06T06:02:34.745Z",
+    "cleanup": "verified_deleted",
+    "loginHttpStatus": 400,
+    "loginErrorCode": "email_not_confirmed",
+    "sessionIssued": false
+  },
+  "existingAccountsPreserved": true,
+  "observedAt": "2026-11-06T06:23:07.192Z",
+  "publicSettings": {
+    "mailer_autoconfirm": false,
+    "disable_signup": false,
+    "external": {
+      "email": true,
+      "google": true,
+      "kakao": true
+    }
+  },
+  "status": "direct_review_complete_social_credentials_unverified",
+  "userObservation": {
+    "reportedAt": "2026-11-06T06:10:39.295Z",
+    "description": "User reported the existing Kakao mailbox in another browser. Verification Chrome remained at login; selected mailbox and Kakao last_sign_in_at unchanged from baseline; callback failure observed.",
+    "resolutionRequested": "Sign out in normal browser, request a fresh link for selected mailbox in that browser, and open link in the same browser. Never send link/code/password in chat."
+  },
+  "tests": {
+    "storefrontUnit": {
+      "passed": 61,
+      "log": "/tmp/blank-auth-live-unit.log"
+    },
+    "adminTargeted": {
+      "passed": 25,
+      "log": "/tmp/blank-auth-live-admin-unit.log"
+    },
+    "browser": {
+      "passed": true,
+      "checks": [
+        "Failed callback explains retry without exposing provider details",
+        "Google initiation failure is visible and email sign-in remains available",
+        "Guest tracking link opens sign-in rather than claiming to send email",
+        "Korean seller identity and policy copy agree on mobile and desktop",
+        "Home, wishlist and mobile product layout",
+        "Shop all pagination reaches product 65",
+        "Collection pagination and group category links",
+        "Search results, next page and empty result",
+        "Unavailable option combination never adds first variant",
+        "Available option add respects stock and stores selected price",
+        "Sold-out variant cannot be added",
+        "Cart option change, quantity, and page reload",
+        "320/390/768/1440 cart has no horizontal overflow",
+        "Checkout failure retains cart, duplicate clicks create one request",
+        "Partial checkout adjustment keeps requested local quantities",
+        "Shopify warnings preserve local cart",
+        "Accepted checkout redirects and back navigation restores bag",
+        "Removing last item returns accessible empty state",
+        "Account details ignore another account cache and recover after an order API failure",
+        "Sign-out failure preserves the account and allows retry",
+        "Account switch discards a delayed previous order response and sign-out clears orders"
+      ],
+      "errors": [],
+      "checkoutCalls": 4,
+      "evidenceDirectory": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/storefront-purchase-q79WCp"
+    },
+    "scriptLint": {
+      "passed": true,
+      "command": "npx eslint --no-ignore scripts/verify-test-auth.mjs"
+    }
+  },
+  "liveAnonymousChecks": [
+    {
+      "origin": "storefront:3001",
+      "path": "/api/orders",
+      "status": 401
+    },
+    {
+      "origin": "storefront:3001",
+      "path": "/api/track-order",
+      "status": 401
+    },
+    {
+      "origin": "storefront:3001",
+      "path": "/api/cancel-order",
+      "status": 401
+    },
+    {
+      "origin": "admin:3003",
+      "path": "/api/manage/items",
+      "status": 401
+    },
+    {
+      "origin": "admin:3003",
+      "path": "/api/artist/auth/kakao-login",
+      "status": 401
+    }
+  ],
+  "remaining": [
+    "User-owned fresh Google/Kakao authentication through protected screens remains unverified; direct review does not replace personal account authentication"
+  ],
+  "localServers": {
+    "storefront": "http://localhost:3001",
+    "admin": "verification server on 3003 stopped",
+    "authBypass": false,
+    "existingAdminServer": "3002 preserved",
+    "adminTemporaryOutput": ".next/auth-verification/",
+    "leftRunningForUser": "Storefront 3001 only",
+    "adminTemporaryTsconfig": "node_modules/.cache/auth-verification/tsconfig.json",
+    "verificationBrowser": "closed"
+  },
+  "scriptSha256": "7c9d1b1f63c4632aae0fbaefe9338757d0fb74cd6d7d6cf79e36b64e50155228",
+  "exclusions": [
+    "Production settings",
+    "SQL/migrations",
+    "Real orders, cancellation, refund",
+    "Git push/deploy"
+  ],
+  "providerInitiation": [
+    {
+      "id": "storefront-google",
+      "checkedAt": "2026-11-06T06:22:30.355Z",
+      "authorize": {
+        "project": "zijvqethklunvydtqmak",
+        "provider": "google",
+        "redirectTo": "http://localhost:3001/auth/callback",
+        "pkce": true
+      },
+      "providerPageRequested": true,
+      "providerCallbackOrigin": "https://zijvqethklunvydtqmak.supabase.co",
+      "status": "provider_login_page_reached",
+      "finalOrigin": "https://accounts.google.com",
+      "userCredentialsEntered": false
+    },
+    {
+      "id": "admin-google",
+      "checkedAt": "2026-11-06T06:22:33.380Z",
+      "authorize": {
+        "project": "zijvqethklunvydtqmak",
+        "provider": "google",
+        "redirectTo": "http://localhost:3003/api/auth/callback",
+        "pkce": true
+      },
+      "providerPageRequested": true,
+      "providerCallbackOrigin": "https://zijvqethklunvydtqmak.supabase.co",
+      "status": "provider_login_page_reached",
+      "finalOrigin": "https://accounts.google.com",
+      "userCredentialsEntered": false
+    },
+    {
+      "id": "artist-kakao",
+      "checkedAt": "2026-11-06T06:22:36.137Z",
+      "authorize": {
+        "project": "zijvqethklunvydtqmak",
+        "provider": "kakao",
+        "redirectTo": "http://localhost:3003/api/auth/callback?next=/artist",
+        "pkce": true
+      },
+      "providerPageRequested": true,
+      "status": "provider_login_page_reached",
+      "finalOrigin": "https://accounts.kakao.com",
+      "userCredentialsEntered": false
+    }
+  ],
+  "browserAutomation": {
+    "existingBrowser": "Chrome AppleScript JavaScript disabled; no setting changed and no session/cookies extracted",
+    "method": "Separate Playwright contexts; actual local pages and provider redirects; no credentials"
+  },
+  "liveCallbackCancellation": [
+    {
+      "id": "storefront",
+      "status": 307,
+      "redirectOrigin": "http://localhost:3001",
+      "redirectPath": "/account/login",
+      "error": "auth_failed"
+    },
+    {
+      "id": "admin",
+      "status": 307,
+      "redirectOrigin": "http://localhost:3003",
+      "redirectPath": "/login",
+      "error": "auth_failed"
+    },
+    {
+      "id": "artist",
+      "status": 307,
+      "redirectOrigin": "http://localhost:3003",
+      "redirectPath": "/artist",
+      "error": "auth_failed"
+    }
+  ],
+  "directReview": {
+    "checkedAt": "2026-11-06T06:23:30.909Z",
+    "providerFlowsVerified": 3,
+    "callbackCancellationVerified": 3,
+    "privateCredentialsEntered": false,
+    "sessionExtracted": false,
+    "productionChanged": false,
+    "harnessNotes": "Temporary Admin output/config isolation initially caused errors. Fixed temporary config path and used webpack; then waited for hydration before clicking. Final three flows passed; application code unchanged."
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { isCancelable, getCancelMinutesRemaining } from "@/lib/constants";
+import { REFUND_TIMING_NOTICE } from "@/lib/config/customer-service";
 
 interface CancelButtonProps {
   orderId: string;
@@ -40,7 +41,7 @@ export default function CancelButton({
       <div className="bg-gray-50 border border-gray-200 px-4 py-4 rounded-xl text-sm text-center space-y-1">
         <p className="text-gray-700 font-medium">✅ This order has been cancelled.</p>
         <p className="text-gray-500">
-          💳 Refund → Original payment method · 📅 5-10 business days
+          Refunds are returned to the original payment method. {REFUND_TIMING_NOTICE}
         </p>
       </div>
     );
@@ -58,7 +59,7 @@ export default function CancelButton({
             💳 Refund: ${parseFloat(refundAmount).toFixed(2)} → Original payment
           </p>
         )}
-        <p className="text-gray-500">📅 Expected: 5-10 business days</p>
+        <p className="text-gray-500">{REFUND_TIMING_NOTICE}</p>
       </div>
     );
   }

@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     const body = await request.json();
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ownership = verifyOrderLookupEmail(user, email);
+    const ownership = verifyOrderLookupEmail(authError ? null : user, email);
     if (!ownership.ok) {
       return NextResponse.json({ error: ownership.error }, { status: ownership.status });
     }

@@ -1,0 +1,194 @@
+{
+  "checkedAt": "2026-11-06T04:18:02.530907+00:00",
+  "executor": "Codex direct execution; no Gemini pipeline run",
+  "scope": "Stage 1: Korean seller identity and customer display copy only",
+  "sourceHeads": {
+    "storefront": "ac7026237ad59b430a4a9dfbf67aed1e188843ca",
+    "admin": "f4c1c28afc6bc7f89b4605615c729b934a6f766d"
+  },
+  "existingChangesPreserved": true,
+  "unit": {
+    "passed": 55,
+    "failed": 0
+  },
+  "typecheck": {
+    "storefront": "passed",
+    "admin": "passed"
+  },
+  "build": {
+    "storefront": "passed",
+    "output": ".next-offline",
+    "upstream": "fixture, external requests blocked"
+  },
+  "lint": {
+    "storefrontErrors": 0,
+    "storefrontExistingWarnings": 1,
+    "admin3plExistingErrorsBefore": 1,
+    "admin3plExistingErrorsAfter": 1,
+    "admin3plExistingWarningsBefore": 3,
+    "admin3plExistingWarningsAfter": 3
+  },
+  "purchase": {
+    "passed": true,
+    "checks": [
+      "Failed callback explains retry without exposing provider details",
+      "Google initiation failure is visible and email sign-in remains available",
+      "Guest tracking link opens sign-in rather than claiming to send email",
+      "Korean seller identity and policy copy agree on mobile and desktop",
+      "Home, wishlist and mobile product layout",
+      "Shop all pagination reaches product 65",
+      "Collection pagination and group category links",
+      "Search results, next page and empty result",
+      "Unavailable option combination never adds first variant",
+      "Available option add respects stock and stores selected price",
+      "Sold-out variant cannot be added",
+      "Cart option change, quantity, and page reload",
+      "320/390/768/1440 cart has no horizontal overflow",
+      "Checkout failure retains cart, duplicate clicks create one request",
+      "Partial checkout adjustment keeps requested local quantities",
+      "Shopify warnings preserve local cart",
+      "Accepted checkout redirects and back navigation restores bag",
+      "Removing last item returns accessible empty state",
+      "Account details ignore another account cache and recover after an order API failure",
+      "Sign-out failure preserves the account and allows retry"
+    ],
+    "errors": [],
+    "checkoutCalls": 4
+  },
+  "sellerRendering": {
+    "email": [
+      {
+        "template": "ArtistDropEmail",
+        "sellerAndAddress": true,
+        "unsubscribeLinksPreserved": true,
+        "widths": [
+          320,
+          390,
+          1280
+        ]
+      },
+      {
+        "template": "ReviewRequestEmail",
+        "sellerAndAddress": true,
+        "unsubscribeLinksPreserved": true,
+        "widths": [
+          320,
+          390,
+          1280
+        ]
+      },
+      {
+        "template": "OrderCancellationEmail",
+        "sellerAndAddress": true,
+        "unsubscribeLinksPreserved": true,
+        "widths": [
+          320,
+          390,
+          1280
+        ]
+      },
+      {
+        "template": "CouponConfirmationEmail",
+        "sellerAndAddress": true,
+        "unsubscribeLinksPreserved": true,
+        "widths": [
+          320,
+          390,
+          1280
+        ]
+      },
+      {
+        "template": "CouponReminderEmail",
+        "sellerAndAddress": true,
+        "unsubscribeLinksPreserved": true,
+        "widths": [
+          320,
+          390,
+          1280
+        ]
+      }
+    ],
+    "policy": [
+      {
+        "page": "terms",
+        "cancelWindowHours": 3,
+        "guaranteePreserved": true
+      },
+      {
+        "page": "returns",
+        "cancelWindowHours": 3,
+        "guaranteePreserved": true
+      },
+      {
+        "page": "terms",
+        "cancelWindowHours": 6,
+        "guaranteePreserved": true
+      },
+      {
+        "page": "returns",
+        "cancelWindowHours": 6,
+        "guaranteePreserved": true
+      }
+    ],
+    "admin": [
+      {
+        "width": 320,
+        "brandFooter": true,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "brandFooter": true,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "brandFooter": true,
+        "overflow": false
+      }
+    ],
+    "errors": [],
+    "senderNoopsPreserved": true,
+    "internalChecklistUsesCurrentSeller": true,
+    "externalWrites": 0
+  },
+  "evidence": {
+    "purchaseDirectory": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/storefront-purchase-TjsVeX",
+    "renderDirectory": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/korean-seller-copy-BUr5fP",
+    "renderScript": "/tmp/verify-korean-seller.cjs",
+    "unitLog": "/tmp/korean-seller-unit.log",
+    "buildLog": "/tmp/korean-seller-build.log",
+    "purchaseLog": "/tmp/korean-seller-purchase.log",
+    "renderLog": "/tmp/korean-seller-render.log",
+    "storefrontLintLog": "/tmp/korean-seller-lint.log",
+    "adminLintLog": "/tmp/korean-seller-admin-lint.log"
+  },
+  "sourceHashes": {
+    "lib/config/customer-service.ts": "2fe04411b1fd806ec026cd32bd7e3b4b09dc4e5db7ae8bf57441c4666083f2be",
+    "emails/templates/components/SellerIdentity.tsx": "d21591a431bce24612df31d0cd5a2c23b1862de4502c904bdeec7f758b98270a",
+    "app/cart/_components/CartOrderSummary.tsx": "0c367c7086e712327cea95e06fef294aa99acc9fdd74300ce839828a558548d1",
+    "app/components/CancelButton.tsx": "bb5f30bfe6c1db7fc7d6cd8a069208df9ee5cbd96946dc66eecf959f15003d78",
+    "app/components/FAQ.tsx": "4e567a6ed1b1e2a3fba9269e6f591d79682ed893552ba68d62bfafc6da2b5bc4",
+    "app/components/ProductTrustAccordions.tsx": "af7b1a4cee28a7ecddbb834bc46430bd59b65570ab248470f71664b6c514311d",
+    "app/policies/privacy/page.tsx": "a38ca4a003abc69cfb6dd9622a98745cd9f8a51f5491f7503fd9530ba98ac630",
+    "app/policies/returns/page.tsx": "6733a432a6711e95c4d8789dcf173248684169c0fba741af2778e6d8e6b5f541",
+    "app/policies/shipping/page.tsx": "17691d8554eac5a8590b8a5eeafc79af78e0be85750840fb1c15c55a3dc8b57c",
+    "app/policies/terms/page.tsx": "01cfee123739e5fc884115224089b5bf11311b73bc35b0024e4738ad838d5cdd",
+    "emails/templates/00_PipelineStatus.tsx": "455caa0d210e5a01f7daeac4c17e5aac77c49bb9f8b60551bfe4e836fed51f87",
+    "emails/templates/ArtistDropEmail.tsx": "79a8cd79c7af1eea467237d4f926a4d11ad6aa846b9f228958a5a5e65c72258e",
+    "emails/templates/CouponConfirmationEmail.tsx": "837e8c4053d40115cb470bd6ba6a81d92c026fde6d65a0a76c042009e124ef6a",
+    "emails/templates/CouponReminderEmail.tsx": "fd56dc12f05789d9e5c2fc293600cfe6830e2a402f484ad4b4ddb534d61f10f8",
+    "emails/templates/OrderCancellationEmail.tsx": "b9bd5d60e0324c49cb2c84f36b0750c099110c86363e9a0d8d1ae15e6a46eb78",
+    "emails/templates/ReviewRequestEmail.tsx": "138a7d8d87f06fe54d9609b7eb604fa9238e540a1a1f764b8e076035d1fcf12d",
+    "tests/browser/purchase.mjs": "32a540b150113ccfbaa6eb989b3616c4da4a91660c7172e5848de07882038110"
+  },
+  "adminFooterHash": "b219b2c91b903617e4668f20316af9faf1bfed4c76a5b59b022c180aa9ca6044",
+  "limitations": [
+    "No real email, Kakao, payment, SQL, remote configuration, Git push or deployment.",
+    "Auth and order-access implementation remains the next development stage.",
+    "Native email-client rendering and delivery were not tested.",
+    "3PL view was the real component in an isolated browser harness with mocked GET auth, not authenticated Admin deployment.",
+    "Existing Admin 3PL lint error and warnings remain; no new lint errors introduced.",
+    "Temporary artifacts may be removed; persistent purchase tests and documentation remain."
+  ]
+}

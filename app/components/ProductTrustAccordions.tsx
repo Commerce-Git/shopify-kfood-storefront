@@ -279,7 +279,7 @@ export default function ProductTrustAccordions({
               <div className="flex items-start gap-2.5 text-xs">
                 <span className="text-sm shrink-0">✈️</span>
                 <div>
-                  <span className="font-bold text-[#18181B]">Pre-Cleared Express:</span>{" "}
+                  <span className="font-bold text-[#18181B]">Tracked Delivery:</span>{" "}
                   <span className="text-[#52525B]">Dispatched direct from Korea with end-to-end barcode tracking.</span>
                 </div>
               </div>

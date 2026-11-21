@@ -13,6 +13,8 @@ import {
   Tailwind,
 } from "@react-email/components";
 import { DevInspectorRibbon } from "./components/DevInspectorRibbon";
+import { SellerIdentity } from "./components/SellerIdentity";
+import { BUSINESS } from "../../lib/config/business";
 
 export interface OrderCancellationEmailProps {
   customerName?: string;
@@ -53,16 +55,14 @@ export const OrderCancellationEmail = ({
               )}
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              If you have any questions or need further assistance, please contact our support team at support@blankseoul.com.
+              If you have any questions or need further assistance, please contact our support team at {BUSINESS.email}.
             </Text>
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px] text-center mb-0">
               This email confirms the cancellation of order {`#${orderNumber}`}.
             </Text>
             <Text className="text-[#999999] text-[10px] leading-[20px] text-center mt-4">
-              Blank Palette LLC
-              <br />
-              30 N Gould St, STE R, Sheridan, WY 82801, USA
+              <SellerIdentity />
               <br />
               <br />
               <Link href={unsubscribeUrl} className="text-[#999999] underline">

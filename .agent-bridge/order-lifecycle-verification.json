@@ -1,0 +1,447 @@
+{
+  "recordedAt": "2026-11-06T07:16:47.205519+00:00",
+  "scope": "offline cross-module verification and owning-document updates; no application fixes",
+  "status": "verification_complete_with_unmet_acceptance_criteria",
+  "repositories": [
+    {
+      "name": "blank-seoul-storefront",
+      "head": "ac7026237ad59b430a4a9dfbf67aed1e188843ca",
+      "initialWorktreeWasDirty": true,
+      "initialStatus": [
+        " M app/api/cancel-order/route.ts",
+        " M app/api/orders/route.ts",
+        " M app/api/track-order/route.ts",
+        " M app/auth/callback/route.ts",
+        " M app/cart/_components/CartOrderSummary.tsx",
+        " M app/components/CancelButton.tsx",
+        " M app/components/FAQ.tsx",
+        " M app/components/ProductTrustAccordions.tsx",
+        " M app/policies/privacy/page.tsx",
+        " M app/policies/returns/page.tsx",
+        " M app/policies/shipping/page.tsx",
+        " M app/policies/terms/page.tsx",
+        " M docs/environment-isolation.md",
+        " M docs/technical/integration-review.md",
+        " M emails/EMAIL_PIPELINE.md",
+        " M emails/templates/00_PipelineStatus.tsx",
+        " M emails/templates/ArtistDropEmail.tsx",
+        " M emails/templates/CouponConfirmationEmail.tsx",
+        " M emails/templates/CouponReminderEmail.tsx",
+        " M emails/templates/OrderCancellationEmail.tsx",
+        " M emails/templates/ReviewRequestEmail.tsx",
+        " M lib/security/orderOwnership.ts",
+        " M tests/browser/purchase.mjs",
+        "?? .agent-bridge/auth-access-verification.json",
+        "?? .agent-bridge/korean-seller-copy-results.json",
+        "?? .agent-bridge/test-auth-live-verification.json",
+        "?? emails/templates/components/SellerIdentity.tsx",
+        "?? lib/config/customer-service.ts",
+        "?? scripts/verify-test-auth.mjs",
+        "?? tests/unit/auth-boundaries.test.ts"
+      ],
+      "inspectedAndTestedFileSha256": {
+        "app/api/cancel-order/route.ts": "c72f8c9326d71652adbbb9d349a1b24ff9f603f26d0a65c93df71eacba8d80f5",
+        "app/api/orders/route.ts": "1f1261d1dbe3c4aaf47d3ee295e570f8de7099350d5f300c7eb53e91a38f22ec",
+        "app/api/track-order/route.ts": "e3b00324df02f8a941f33abcaafc041313f78437181bfc3bd5beaf4ee4e601bf",
+        "app/cart/_hooks/useCartCheckout.ts": "8550162228bfa24db06a112d0e4dffd90722575a034e63b254b0b89f862e869a",
+        "lib/cart/checkout.ts": "321c9518d32197b7ca1096026bcfb51402f728c9bf51d4e87b3223d31cba872a",
+        "lib/cart/items.ts": "3bd1f1cef8c1a68a7e98c51083df07d4b2baecb85a8ca416916bb0fd8713ffcf",
+        "lib/orders/enrichment.ts": "3a0242cfea68faf2a16c2303317f4d475f87c5193370d0567a122d8dc8ec276f",
+        "lib/orders/status.ts": "b6b75edc814c15be23c89eeeed3bff46d8b084446f5704eabed8aa19830b0137",
+        "lib/shopify/order-utils.ts": "3930a138943809a20f85e185900676a830081369d27ed0f3e79a0d05b3eaa824",
+        "package.json": "595e03a8d6dcb0ede8854cad30b0d83d183e181c0a9fcf8a68122b56063f1de9",
+        "tests/browser/account-fixtures.cjs": "af599da23a09d0c1ef1a3d2718fefa0b8ba649df9157ced67b92f281b8b02ba6",
+        "tests/browser/purchase-fixtures.cjs": "4aecd7ba6ae45688d1773b2b1a3cfe951923cf84bb7c8b3ebbd17306ce2df15c",
+        "tests/browser/purchase-preload.cjs": "80050f10d88d9bb849867650f1ec1d0a8101dad6e271800dc2a036b47b61b2bb",
+        "tests/browser/purchase.mjs": "f6bb07b35cb8a6b0e398c416d4067dc1bf6bbc76ac6d3b6f525ca515cfbbbe26",
+        "tests/unit/account-orders.test.ts": "623681bc8cfc0f2b5914d4ee59191d6517b829242ac9cdfff707475aa0990327",
+        "tests/unit/auth-boundaries.test.ts": "b743b8835473798d7b637d2c2910301c5cb9ac13e15b1109691cffb3658c6718",
+        "tests/unit/cart-purchase.test.ts": "3f024fb5f40906ea2b3d6b1103f7d60870c418134c2857f1f8e8dca6e38d7663",
+        "tests/unit/catalog-pagination-and-schema.test.ts": "7a905c785de8dcf2ff47362d40a01ffe29efd63bda55a29177e4d5c86463ae07",
+        "tests/unit/developer-dependencies.test.ts": "f2d0b4bb203d1605fb2085b346e8a4eeadfe1a0125edf186c94bc729a45d2faf",
+        "tests/unit/environment-isolation.test.ts": "9dda2976f1158a85860113d2d82639316f18dce28a4ff8c07e5691ad358944a3",
+        "tests/unit/environment-routes.test.ts": "44760c544705ed2423706cfcf19c5afaa795ea67c923cdef4cb37eb1109ea91f",
+        "tests/unit/inquiry-delivery.test.ts": "eac85f2a05164d1bcc12959cdb062db6c3836ccb7a6dd32985adf1e05467672f",
+        "tests/unit/inquiry-history.test.ts": "36e7b711d3e67a5799060b9101c38abbdc91fddd08b15232325d11c6f39dba41",
+        "tests/unit/inquiry-polling.test.ts": "f0df2298705c64cff3f17eec26e77111be4a03865467de14d52587ef41471312",
+        "tests/unit/offline-regressions.test.ts": "41752bb005b65e8072ee69edf136552be6d449ff94d108dd0b17447df58e9262",
+        "tests/unit/order-ownership.test.ts": "0ce7390854a2a69de0a989d8088456a51360c99e1ad1f5df63f298aa046d3d3c"
+      },
+      "changedExistingFilesSinceStart": [
+        "docs/platform-analysis/STOREFRONT_MODULE_OPERATIONS.md",
+        "docs/technical/integration-review.md"
+      ],
+      "existingApplicationSourceChangesSinceStart": []
+    },
+    {
+      "name": "blank-seoul-admin",
+      "head": "f4c1c28afc6bc7f89b4605615c729b934a6f766d",
+      "initialWorktreeWasDirty": true,
+      "initialStatus": [
+        " M .agent-bridge/hs-ai-workbench/verification.json",
+        " M .env.example",
+        " M app/3pl/page.tsx",
+        " M app/api/manage/hs-classification/route.ts",
+        " M app/manage/hs-classification/CaseLibrary.tsx",
+        " M app/manage/hs-classification/ExplanationPanel.tsx",
+        " M app/manage/hs-classification/page.tsx",
+        " M app/manage/hs-classification/workbench.module.css",
+        " M doc/epost/country_shipping_guide.md",
+        " M doc/hscode/HS_CLASSIFICATION_DESIGN.md",
+        " M doc/overseas_entity/README.md",
+        " M doc/security_roadmap/FRONT_ADMIN_IMPLEMENTATION_PLAN_2026-09-23.md",
+        " M lib/hscode/ai/explanations.ts",
+        " M lib/hscode/ai/provider.ts",
+        " M lib/hscode/ai/schema.ts",
+        " M lib/hscode/ai/service.ts",
+        " M next.config.ts",
+        " M package.json",
+        " M scripts/lib/hs-ai-test-budget.mjs",
+        " M tests/sql/hs-ai-review.mjs",
+        " M tests/unit/hs-ai-budget.test.ts",
+        " M tests/unit/hs-ai-create.test.ts",
+        " M tests/unit/hs-ai-explanations.test.ts",
+        " M tests/unit/hs-ai-service.test.ts",
+        "?? .agent-bridge/checkout-country-tax-dev-DE-1.png",
+        "?? .agent-bridge/checkout-country-tax-dev-DE-3.png",
+        "?? .agent-bridge/checkout-country-tax-dev-NL-1.png",
+        "?? .agent-bridge/checkout-country-tax-dev-NL-3.png",
+        "?? .agent-bridge/checkout-country-tax-dev-SE-1.png",
+        "?? .agent-bridge/checkout-country-tax-dev-SE-3.png",
+        "?? .agent-bridge/checkout-country-tax-dev-US-1.png",
+        "?? .agent-bridge/checkout-country-tax-dev-US-3.png",
+        "?? .agent-bridge/checkout-country-tax-development.json",
+        "?? .agent-bridge/ddp-country-selection-development-values.json",
+        "?? .agent-bridge/ddp-country-selection-development.json",
+        "?? .agent-bridge/ebay-us-tax-review-item.png",
+        "?? .agent-bridge/hs-ai-workbench/browser-ui-no-web.json",
+        "?? .agent-bridge/hs-ai-workbench/browser-ui-v3.json",
+        "?? .agent-bridge/hs-ai-workbench/decision-1440.png",
+        "?? .agent-bridge/hs-ai-workbench/decision-320.png",
+        "?? .agent-bridge/hs-ai-workbench/decision-390.png",
+        "?? .agent-bridge/hs-ai-workbench/decision-browser.json",
+        "?? .agent-bridge/hs-ai-workbench/ui-no-web-awaiting-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-no-web-awaiting-mobile.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-no-web-empty-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-no-web-result-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-no-web-result-mobile.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-v3-awaiting-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-v3-awaiting-mobile.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-v3-empty-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-v3-result-desktop.png",
+        "?? .agent-bridge/hs-ai-workbench/ui-v3-result-mobile.png",
+        "?? .agent-bridge/hs-ai-workbench/verify-browser-no-web.mjs",
+        "?? .agent-bridge/hs-ai-workbench/verify-browser-ui-v3.mjs",
+        "?? .agent-bridge/hs-ai-workbench/verify-decision-browser.mjs",
+        "?? .agent-bridge/hs-branch-upgrade/",
+        "?? .agent-bridge/hs-condition-extraction/",
+        "?? .agent-bridge/hs-decision-draft-pilot/",
+        "?? .agent-bridge/hs-decision-engine-verification.json",
+        "?? .agent-bridge/korean-entity-settings-audit.json",
+        "?? .agent-bridge/korean-entity-settings-shipping-development.json",
+        "?? .agent-bridge/korean-entity-settings-shipping-production.json",
+        "?? app/manage/hs-classification/DecisionPanel.tsx",
+        "?? data/hscode/branch-workbench/",
+        "?? data/hscode/decision-engine/",
+        "?? data/hscode/source-model-full/",
+        "?? lib/hscode/ai/models.ts",
+        "?? lib/hscode/decisionEngine/",
+        "?? lib/hscode/sourceModel/full.ts",
+        "?? scripts/collect-hs-decision-sources.py",
+        "?? scripts/hs-branch-workbench.ts",
+        "?? scripts/hs-condition-export.ts",
+        "?? scripts/hs-condition-extract.mts",
+        "?? scripts/hs-decision-draft-pilot.mts",
+        "?? scripts/hs-decision-engine.ts",
+        "?? scripts/hs-source-full.ts",
+        "?? scripts/reconcile-hs-source-current.py",
+        "?? scripts/summarize-hs-condition-extraction.ts",
+        "?? scripts/summarize-hs-decision-pilot.ts",
+        "?? supabase/migrations/20261106_01_hs_decision_version.sql",
+        "?? tests/unit/auth-access-contract.test.ts",
+        "?? tests/unit/hs-ai-models.test.ts",
+        "?? tests/unit/hs-branch-workbench.test.ts",
+        "?? tests/unit/hs-condition-extraction.test.ts",
+        "?? tests/unit/hs-decision-engine.test.ts",
+        "?? tests/unit/hs-extraction-jobs.test.ts",
+        "?? tests/unit/hs-official-condition-fixtures.test.ts",
+        "?? tests/unit/hs-source-full.test.ts",
+        "?? tests/unit/inquiry-capability-sql.test.ts"
+      ],
+      "inspectedAndTestedFileSha256": {
+        "app/api/3pl/pack-complete/route.ts": "0fac4b8bb8d400dd211c50f9d9d49ef5b98ca869f473d34118f27c065f1770e8",
+        "app/api/shopify/sync-orders/route.ts": "9b13078ded601751a715761bf7bf2f336ccef6f72a45dbbf7a1a35a82bdbdac0",
+        "app/api/shopify/webhook/orders-cancel/route.ts": "73ddc62c4103ab0758c2126dbe397ed4658cdf1a6ed8e044f17e8754e3dc7735",
+        "app/api/shopify/webhook/orders/route.ts": "fccc90eeb980b627621828c4064d339f41d7dc0b2313d19fb41ec9845ed52f55",
+        "app/api/shopify/webhook/refunds/route.ts": "8cd6fc0c4d443472787cc2b02b5022cdb4d6c56e1ccc81e04dde95a07b22c475",
+        "lib/3pl/orderFulfillmentService.ts": "01846221268553fbb38b60747f052f897228191fa15878ecf7919aec8bfc6077",
+        "lib/3pl/orderGrouping.ts": "5e8b9a268a8ef8e4850c40a9493a81bcd23c35fae8ed897cbd7b38222bd98906",
+        "lib/pipeline/modules/order-collector/index.ts": "9d069c24fd7e5306ee4135a93890fea8fc24a7d745aa8d4dbe0e956e541fb2cb",
+        "lib/pipeline/shared/order-manager.ts": "30373a8e81a4f9cd8b13642bab107a59a847a9f7d1083090b22cdcbc0be9244e",
+        "lib/shopify/saleSettlementPrice.ts": "3e57ef97a991618069e78254e5bcfdf20c04da64fde181e6bf47ebbd66093b23",
+        "lib/shopify/webhook-utils.ts": "17f7c750032149678bc72d98e8f343d2c3323e1160472be6dc80541f50afc3bb",
+        "package.json": "1a6d32f2fff50ca9bd3d4730ea49f88907164925ebe301886c324031c54c2777",
+        "scripts/register_webhooks.js": "de9959beee3fe8526d73d8ca78f56a39927a7b67218fc4888fc2f3eabfd9d12c",
+        "supabase/migrations/20260923_04_stock_and_inbound_hardening.sql": "744896350fee1a34ee5e9eef06376d0658b162dbedfe9e281a22a30c0341a647",
+        "supabase/migrations/20260923_hardening_refunds.sql": "feba1f4af18d1f91f50400d0527f61c679e8973c94790e60a749a9c575ce957d",
+        "supabase/migrations/20261006_01_artist_order_upsert_identity.sql": "fe38be72bc43b0d120d1a3673ade1893ee3264da2f5097d181f19f9547b407e3",
+        "supabase/migrations/20261024_01_atomic_inbound_slip_and_weight.sql": "45d343a25afd7e159fd66a68b3ea140649b306eb8468322e21e11ab844cb1b8b",
+        "supabase/migrations/20261024_07_inbound_inspection_settlement.sql": "2cbdff9a723c854541ba1b145d68d74932cc48c441ea7f7035bce4486db18558",
+        "supabase/migrations/20261024_08_preserve_quarantine_amendment_reason.sql": "8a1b4954763001bda19edc2dbcc6274c26eabbaa83f13426c453133d4b80a564",
+        "supabase/migrations/20261024_09_sale_settlement_price_history.sql": "cfa4b11ad78de171123804b64d6f518173a7742e729d5401584ec92a4f3ca89c",
+        "supabase/migrations/20261024_10_monotonic_settlement_price_versions.sql": "bb9e8c3b39914572f27ad774f19672d452e07078828fb91e545d45b85173492d",
+        "tests/audit/order-lifecycle.audit.ts": "1c723bce9662aa9d99d3166da22e9d45a18ea07a65be2170b09b6c5dd04528a6",
+        "tests/helpers/inboundSettlementFixture.ts": "4005979b8afa9bc8e3be617e13d4d21b27cbd41d1096e9178991ae48f1caa462",
+        "tests/sql/fixtures/artist-dashboard-test-schema.sql": "71d2b95f4d16e2873ca8e03b01bd9604fc1520fb414f94bd7719c876355d3a39",
+        "tests/unit/consolidation-grouping.test.ts": "2c1c8bffaa465e1c6c4ccc8b11bbeb57eed16a44ec77478bebf886c358820f24",
+        "tests/unit/inbound-settlement-ledger.test.ts": "24742f89eaea2a4ec6b603bcc381c17735070ff04f5b03797e9dfb4aab3208c3",
+        "tests/unit/order-line-customs-snapshot.test.ts": "8b5a7852271df818492b3eeead9a3e5ad15105c61950394e608de281fe195e95",
+        "tests/unit/order-pack-status-fsm.test.ts": "29029f74d9f7444f1903b04a0b86b9e2110eb8aa6e1f3737b76bfbbcfd002181",
+        "tests/unit/quarantine-order-grouping-guard.test.ts": "b4660cd33b2ae2a9222d12c593ce1fb0773c0f061e67b6a3ab6c59a639e01419",
+        "tests/unit/security-boundaries.test.ts": "9d33ab384332a6cb3366bca18c84824a85272ac47c9101ddd878c263dde8a458",
+        "tests/unit/shopify-environment-isolation.test.ts": "7efcc056d7d0c5937b972b494b9318c813c9d33eee2afc583ff30b06de377d68",
+        "tests/unit/warehouse-assignment.test.ts": "7395b4512fa06c59c3c0989f078c1d4d3d5dc09c60918b4e7560a8d7b3a9396c",
+        "tests/unit/sale-settlement-price-history.test.ts": "dd94157ac01a451a0d1e7c4437106800b778aed975c49bab782fd257e8385365"
+      },
+      "changedExistingFilesSinceStart": [
+        "doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md"
+      ],
+      "existingApplicationSourceChangesSinceStart": []
+    }
+  ],
+  "checks": {
+    "storefrontUnit": {
+      "repository": "blank-seoul-storefront",
+      "command": "npm run test:unit",
+      "exitCode": 0,
+      "log": "/tmp/blank-order-front-regression.tap",
+      "logSha256": "66fe4e50e20d99f752bfe1b94bffa099d1fe3b0f6ee113680b4a857dced8911b",
+      "counts": {
+        "tests": 61,
+        "pass": 61,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "adminRegression": {
+      "repository": "blank-seoul-admin",
+      "command": "node --import tsx --test --test-concurrency=1 tests/unit/sale-settlement-price-history.test.ts tests/unit/inbound-settlement-ledger.test.ts tests/unit/consolidation-grouping.test.ts tests/unit/order-pack-status-fsm.test.ts tests/unit/quarantine-order-grouping-guard.test.ts tests/unit/order-line-customs-snapshot.test.ts tests/unit/warehouse-assignment.test.ts tests/unit/shopify-environment-isolation.test.ts tests/unit/security-boundaries.test.ts",
+      "exitCode": 0,
+      "log": "/tmp/blank-order-admin-regression.tap",
+      "logSha256": "da4e7cf023f9d6b7a4df8d357b71b6fcf3aa59d64c33a622125deeca66922785",
+      "counts": {
+        "tests": 101,
+        "pass": 101,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "lifecycleAcceptance": {
+      "repository": "blank-seoul-admin",
+      "command": "node --import tsx --test tests/audit/order-lifecycle.audit.ts",
+      "exitCode": 1,
+      "log": "/tmp/blank-order-audit.tap",
+      "logSha256": "0e581e23caae8c9dd01f78b1f137927657fa43ac8662c87c84361d88d576fadd",
+      "counts": {
+        "tests": 11,
+        "pass": 5,
+        "fail": 6,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cases": [
+        {
+          "name": "late paid webhook + replay preserve sale price, nullable-variant identity and artist state",
+          "passed": true,
+          "error": null
+        },
+        {
+          "name": "order mapping/price/insert failures are retryable and leave no artist order",
+          "passed": true,
+          "error": null
+        },
+        {
+          "name": "partial refund replay is atomic and leaves physical stock and existing payout entries unchanged",
+          "passed": true,
+          "error": null
+        },
+        {
+          "name": "normal cancellation replay preserves physical stock and previous payout history",
+          "passed": true,
+          "error": null
+        },
+        {
+          "name": "LC01 cancellation must not acknowledge failed persistence: select:artist_orders",
+          "passed": false,
+          "error": "'select:artist_orders: expected retryable failure, received 200'"
+        },
+        {
+          "name": "LC01 cancellation must not acknowledge failed persistence: update:artist_orders",
+          "passed": false,
+          "error": "'update:artist_orders: expected retryable failure, received 200'"
+        },
+        {
+          "name": "LC01 cancellation must not acknowledge failed persistence: update:orders",
+          "passed": false,
+          "error": "'update:orders: expected retryable failure, received 200'"
+        },
+        {
+          "name": "LC01 replay after parent update failure must finish parent cancellation",
+          "passed": false,
+          "error": "|-"
+        },
+        {
+          "name": "refund arriving before creation is retryable and commits once after creation",
+          "passed": true,
+          "error": null
+        },
+        {
+          "name": "LC02 cancellation before creation must not allow a later paid event to leave an active order",
+          "passed": false,
+          "error": "'Cancellation acknowledged 200, later paid event left 1 active order'"
+        },
+        {
+          "name": "LC03 partial refund after receipt must preserve physical receipt quantity separately from outstanding order quantity",
+          "passed": false,
+          "error": "'Receipt 5 exceeds mutated target 3; needs an explicit refund/receipt reconciliation contract'"
+        }
+      ],
+      "status": "unmet_acceptance_criteria_not_all_passed",
+      "diagnostics": [
+        {
+          "orderQuantity": 3,
+          "receivedQuantity": 5,
+          "physicalStock": 5,
+          "settlementPending": [
+            {
+              "quantity": 5,
+              "amount": "55000"
+            }
+          ]
+        }
+      ]
+    },
+    "purchaseBrowser": {
+      "repository": "blank-seoul-storefront",
+      "command": "npm run test:purchase",
+      "exitCode": 0,
+      "log": "/tmp/blank-order-browser.log",
+      "logSha256": "38a10b5b3e4ee917171ed8a15621c2d7b58475153a674d1349820da042bfca3c",
+      "result": {
+        "passed": true,
+        "checks": [
+          "Failed callback explains retry without exposing provider details",
+          "Google initiation failure is visible and email sign-in remains available",
+          "Guest tracking link opens sign-in rather than claiming to send email",
+          "Korean seller identity and policy copy agree on mobile and desktop",
+          "Home, wishlist and mobile product layout",
+          "Shop all pagination reaches product 65",
+          "Collection pagination and group category links",
+          "Search results, next page and empty result",
+          "Unavailable option combination never adds first variant",
+          "Available option add respects stock and stores selected price",
+          "Sold-out variant cannot be added",
+          "Cart option change, quantity, and page reload",
+          "320/390/768/1440 cart has no horizontal overflow",
+          "Checkout failure retains cart, duplicate clicks create one request",
+          "Partial checkout adjustment keeps requested local quantities",
+          "Shopify warnings preserve local cart",
+          "Accepted checkout redirects and back navigation restores bag",
+          "Removing last item returns accessible empty state",
+          "Account details ignore another account cache and recover after an order API failure",
+          "Sign-out failure preserves the account and allows retry",
+          "Account switch discards a delayed previous order response and sign-out clears orders"
+        ],
+        "errors": [],
+        "checkoutCalls": 4
+      },
+      "resultPath": "/var/folders/0d/r7hps4w94l9bqn_00mqvngr40000gn/T/storefront-purchase-FqKTGs/results.json"
+    },
+    "adminTypecheck": {
+      "repository": "blank-seoul-admin",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "/tmp/blank-order-admin-typecheck.log",
+      "logSha256": "c587c0f7b20efba6d9e78038ef6e1afcc70e5a66a2289fd554e3183c10522e6f"
+    },
+    "auditLint": {
+      "repository": "blank-seoul-admin",
+      "command": "npx eslint tests/audit/order-lifecycle.audit.ts",
+      "exitCode": 0,
+      "log": "/tmp/blank-order-audit-lint.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diffCheck": {
+      "command": "git diff --check (each repository)",
+      "exitCode": 0
+    }
+  },
+  "findings": [
+    {
+      "id": "LC01",
+      "priority": "high",
+      "classification": "reproduced_defect",
+      "cases": 4,
+      "summary": "Cancellation acknowledges DB read/write failures; replay does not repair parent after child cancellation"
+    },
+    {
+      "id": "LC02",
+      "priority": "high",
+      "classification": "reproduced_defect",
+      "cases": 1,
+      "summary": "Cancellation before creation acknowledged without durable fact; late paid event creates active order"
+    },
+    {
+      "id": "LC03",
+      "priority": "policy_and_data_contract_gap",
+      "classification": "observed_divergent_quantities_unresolved_acceptance_contract",
+      "cases": 1,
+      "summary": "Receipt5, refund2 -> order3/receipt5/warehouse5/unpaid5 (55000 fixture units). No finding of automatic physical-stock change or confirmed overpayment. Single receipt-target invariant fails; final settlement/refund policy not chosen."
+    }
+  ],
+  "isolation": {
+    "remoteWrites": false,
+    "credentialsLoadedByNewAudit": false,
+    "liveOrderOrRefund": false,
+    "sqlAppliedRemotely": false,
+    "gitPushOrDeployment": false,
+    "newAuditDatabase": "PGlite memory-only; existing minimal schema + selected repository migrations",
+    "newAuditRouteImports": "VM allowlist; no SDK/network access",
+    "mockedNewAuditDependencies": [
+      "webhook signature verifier",
+      "warehouse assignments",
+      "customs feature disabled",
+      "base SKU normalization and customs title"
+    ],
+    "existingRegressionLimits": "Some helpers use mocked HTTP/SDK; pure grouping is not real fulfillment. Separate customs-enabled unit coverage is not one full cross-service E2E.",
+    "concurrency": "Sequential PGlite cases do not establish independent-connection transaction concurrency",
+    "browser": "External services intercepted; own 3021 test server stopped"
+  },
+  "remainingUnverified": [
+    "Fresh personal Google/Kakao completion to protected screens",
+    "Deployed current code and real multi-account order access",
+    "Partial-refund return/settlement adjustment policy and fulfillment reconciliation",
+    "Actual return address confirmation, shipment and receipt workflow",
+    "Delayed-payment event subscriptions and runtime job schedule",
+    "Multi-connection DB concurrency and large-scale workload/Disk IO"
+  ],
+  "documents": {
+    "storefront": "docs/technical/integration-review.md#order-lifecycle-verification",
+    "admin": "../blank-seoul-admin/doc/logistics/ARTIST_LOGISTICS_WORKFLOW.md#order-lifecycle-verification",
+    "moduleNavigation": "docs/platform-analysis/STOREFRONT_MODULE_OPERATIONS.md"
+  },
+  "changes": [
+    "Storefront owning integration document and M04 navigation/history corrections",
+    "Admin owning logistics document",
+    "Admin tests/audit/order-lifecycle.audit.ts",
+    "This evidence JSON"
+  ],
+  "notPerformed": [
+    "Application defect fixes",
+    "Schema/API changes",
+    "Remote operational conversion",
+    "Full build and load tests"
+  ]
+}

@@ -6,7 +6,7 @@
 
 ## 📑 문서 목록
 
-1. [01. 모바일 앱 전략 및 시스템 아키텍처 설계서 (v1.1.0)](./01-mobile-app-strategy-and-architecture.md)
+1. [01. 모바일 앱 전략 및 시스템 아키텍처 설계서 (v1.1.0)](<01-mobile-app-strategy-and-architecture.md>)
    - **배경 및 벤치마크**: 아이디어스 글로벌(idus Global) 모델 분석 및 Blank Seoul 차별점
    - **비즈니스 & 퍼널 전략**: 러셀 브런슨 기반 Web-First(획득) / Phygital 언박싱(전환) / App-Retention(재구매 LTV) 구조
    - **시스템 아키텍처**: Next.js(Remote URL Wrapper) + Capacitor Native Bridge + Supabase DB + 어드민 3-티어 연동 구조

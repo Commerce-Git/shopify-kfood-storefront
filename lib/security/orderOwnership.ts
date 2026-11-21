@@ -17,6 +17,9 @@ export function verifyOrderLookupEmail(
 
   const requested = typeof requestedEmail === "string" ? requestedEmail.trim().toLowerCase() : "";
   const verified = user.email.trim().toLowerCase();
+  if (!verified) {
+    return { ok: false, status: 401, error: "Sign in with your verified email to track orders." };
+  }
   if (requested !== verified) {
     return { ok: false, status: 403, error: "Order lookup must use your verified account email." };
   }

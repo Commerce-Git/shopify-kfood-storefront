@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <h1 className="heading-md text-dark mb-4">Privacy Policy</h1>
-      <p className="text-sm text-text-muted mb-6">Last updated: November 5, 2026</p>
+      <p className="text-sm text-text-muted mb-6">Last updated: November 6, 2026</p>
 
       {/* 2026 Modern Fast Facts Summary Grid */}
       <div className="bg-[#FAF9F6] border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 mb-8 shadow-2xs not-prose">
@@ -441,8 +441,8 @@ export default function PrivacyPolicyPage() {
       <h2>Contact & Data Privacy Requests</h2>
       <p>
         Should you have questions about our privacy practices, wish to exercise any of your statutory consumer rights (access, correction, or deletion), or submit a Global Privacy Control inquiry, please email us directly at{" "}
-        <a href="mailto:support@blankseoul.com?subject=Privacy%20Data%20Request" className="text-[#C25E38] font-semibold underline">
-          support@blankseoul.com
+        <a href={`mailto:${BUSINESS.email}?subject=Privacy%20Data%20Request`} className="text-[#C25E38] font-semibold underline">
+          {BUSINESS.email}
         </a>{" "}
         (Subject: Privacy Data Request) or write to our business contact address:
       </p>
@@ -451,7 +451,7 @@ export default function PrivacyPolicyPage() {
         <span>Representative: {BUSINESS.representative}</span><br />
         <span>{BUSINESS.address}</span>
         <br />
-        <span>Email: <a href="mailto:support@blankseoul.com" className="text-[#C25E38] font-medium underline">support@blankseoul.com</a></span>
+        <span>Email: <a href={`mailto:${BUSINESS.email}`} className="text-[#C25E38] font-medium underline">{BUSINESS.email}</a></span>
       </p>
     </>
   );

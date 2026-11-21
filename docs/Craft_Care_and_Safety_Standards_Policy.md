@@ -311,7 +311,7 @@
 ## 🔗 5. 시스템 연동 및 참조
 
 * **단일 마스터 소스코드:** [`lib/config/categoryMaster.ts`](../lib/config/categoryMaster.ts)
-* **어드민 위계 명세서:** [`docs/Category_Hierarchy_Master_Map.md`](./Category_Hierarchy_Master_Map.md)
+* **어드민 위계 명세서:** [`docs/Category_Hierarchy_Master_Map.md`](<Category_Hierarchy_Master_Map.md>)
 * **프론트엔드 아코디언 컴포넌트 (단일 보증서 SSOT):** [`app/components/ProductTrustAccordions.tsx`](../app/components/ProductTrustAccordions.tsx)
 * **마이크로 안심 뱃지 컴포넌트 (개별 컴포넌트):** [`app/components/ProductCareBadges.tsx`](../app/components/ProductCareBadges.tsx)
 * **테스트 및 검증 스위트:** [`scratch/test_safe_by_default.ts`](../scratch/test_safe_by_default.ts), [`scratch/test_craft_care.ts`](../scratch/test_craft_care.ts)

@@ -1,6 +1,30 @@
-# 📧 Email Marketing Pipeline Architecture
+# BLANK SEOUL 이메일 — 구현과 발송 상태
 
-본 문서는 K-Food Storefront의 이메일 마케팅 파이프라인 및 아키텍처에 대한 상세 가이드입니다. 
+최종 정리: 2026-11-06. 한국 사업자 기준 개발의 이메일 원본이다. 전체 개발 순서는 [구현·검증 기준](../docs/technical/integration-review.md#korean-seller-development-first)을 따른다.
+
+## 현재 실행 경로
+
+| 용도 | 코드 | 현재 상태 |
+| --- | --- | --- |
+| 작가 신상품 알림 | [broadcast API](../app/api/artists/broadcast/route.ts), [템플릿](templates/ArtistDropEmail.tsx) | 권한·수신 대상 검사 후 Resend 호출 경로 존재. 실제 예약·발송 완료와 구분 |
+| 리뷰 요청·쿠폰 발급·쿠폰 만료·주문 취소 안내 | [sender](senders.ts), `templates/`의 4개 대응 템플릿 | sender는 no-op, `IS_MARKETING_EMAIL_ENABLED=false`. Shopify 자체 주문 알림은 별도 관리 |
+| 고객 문의 답변 | Admin의 `emails/`, `lib/inquiries/notificationManager.ts` | [문의 전달 원본](../docs/platform-analysis/INQUIRY_DELIVERY.md)에서 관리 |
+
+`vercel.json`의 `crons`는 현재 빈 배열이다. 이번 작업은 발송·예약·API·동의 저장을 변경하거나 중지된 기능을 활성화하지 않는다.
+
+## 판매자 표시·수신거부·검증
+
+- [판매자 설정](../lib/config/business.ts)의 `BUSINESS`를 고객 화면과 이메일이 참조한다. 메일 5종의 상호·주소·지원 이메일은 [SellerIdentity](templates/components/SellerIdentity.tsx)로 공통화했다. 확인되지 않은 전화·신고번호는 추가하지 않는다.
+- 템플릿 입력 타입과 호출자가 전달하는 `unsubscribeUrl`, `unsubscribeArtistUrl`, `unsubscribeAllUrl`을 유지한다. 공통 컴포넌트가 수신거부 URL을 생성하거나 덮어쓰지 않는다.
+- 신상품 발송 API의 RFC 8058 헤더와 [HMAC 처리](../lib/unsubscribe.ts)는 기존 경로를 유지한다. 고객지원 문의는 마케팅 구독과 구분한다. 표시 구현만으로 법적 준수를 인증하지 않는다.
+- 내부 `00_PipelineStatus.tsx`는 개발 안내다. SPF/DKIM/DMARC는 실제 서비스에서 확인할 항목으로 표시하고 판매자 예시는 공통 설정을 사용한다.
+- 2026-11-06 검증: 가상 수신자·가짜 링크로 5종을 HTML 렌더링하여 상호·주소·지원 링크와 수신거부 URL 보존, 320/390/1280px의 15개 조합을 확인했다. 중지된 sender의 no-op도 확인했다. 외부 요청을 차단하고 실제 메일은 보내지 않았다.
+- 전체 검사와 실행 자료 위치는 [개발 구현 기록](../docs/technical/integration-review.md#korean-seller-copy-implementation)에 기록한다. 실제 메일 클라이언트·도메인 인증·운영 배포·배달 성공은 별도다.
+
+<details>
+<summary>과거 이메일 파이프라인 설계 — 현재 발송 상태는 위 표를 따름</summary>
+
+아래는 기존 자동화 설계 참고다. 현재 활성화·예약·도달 검증 완료의 근거로 사용하지 않는다.
 
 ---
 
@@ -74,10 +98,10 @@
 
 ## 5. 법적 준수 사항 (Legal Compliance)
 
-이메일 템플릿과 파이프라인은 미국 **CAN-SPAM Act**를 100% 준수하도록 설계되었습니다.
+아래는 기존 구현에서 고려한 항목이며 법적 준수 인증 결과가 아니다.
 - **Opt-in:** 결제창에서 동의한 고객(`SUBSCRIBED`)에게만 마케팅 이메일 발송
 - **Opt-out:** 모든 템플릿 하단에 1-Click Unsubscribe 링크 포함 및 10일 내 즉시 반영 (실제로는 Shopify를 통해 즉시 처리됨)
-- **Physical Address:** 모든 템플릿 하단에 Blank Palette LLC의 물리적 사업장 주소 (Wyoming) 필수 표기
+- **Physical Address:** 현재 고객용 템플릿의 판매자 주소는 공통 `BUSINESS` 설정과 `SellerIdentity`를 따른다.
 
 ---
 
@@ -95,3 +119,5 @@ Supabase는 고객이 해당 링크를 통해 이미 리뷰를 남겼는지, 혹
 
 > 💡 **더 자세한 Supabase 아키텍처 가이드:**
 > 사용자 인증부터 리뷰 작성까지 전체 Supabase 데이터 흐름은 [`lib/supabase/README.md`](../lib/supabase/README.md) 파일에 분리하여 상세히 기록해 두었습니다.
+
+</details>

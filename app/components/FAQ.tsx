@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import SupportTrigger from "./SupportTrigger";
 import { CANCEL_WINDOW_HOURS } from "@/lib/constants";
+import { BUSINESS } from "@/lib/config/business";
+import { CHECKOUT_COST_NOTICE, REFUND_TIMING_NOTICE } from "@/lib/config/customer-service";
 
 type FAQCategory = "all" | "shipping" | "guarantee" | "crafts" | "orders";
 
@@ -41,7 +43,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "Do I have to pay customs duties or import taxes?",
     answer:
-      "For the vast majority of our orders, NO! Blank Seoul packages dispatched to the United States and Hong Kong arrive with zero surprise customs fees. Orders to Singapore (under S$400) and Australia (under A$1,000) clear destination customs duty-free under standard personal import allowances. Any regional taxes on high-value orders or other countries are assessed by local authorities under standard DDU terms.",
+      `${CHECKOUT_COST_NOTICE} Free shipping does not mean that import charges are waived. Any delivery with duties paid (DDP) and its coverage will be stated before purchase. Contact ${BUSINESS.email} before ordering if destination charges are unclear.`,
     actionButton: {
       label: "View Shipping & Customs Policy →",
       href: "/policies/shipping",
@@ -51,7 +53,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "shipping",
     question: "Do you ship internationally outside the US?",
     answer:
-      "Yes! While the United States (all 50 states, US territories, and APO/FPO military addresses) is our primary free shipping market, we also dispatch to major international destinations including Canada, the United Kingdom, the European Union, Australia, Japan, and Singapore. If your country is not listed at checkout, simply email our concierge at support@blankseoul.com for custom courier dispatch arrangements.",
+      `We dispatch from South Korea. Available destinations and shipping options are shown at checkout. If your destination is not available, contact ${BUSINESS.email} before placing an order.`,
     actionButton: {
       label: "View Global Shipping Policy →",
       href: "/policies/shipping",
@@ -71,7 +73,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "orders",
     question: "Can I cancel or modify my order after placing it?",
     answer:
-      `Yes! We offer an instant ${CANCEL_WINDOW_HOURS}-Hour Zero-Risk Self-Cancellation window. Simply visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel with 1-click for an immediate automatic refund. After ${CANCEL_WINDOW_HOURS} hours, we begin preparing orders for packaging and international dispatch.`,
+      `Yes! Visit your Account page within ${CANCEL_WINDOW_HOURS} hours of purchase to cancel an eligible order for a full refund before dispatch. ${REFUND_TIMING_NOTICE} After this window, contact support to check whether the order can still be changed.`,
     actionButton: {
       label: "Go to My Account (/account) →",
       href: "/account",

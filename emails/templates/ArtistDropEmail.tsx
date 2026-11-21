@@ -14,6 +14,7 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
+import { SellerIdentity } from "./components/SellerIdentity";
 
 export interface ArtistDropEmailProps {
   customerName?: string;
@@ -162,7 +163,7 @@ export const ArtistDropEmail = ({
             {/* 7. Legal Footer & Granular RFC 8058 Unsubscribe */}
             <Section className="text-center text-[#9CA3AF] text-[11px] leading-[18px]">
               <Text className="m-0 text-[#71717A] font-medium">
-                Blank Palette LLC &middot; Sheridan, Wyoming, USA
+                <SellerIdentity />
               </Text>
               <Text className="m-0 mt-[4px] text-[#9CA3AF]">
                 Dispatched with tracking direct from central Korea hub.
