@@ -13,6 +13,8 @@ export const viewport: Viewport = {
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "./components/Header";
+import { requestMarket } from '@/lib/markets/request';
+import { MarketProvider } from './components/MarketProvider';
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import MobileBottomNav from "./components/MobileBottomNav";
@@ -88,11 +90,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const market = await requestMarket();
   return (
     <html
       lang="en"
@@ -101,7 +104,7 @@ export default function RootLayout({
       suppressHydrationWarning={true}
     >
       <body className="min-h-screen flex flex-col bg-background text-text" suppressHydrationWarning={true}>
-        <AuthProvider>
+        <MarketProvider market={market}><AuthProvider>
           <CartProvider>
             <Header />
             <main className="flex-1 flex flex-col pt-page-offset">{children}</main>
@@ -109,7 +112,7 @@ export default function RootLayout({
             <CartDrawer />
             <MobileBottomNav />
           </CartProvider>
-        </AuthProvider>
+        </AuthProvider></MarketProvider>
       </body>
     </html>
   );

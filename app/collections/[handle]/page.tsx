@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -28,6 +29,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
+  const { country } = await requestMarket();
   const targetHandle = resolveCollectionHandle(decodedHandle);
 
   // 1. Super-Category Hub Check
@@ -42,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   // 2. Individual Smart Collection Check
-  const collection = await getCollectionByHandle(targetHandle);
+  const collection = await getCollectionByHandle(targetHandle, { country });
   const config = getCollectionConfig(targetHandle);
 
   if (!collection) {
@@ -60,6 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CollectionPage({ params, searchParams }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
+  const { country } = await requestMarket();
   const targetHandle = resolveCollectionHandle(decodedHandle);
 
   // =========================================================================
@@ -75,7 +78,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
 
     // Read each child collection directly: an older product must not disappear
     // just because it is outside the site's latest 50 products.
-    const childCollections = await Promise.all(childConfigs.map(config => getCollectionByHandle(config!.handle, { first: 12 })));
+    const childCollections = await Promise.all(childConfigs.map(config => getCollectionByHandle(config!.handle, { country, first: 12 })));
     const sortedProducts = Array.from(new Map(childCollections.flatMap(collection => collection?.products?.edges.map(edge => edge.node) ?? []).map(product => [product.id, product])).values());
 
     return (
@@ -138,7 +141,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
   // =========================================================================
   const query = await searchParams;
   const after = typeof query.after === 'string' ? query.after.slice(0, 2000) : null;
-  const collection = await getCollectionByHandle(targetHandle, { first: 48, after });
+  const collection = await getCollectionByHandle(targetHandle, { country, first: 48, after });
   const config = getCollectionConfig(targetHandle);
   const parentSuperCat = config?.superCategory ? getSuperCategory(config.superCategory) : undefined;
 

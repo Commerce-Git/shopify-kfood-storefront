@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemPriceNotice } from "../../components/BagPriceStatus";
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -91,6 +92,7 @@ export default function CartItemList({
                     >
                       {item.title}
                     </Link>
+                    <ItemPriceNotice id={item.variantId} />
                     {item.variantTitle && item.variantTitle !== "Default Title" && (
                       <div className="flex items-center gap-1.5 mt-1 text-xs text-[#71717A]">
                         <span className="shrink-0 font-medium text-[11px]">Option:</span>

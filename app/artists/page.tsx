@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/shopify/api";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ArtistsDirectoryPage() {
-  const products = await getAllProducts(100);
+  const products = await getAllProducts(100, (await requestMarket()).country);
   const artists = await getEnrichedArtistsWithProducts(products);
 
   return (

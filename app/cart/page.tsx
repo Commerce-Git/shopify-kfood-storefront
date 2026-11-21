@@ -11,6 +11,8 @@ import type { CartItem } from "@/lib/shopify/types";
 import type { AvailableCoupon } from "@/lib/types/coupon";
 import { useCartCheckout } from "./_hooks/useCartCheckout";
 import { useCartUpsells } from "./_hooks/useCartUpsells";
+import { BagPriceStatus } from "../components/BagPriceStatus";
+import { useMarket } from "../components/MarketProvider";
 import CartItemList, { type ProductVariantOption } from "./_components/CartItemList";
 import CartUpsellShelf from "./_components/CartUpsellShelf";
 import CartCouponDrawer from "./_components/CartCouponDrawer";
@@ -19,10 +21,11 @@ import CartOrderSummary from "./_components/CartOrderSummary";
 import { isStoreLive } from "@/lib/constants";
 
 export default function CartPage() {
+  const { country } = useMarket();
   const {
     items,
     itemCount,
-    subtotal,
+    subtotal, pricing,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -51,7 +54,7 @@ export default function CartPage() {
   });
 
   const handleProceedToCheckout = () => {
-    if (!isStoreLive()) return;
+    if (!isStoreLive() || !pricing.ready) return;
     handleCheckout();
   };
 
@@ -93,7 +96,7 @@ export default function CartPage() {
     const handles: string[] = JSON.parse(productHandlesKey);
     void Promise.all(handles.map(async handle => {
       try {
-        const product = await getProductByHandle(handle);
+        const product = await getProductByHandle(handle, { country });
         if (controller.signal.aborted || !product) return;
         const variants = product.variants.edges.map(({ node }) => ({
           id: node.id, title: node.title, price: Number(node.price.amount).toFixed(2),
@@ -105,7 +108,7 @@ export default function CartPage() {
     }));
     return () => controller.abort();
     // Quantity edits do not change the product handles that need fetching.
-  }, [productHandlesKey]);
+  }, [productHandlesKey, country]);
 
   const handleOptionChange = (item: CartItem, newVariantId: string) => {
     const variants = productVariantsMap[item.productHandle];
@@ -262,6 +265,7 @@ export default function CartPage() {
           {/* Left Column: Items, Upsells, and Coupons */}
           <fieldset disabled={loading} className="lg:col-span-7 xl:col-span-7 min-w-0 space-y-6">
             {backup && <CartBackupModal backup={backup} onRestore={restoreFromBackup} onDismiss={dismissBackup} />}
+            <BagPriceStatus />
             <CartItemList
               items={items}
               productVariantsMap={productVariantsMap}
@@ -293,6 +297,7 @@ export default function CartPage() {
             discountAmount={discountAmount}
             finalTotal={finalTotal}
             discountLabel={availableCoupon?.discountLabel}
+            blocked={!pricing.ready}
             loading={loading}
             error={error}
             items={items}

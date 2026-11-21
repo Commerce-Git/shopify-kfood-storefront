@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import type { CartItem } from "@/lib/shopify/types";
 import type { CompanionProduct, ArtistToFollow } from "@/app/api/cart-companions/route";
 
+import { useMarket } from "@/app/components/MarketProvider";
+
 interface UseCartUpsellsProps {
   items: CartItem[];
   addToCart: (item: CartItem) => void;
@@ -13,6 +15,7 @@ interface UseCartUpsellsProps {
 const companionCache = new Map<string, { companions: CompanionProduct[]; artistsToFollow: ArtistToFollow[] }>();
 
 export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
+  const { country } = useMarket();
   const [companions, setCompanions] = useState<CompanionProduct[]>([]);
   const [artistsToFollow, setArtistsToFollow] = useState<ArtistToFollow[]>([]);
   const [fetchedKey, setFetchedKey] = useState<string>("");
@@ -23,9 +26,11 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
     .sort()
     .join(",");
 
+  const cacheKey = JSON.stringify([country, handlesKey]);
+
   useEffect(() => {
     // If no items in cart or already cached, skip effect (derived state handles render directly)
-    if (!handlesKey || companionCache.has(handlesKey)) return;
+    if (!handlesKey || companionCache.has(cacheKey)) return;
 
     let isMounted = true;
 
@@ -36,27 +41,27 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
         if (data.success) {
           const comp = data.companions || [];
           const artists = data.artistsToFollow || [];
-          companionCache.set(handlesKey, { companions: comp, artistsToFollow: artists });
+          companionCache.set(cacheKey, { companions: comp, artistsToFollow: artists });
           setCompanions(comp);
           setArtistsToFollow(artists);
         } else {
           setCompanions([]);
           setArtistsToFollow([]);
         }
-        setFetchedKey(handlesKey);
+        setFetchedKey(cacheKey);
       })
       .catch((err) => {
         if (!isMounted) return;
         console.error("[useCartUpsells Error]:", err);
         setCompanions([]);
         setArtistsToFollow([]);
-        setFetchedKey(handlesKey);
+        setFetchedKey(cacheKey);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [handlesKey]);
+  }, [handlesKey, cacheKey]);
 
   const handleAddUpsell = (upsell: CompanionProduct) => {
     setAddedUpsellId(upsell.variantId);
@@ -77,10 +82,10 @@ export function useCartUpsells({ items, addToCart }: UseCartUpsellsProps) {
   };
 
   // React 19 Derived State: calculate during render to avoid cascading renders in useEffect
-  const cachedData = handlesKey ? companionCache.get(handlesKey) : null;
-  const activeCompanions = handlesKey ? (cachedData?.companions ?? (fetchedKey === handlesKey ? companions : [])) : [];
-  const activeArtistsToFollow = handlesKey ? (cachedData?.artistsToFollow ?? (fetchedKey === handlesKey ? artistsToFollow : [])) : [];
-  const activeIsLoading = Boolean(handlesKey && !cachedData && fetchedKey !== handlesKey);
+  const cachedData = handlesKey ? companionCache.get(cacheKey) : null;
+  const activeCompanions = handlesKey ? (cachedData?.companions ?? (fetchedKey === cacheKey ? companions : [])) : [];
+  const activeArtistsToFollow = handlesKey ? (cachedData?.artistsToFollow ?? (fetchedKey === cacheKey ? artistsToFollow : [])) : [];
+  const activeIsLoading = Boolean(handlesKey && !cachedData && fetchedKey !== cacheKey);
 
   return {
     companions: activeCompanions,

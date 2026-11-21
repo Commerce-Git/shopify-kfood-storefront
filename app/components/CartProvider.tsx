@@ -1,5 +1,7 @@
 "use client";
 
+import { useBagPrices } from "./useBagPrices";
+import { useMarket } from "./MarketProvider";
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useStoredValue, notifyStorageChanged } from "@/lib/hooks/useStoredValue";
 import { parseCart, mergeCartItems, changeCartVariant, boundedQuantity } from "@/lib/cart/items";
@@ -11,6 +13,7 @@ export interface CheckoutBackup {
 }
 
 interface CartContextType {
+  pricing: ReturnType<typeof useBagPrices>;
   items: CartItem[];
   itemCount: number;
   subtotal: number;
@@ -62,6 +65,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     saveCart(typeof update === "function" ? update(loadCart()) : update);
   }, []);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const { country } = useMarket();
+  const pricing = useBagPrices(country, items, isCartOpen, loadCart, saveCart);
 
   // Clean expired backups; cart hydration is handled by the external store.
   useEffect(() => {
@@ -228,7 +234,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         items,
-        itemCount,
+        itemCount, pricing,
         subtotal,
         addToCart,
         addBundleToCart,

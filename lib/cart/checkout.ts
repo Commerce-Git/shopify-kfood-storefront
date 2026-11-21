@@ -6,7 +6,7 @@ export interface CheckoutResponse {
       id: string;
       checkoutUrl: string;
       discountCodes: { code: string; applicable: boolean }[];
-      lines: { pageInfo: { hasNextPage: boolean }; edges: { node: { quantity: number; merchandise: { id: string } } }[] };
+      lines: { pageInfo: { hasNextPage: boolean }; edges: { node: { quantity: number; merchandise: { id: string; price?: { amount: string; currencyCode: string } } } }[] };
     };
     userErrors: { message: string }[];
     warnings: { message: string }[];

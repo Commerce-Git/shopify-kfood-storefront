@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import EtsyHorizontalShelf from "./components/EtsyHorizontalShelf";
 import EtsyEditorialSplitBanner from "./components/EtsyEditorialSplitBanner";
 import AtelierSpotlight from "./components/AtelierSpotlight";
@@ -27,7 +28,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   }
 
   // Fetch all live products directly from Shopify Storefront API
-  const { products: liveProducts } = await getProductsPage({ first: 50 });
+  const { products: liveProducts } = await getProductsPage({ country: (await requestMarket()).country, first: 50 });
   const enrichedArtists = await getEnrichedArtistsWithProducts(liveProducts);
 
   // Group live products dynamically into SSOT shelves (Auto-Hides 0-product shelves)

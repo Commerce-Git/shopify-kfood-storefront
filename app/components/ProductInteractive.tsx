@@ -16,9 +16,10 @@ import ConciergeTriggerButton from "./ConciergeTriggerButton";
 interface ProductInteractiveProps {
   product: ShopifyProduct;
   isPreview?: boolean;
+  initialVariant?: string;
 }
 
-export default function ProductInteractive({ product }: ProductInteractiveProps) {
+export default function ProductInteractive({ product, initialVariant }: ProductInteractiveProps) {
   const buyBoxRef = useRef<HTMLDivElement>(null);
   const images = getProductImages(product);
   const artistProfile = getArtistBySlug(getArtistSlug(product.vendor || ""), product.vendor);
@@ -91,7 +92,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaultOptions: Record<string, string> = {};
     const inStockVariant = product.variants.edges.find((e) => e.node.availableForSale)?.node;
-    const targetVariant = inStockVariant || product.variants.edges[0]?.node;
+    const targetVariant = product.variants.edges.find(e => e.node.id === initialVariant)?.node || inStockVariant || product.variants.edges[0]?.node;
     targetVariant?.selectedOptions.forEach((opt) => {
       defaultOptions[opt.name] = opt.value;
     });
@@ -168,7 +169,7 @@ export default function ProductInteractive({ product }: ProductInteractiveProps)
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-16" data-market-variant={selectedVariant?.id.split('/').pop()}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Image Gallery */}
         <ProductGallery 

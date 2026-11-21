@@ -67,7 +67,7 @@ Admin의 상품 동기화 후 홈페이지가 다음 접근에서 최신 데이�
 * **인증**: 같은 환경의 `REVALIDATE_SECRET`을 검사합니다. 보호된 Preview의 서버 접근에는 [환경 연결 계약](../environment-isolation.md#연결값)의 `STOREFRONT_API_PROTECTION_BYPASS` 헤더도 필요합니다.
 * **동작 원리**:
   1. WMS 데이터 동기화 완료 시 `POST /api/revalidate`로 요청이 전달됩니다.
-  2. 가격 변경 요청에는 Admin이 조회한 Shopify 실제 handle과 `expectedPrice: { variantId, amountUsd }`를 전달합니다. Storefront는 상품 상세와 같은 `storefrontFetch`·API 주소(`2025-10`)·전체 상품 쿼리·변수를 사용하고, 상품 조회는 `no-store`이며 확인 요청은 전체 옵션 페이지를 포함해4초 제한을 적용합니다. 값이 아직 다르면 캐시를 만료하지 않고 `409 / SHOPIFY_PRICE_PENDING`을 반환합니다. Admin은 이 응답만 1초 간격으로 최대40회·전체45초 안에서 확인하고, 다른 실패·미지원 응답은 성공으로 기록하지 않습니다. 이 한도를 넘는 지연은 로그에 남으며 영구 재시도 큐는 이번 범위가 아닙니다. 이전 버전의 Storefront가 가격 확인 없이200을 반환해도 `priceConfirmed: true`가 없으면 성공으로 기록하지 않습니다.
+  2. 가격 변경 요청에는 Admin이 조회한 Shopify 실제 handle과 `expectedPrice: { variantId, amountUsd }`를 전달합니다. Storefront는 상품 상세와 같은 `storefrontFetch`와 API 주소(`2025-10`)를 사용합니다. 기본가 확인 쿼리는 국가 컨텍스트를 생략하고, 상품 조회는 `no-store`이며 확인 요청은 전체 옵션 페이지를 포함해 4초 제한을 적용합니다. 값이 아직 다르면 캐시를 만료하지 않고 `409 / SHOPIFY_PRICE_PENDING`을 반환합니다. Admin은 이 응답만 1초 간격으로 최대40회·전체45초 안에서 확인하고, 다른 실패·미지원 응답은 성공으로 기록하지 않습니다. 이 한도를 넘는 지연은 로그에 남으며 영구 재시도 큐는 이번 범위가 아닙니다. 이전 버전의 Storefront가 가격 확인 없이200을 반환해도 `priceConfirmed: true`가 없으면 성공으로 기록하지 않습니다.
   3. 새 가격을 확인한 뒤 `revalidateTag('shopify-catalog', { expire: 0 })`로 공통 Shopify 조회 캐시를 만료합니다. 페이지 재생성 때 이전 상품 응답을 다시 사용하지 않도록 합니다. 가격 검사가 없는 상품·이미지·작가 갱신도 이 태그를 만료합니다.
   4. 수신된 `handle` 및 `collections`에 **`revalidatePath()`**를 적용합니다. 구체 주소에는 `type`을 생략합니다. `/artists/[slug]` 같은 동적 경로 패턴에는 `'page'`가 필요합니다.
      - `revalidatePath("/product/상품슬러그")`
@@ -82,3 +82,13 @@ Admin의 상품 동기화 후 홈페이지가 다음 접근에서 최신 데이�
 추가 시험에서는 **Shopify Admin API는153인데 캐시를 우회한 Storefront API 자체는34**인 시점을 함께 기록했습니다. 로컬 운영 방식의 요청별 상세 조회에서 외부 Storefront 가격이153으로 전파되자 화면도153이 됐고, 새 장바구니153·가격 하향 뒤 새 상세/새 장바구니34를 확인했습니다. 최종 사례에서는 최초 측정부터 약15초 동안 외부 API의 이전 가격이 관찰됐습니다. 외부 가격 전파의 즉시 일관성을 보장할 수 없으며, 요청별 상세 조회 수정은 아래 후속 dev 배포에서 검증했습니다. [Next.js fetch 규격](https://nextjs.org/docs/app/api-reference/functions/fetch)의 `no-store`는 Next.js 캐시를 우회하는 옵션이며 Shopify 내부 전파 지연까지 제거하는 기능은 아닙니다.
 
 **후속 dev 배포 검증 완료:** Storefront `86bb662`(`dpl_CcG57RcC49vdkKd5opu8Z9nHdcAg`)·Admin `4394753`의 실제 HTTPS API/브라우저에서 $34→$153→$34를 확인했습니다. 상향 첫 상세 응답은 `x-vercel-cache: MISS`, 상세/직접 Storefront/Admin 모두153이었고 마우스로 담은 새 장바구니도153이었습니다. 하향 후 새 구매자 컨텍스트의 상세/새 장바구니는34였습니다. 저장 뒤 별도 수동 캐시 요청은 없었습니다. 페이지 오류0개, 임시 TEST 상품·인증 사용자의 삭제, 기존 상품/작가 주문 해시 일치와 잔여 QA 상품0개를 확인했습니다. 이 시험의 완료는 dev 가격 반영·새 장바구니 범위이며 모든 지역의 즉시 외부 전파·기존 장바구니 재가격 산정·대규모 성능·운영 적용을 보장하지 않습니다. [실행 증거](../../../blank-seoul-admin/.agent-bridge/storefront-cache-verification-results.json)의 `deployedFollowupVerification`를 따릅니다.
+
+## 배송 국가와 구매 가격
+
+공통 상품 링크는 `/product/{handle}`입니다. 국가별 광고에는 `/de/product/{handle}`처럼 활성 국가 코드를 앞에 붙입니다. 국가 링크는 첫 응답부터 해당 국가 가격을 표시하고 배송지 선택을 저장합니다. 공통 링크는 저장된 선택, Vercel이 감지한 국가, 미국 순서로 활성 국가를 찾습니다. 미국도 비활성이면 첫 활성 국가를 사용합니다. 활성 국가와 표시 순서는 `pricing_markets`에서 읽습니다.
+
+가격 통화는 USD입니다. 검색·목록의 Shopify 요청에는 국가가 캐시 키의 일부로 들어갑니다. 상품 상세와 장바구니 가격은 요청할 때 조회합니다. 상품에서 **Ship to**를 변경하면 같은 상품의 선택 옵션과 캠페인 쿼리 파라미터를 유지합니다.
+
+장바구니를 열거나 결제로 이동할 때 Shopify 옵션의 국가별 USD 가격을 포털이 마지막으로 확인한 해당 국가·옵션의 고정 가격과 대조합니다. 가격이 바뀌면 보관된 수량을 유지하고 바뀐 금액을 표시합니다. 확인 실패 또는 판매 불가 상태에서는 결제 진행을 보류합니다. Shopify 장바구니 생성 시 배송 국가를 지정하고 응답의 옵션·수량·가격을 다시 확인합니다.
+
+2026-11-21 로컬 스토어프런트와 개발 Shopify에서 정산가 변경 후 기존 미국 장바구니가 $29에서 $32로 갱신됐습니다. 미국 $32, 독일 $46, 네덜란드 $47, 스웨덴 $52가 검색·장바구니·Shopify 체크아웃에서 일치했고 체크아웃에는 해당 국가가 미리 선택됐습니다. 주문 생성 전까지 검증했습니다.

@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import { errorMessage } from "@/lib/errors";
 import { NextResponse } from "next/server";
 import { getAllProducts, getSavedProducts } from "@/lib/shopify/api";
@@ -83,12 +84,12 @@ export async function GET(request: Request) {
     }
 
     // 1. Fetch live products from Shopify (benefiting from Next.js Data Cache revalidate: 60)
-    const allProducts = cleanSlugs.length ? await getAllProducts(50) : [];
+    const allProducts = cleanSlugs.length ? await getAllProducts(50, (await requestMarket()).country) : [];
 
     // 2. Dual-matching for individual wishlist handles/IDs
     let products: WishlistProductItem[] = [];
     if (cleanItems.length > 0) {
-      products = (await getSavedProducts(cleanItems)).map(formatProduct);
+      products = (await getSavedProducts(cleanItems, (await requestMarket()).country)).map(formatProduct);
     }
 
     // 3. Match top 3 newest signature works for each requested followed artist slug

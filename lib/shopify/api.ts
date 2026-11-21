@@ -1,5 +1,5 @@
 import { storefrontFetch } from "./storefront.ts";
-import { GET_SAVED_PRODUCTS, GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
+import { GET_SAVED_PRODUCTS, GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_BASE_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
 import type { ShopifyProduct, ShopifyCollection } from "./types.ts";
 
 // ---- API Response Shapes ----
@@ -48,9 +48,9 @@ export interface FetchCatalogOptions {
   pageSize?: number;
 }
 
-export async function searchProducts(query: string, after: string | null = null): Promise<ProductsPageResult & { totalCount: number }> {
+export async function searchProducts(query: string, after: string | null = null, country?: string): Promise<ProductsPageResult & { totalCount: number }> {
   const data = await storefrontFetch<{ search: ProductsResponse['products'] & { totalCount: number } }>(SEARCH_PRODUCTS, {
-    query: query.trim().slice(0, 200), first: 24, after,
+    query: query.trim().slice(0, 200), first: 24, after, country,
   });
   return {
     products: data.search.edges.map(edge => edge.node),
@@ -65,10 +65,11 @@ export async function searchProducts(query: string, after: string | null = null)
 export async function getProductsPage(options?: {
   first?: number;
   after?: string | null;
+  country?: string;
 }): Promise<ProductsPageResult> {
   const data = await storefrontFetch<ProductsResponse>(GET_ALL_PRODUCTS, {
     first: options?.first ?? 250,
-    after: options?.after || null,
+    after: options?.after || null, country: options?.country,
   });
   return {
     products: (data.products?.edges || []).map((edge) => edge.node),
@@ -124,9 +125,9 @@ export async function fetchAllCatalogProducts(
  * Fetch products from Shopify (first page).
  * Returns an empty array if no products are found or API is not configured.
  */
-export async function getAllProducts(count = 20): Promise<ShopifyProduct[]> {
+export async function getAllProducts(count = 20, country?: string): Promise<ShopifyProduct[]> {
   try {
-    const page = await getProductsPage({ first: count });
+    const page = await getProductsPage({ first: count, country });
     return page.products;
   } catch (error) {
     console.error("[getAllProducts]", error);
@@ -139,9 +140,10 @@ export async function getAllProducts(count = 20): Promise<ShopifyProduct[]> {
  * Returns null if not found.
  */
 export async function getProductByHandle(
-  handle: string, options: { signal?: AbortSignal } = {}
+  handle: string, options: { signal?: AbortSignal; country?: string } = {}
 ): Promise<ShopifyProduct | null> {
-  const data = await storefrontFetch<ProductByHandleResponse>(GET_PRODUCT_BY_HANDLE, { handle }, { cache: 'no-store', signal: options.signal });
+  const query = options.country ? GET_PRODUCT_BY_HANDLE : GET_BASE_PRODUCT_BY_HANDLE;
+  const data = await storefrontFetch<ProductByHandleResponse>(query, { handle, country: options.country }, { cache: 'no-store', signal: options.signal });
   const product = data.product;
   if (!product) return null;
   let pageInfo = product.variants.pageInfo;
@@ -150,7 +152,7 @@ export async function getProductByHandle(
     const after = pageInfo.endCursor;
     if (!after || seen.has(after)) throw new Error('Product options could not be loaded. Please retry.');
     seen.add(after);
-    const next = await storefrontFetch<ProductByHandleResponse>(GET_PRODUCT_BY_HANDLE, { handle, after }, { cache: 'no-store', signal: options.signal });
+    const next = await storefrontFetch<ProductByHandleResponse>(query, { handle, after, country: options.country }, { cache: 'no-store', signal: options.signal });
     if (!next.product) throw new Error('Product options could not be loaded. Please retry.');
     product.variants.edges.push(...next.product.variants.edges);
     pageInfo = next.product.variants.pageInfo;
@@ -164,7 +166,7 @@ export async function getProductByHandle(
  * Returns null if not found.
  */
 export async function getCollectionByHandle(
-  handle: string, options: { first?: number; after?: string | null } = {}
+  handle: string, options: { first?: number; after?: string | null; country?: string } = {}
 ): Promise<ShopifyCollection | null> {
   const data = await storefrontFetch<CollectionByHandleResponse>(GET_COLLECTION_BY_HANDLE, { handle, ...options });
   return data.collection;
@@ -244,19 +246,19 @@ export function isProductSoldOut(product: ShopifyProduct): boolean {
 }
 
 /** Saved items remain reachable when they leave the newest catalog page. */
-export async function getSavedProducts(keys: string[]): Promise<ShopifyProduct[]> {
+export async function getSavedProducts(keys: string[], country?: string): Promise<ShopifyProduct[]> {
   const unique = [...new Set(keys)];
   const ids = unique.filter(key => /^gid:\/\/shopify\/product\/\d+$/i.test(key))
     .map(id => id.replace(/^gid:\/\/shopify\/product\//i, 'gid://shopify/Product/'));
   const handles = unique.filter(key => !key.includes('://'));
   const products: ShopifyProduct[] = [];
   for (let index = 0; index < ids.length; index += 250) {
-    const data = await storefrontFetch<{ nodes: (ShopifyProduct | null)[] }>(GET_SAVED_PRODUCTS, { ids: ids.slice(index, index + 250) });
+    const data = await storefrontFetch<{ nodes: (ShopifyProduct | null)[] }>(GET_SAVED_PRODUCTS, { ids: ids.slice(index, index + 250), country });
     products.push(...data.nodes.filter((product): product is ShopifyProduct => !!product?.id));
   }
   // Older storage used handles. Resolve those directly too, in bounded batches.
   for (let index = 0; index < handles.length; index += 10) {
-    const batch = await Promise.all(handles.slice(index, index + 10).map(handle => getProductByHandle(handle)));
+    const batch = await Promise.all(handles.slice(index, index + 10).map(handle => getProductByHandle(handle, { country })));
     products.push(...batch.filter((product): product is ShopifyProduct => !!product));
   }
   return [...new Map(products.map(product => [product.id, product])).values()];

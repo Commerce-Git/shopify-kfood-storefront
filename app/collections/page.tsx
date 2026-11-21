@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getProductsPage, isProductSoldOut } from "@/lib/shopify/api";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default async function CollectionsPage({ searchParams }: { searchParams: Promise<{ after?: string }> }) {
   const params = await searchParams;
   const after = typeof params.after === 'string' ? params.after.slice(0, 2000) : null;
-  const { products: rawProducts, pageInfo } = await getProductsPage({ first: 48, after });
+  const { products: rawProducts, pageInfo } = await getProductsPage({ country: (await requestMarket()).country, first: 48, after });
   const products = [...rawProducts].sort((a, b) => {
     const availA = !isProductSoldOut(a);
     const availB = !isProductSoldOut(b);

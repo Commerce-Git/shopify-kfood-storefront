@@ -1,4 +1,5 @@
 "use client";
+import { MarketSelector } from "./MarketProvider";
 
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
@@ -154,7 +155,7 @@ export default function Header() {
         {/* =========================================================================
             TOP ANNOUNCEMENT STRIP: Simple & Clean Quiet Luxury Free Shipping & Origin Bar
            ========================================================================= */}
-        <div className="bg-[#18181B] text-white py-1.5 px-4 text-center border-b border-white/10">
+        <div className="flex items-center justify-between gap-2 bg-[#18181B] text-white py-1 px-4 text-center border-b border-white/10">
           {!isStoreLive() ? (
             <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95 flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
@@ -162,9 +163,10 @@ export default function Header() {
             </p>
           ) : (
             <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
-              All products Made in Korea &middot; Free shipping on all orders
+              Made in Korea <span className="hidden sm:inline">· Free shipping on all orders</span>
             </p>
           )}
+          <MarketSelector ready={mounted} />
         </div>
 
         {/* =========================================================================

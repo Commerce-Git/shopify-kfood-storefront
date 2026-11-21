@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import ProductCard from '../components/ProductCard';
@@ -14,7 +15,7 @@ export default async function SearchPage({ searchParams }: {
   let result: Awaited<ReturnType<typeof searchProducts>> | null = null;
   let failed = false;
   if (query) {
-    try { result = await searchProducts(query, after); }
+    try { result = await searchProducts(query, after, (await requestMarket()).country); }
     catch { failed = true; }
   }
   return <section className="mx-auto w-full max-w-6xl px-4 py-6 pb-28">

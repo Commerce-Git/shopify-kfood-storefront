@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import { NextResponse } from "next/server";
 import { getAllProducts } from "@/lib/shopify/api";
 import { extractArtistFromProduct } from "@/lib/artists";
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
     }
 
     // 1. Fetch live products from Shopify
-    const allProducts = await getAllProducts(50);
+    const allProducts = await getAllProducts(50, (await requestMarket()).country);
 
     // 2. Identify artists in current cart
     const cartArtistSlugs = new Set<string>();
@@ -156,7 +157,7 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+          "Cache-Control": "private, no-store",
         },
       }
     );

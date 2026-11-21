@@ -1,3 +1,4 @@
+import { requestMarket } from '@/lib/markets/request';
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -10,14 +11,6 @@ import ConciergeTriggerButton from "@/app/components/ConciergeTriggerButton";
 
 interface ArtistPageProps {
   params: Promise<{ slug: string }>;
-}
-
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  const products = await getAllProducts(100);
-  const artists = await getEnrichedArtistsWithProducts(products);
-  return artists.map((a) => ({ slug: a.profile.slug }));
 }
 
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
@@ -41,7 +34,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
   const normalizedSlug = slug.toLowerCase();
 
   // Fetch all live products from Shopify
-  const allProducts = await getAllProducts(100);
+  const allProducts = await getAllProducts(100, (await requestMarket()).country);
   const allArtists = await getEnrichedArtistsWithProducts(allProducts);
 
   // Find exact vendor name from live Shopify products or ateliers list

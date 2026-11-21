@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { requestMarket } from '@/lib/markets/request';
+import { countryProductPath } from '@/lib/markets/selection';
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -14,10 +16,11 @@ import {
 // Purchase prices must not be served from an older ISR page or Shopify Data Cache.
 export const revalidate = 0;
 // Share the fresh product between metadata and the page within this render only.
-const getRequestProduct = cache(getProductByHandle);
+const getRequestProduct = cache(async (handle: string) => getProductByHandle(handle, { country: (await requestMarket()).country }));
 
 interface PageProps {
   params: Promise<{ handle: string }>;
+  searchParams?: Promise<{ variant?: string }>;
 }
 
 // 2026 Disk IO Protection: Cache approved reviews for 5 minutes (tag: reviews)
@@ -46,13 +49,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Product Not Found" };
   }
 
+  const { country, countries } = await requestMarket();
   return {
+    alternates: { canonical: countryProductPath(country, decodedHandle), languages: Object.fromEntries(countries.map(code => ['en-' + code, countryProductPath(code, decodedHandle)])) },
     title: product.title,
     description: product.description.slice(0, 160),
   };
 }
 
-export default async function ProductPage({ params }: PageProps) {
+export default async function ProductPage({ params, searchParams }: PageProps) {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
   const product = await getRequestProduct(decodedHandle);
@@ -74,7 +79,10 @@ export default async function ProductPage({ params }: PageProps) {
         ) / 10
       : null;
 
-  const firstVariant = product.variants.edges[0]?.node;
+  const requestedVariant = (await searchParams)?.variant;
+  const firstVariant = product.variants.edges.find(({node}) => node.id.split('/').pop() === requestedVariant)?.node
+    ?? product.variants.edges.find(({node}) => node.availableForSale)?.node ?? product.variants.edges[0]?.node;
+  const { country } = await requestMarket();
   const price = firstVariant?.price.amount || "0.00";
   const currency = firstVariant?.price.currencyCode || "USD";
   const isAvailable = product.availableForSale !== false;
@@ -83,7 +91,7 @@ export default async function ProductPage({ params }: PageProps) {
     ?.split(":")[1]
     ?.trim();
 
-  const canonicalUrl = `https://blankseoul.com/product/${encodeURIComponent(decodedHandle)}`;
+  const canonicalUrl = `https://blankseoul.com${countryProductPath(country, decodedHandle)}`;
 
   // 2026 Google Merchant Listings & GEO Schema: Product is always indexed regardless of review count
   const jsonLd: Record<string, unknown> = {
@@ -125,7 +133,7 @@ export default async function ProductPage({ params }: PageProps) {
         },
         shippingDestination: {
           "@type": "DefinedRegion",
-          addressCountry: "US",
+          addressCountry: country,
         },
         deliveryTime: {
           "@type": "ShippingDeliveryTime",
@@ -182,7 +190,7 @@ export default async function ProductPage({ params }: PageProps) {
 
       {/* Product Section */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
-        <ProductInteractive product={product} />
+        <ProductInteractive initialVariant={firstVariant?.id} product={product} />
       </section>
 
       <Reviews

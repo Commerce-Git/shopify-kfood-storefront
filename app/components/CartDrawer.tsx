@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useCart } from "@/app/components/CartProvider";
 import { isStoreLive } from "@/lib/constants";
 import PrelaunchWaitlistCard from "@/app/components/PrelaunchWaitlistCard";
+import { BagPriceStatus, ItemPriceNotice } from "./BagPriceStatus";
 import Modal from './Modal';
 
 export default function CartDrawer() {
@@ -86,6 +87,7 @@ export default function CartDrawer() {
 
         {/* Scrollable Item List (Strictly Added Items Only, Zero Upsell Noise) */}
         <div className="flex-1 overflow-y-auto px-5 divide-y divide-[#E8DFC8]/40">
+          <BagPriceStatus />
           {items.length === 0 ? (
             <div className="py-16 text-center">
               <div className="text-5xl mb-4">🛒</div>
@@ -140,6 +142,7 @@ export default function CartDrawer() {
                     >
                       {item.title}
                     </Link>
+                    <ItemPriceNotice id={item.variantId} />
                     {item.variantTitle && item.variantTitle !== "Default Title" && (
                       <p className="text-[11px] text-[#71717A] truncate mt-0.5">
                         {item.variantTitle}

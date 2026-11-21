@@ -2,7 +2,7 @@
 
 /** Full-text, relevant product results with bounded cursor pagination. */
 export const SEARCH_PRODUCTS = `
-  query SearchProducts($query: String!, $first: Int!, $after: String) {
+  query SearchProducts($query: String!, $first: Int!, $after: String, $country: CountryCode) @inContext(country: $country) {
     search(query: $query, first: $first, after: $after, types: [PRODUCT], prefix: LAST, unavailableProducts: LAST) {
       totalCount
       pageInfo { hasNextPage endCursor }
@@ -21,8 +21,11 @@ export const SEARCH_PRODUCTS = `
 `;
 
 /** Fetch a single product by its handle (URL slug) */
-export const GET_PRODUCT_BY_HANDLE = `
-  query GetProductByHandle($handle: String!, $after: String) {
+function productByHandleQuery(contextual: boolean) {
+  const countryVariable = contextual ? ", $country: CountryCode!" : "";
+  const context = contextual ? " @inContext(country: $country)" : "";
+  return `
+  query GetProductByHandle($handle: String!, $after: String${countryVariable})${context} {
     product(handle: $handle) {
       id
       handle
@@ -86,10 +89,14 @@ export const GET_PRODUCT_BY_HANDLE = `
     }
   }
 `;
+}
+
+export const GET_PRODUCT_BY_HANDLE = productByHandleQuery(true);
+export const GET_BASE_PRODUCT_BY_HANDLE = productByHandleQuery(false);
 
 /** Fetch all products (for catalog / landing page) with cursor pagination */
 export const GET_ALL_PRODUCTS = `
-  query GetAllProducts($first: Int = 250, $after: String) {
+  query GetAllProducts($first: Int = 250, $after: String, $country: CountryCode) @inContext(country: $country) {
     products(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
       pageInfo {
         hasNextPage
@@ -144,7 +151,7 @@ export const GET_ALL_PRODUCTS = `
 
 /** Fetch a single collection by handle and its products with cursor pagination */
 export const GET_COLLECTION_BY_HANDLE = `
-  query GetCollectionByHandle($handle: String!, $first: Int = 250, $after: String) {
+  query GetCollectionByHandle($handle: String!, $first: Int = 250, $after: String, $country: CountryCode) @inContext(country: $country) {
     collection(handle: $handle) {
       id
       handle
@@ -239,15 +246,15 @@ export const GET_ALL_COLLECTIONS = `
 
 /** Create a cart → returns the Shopify checkout URL */
 export const CREATE_CART = `
-  mutation CartCreate($lines: [CartLineInput!]!, $discountCodes: [String!], $note: String) {
-    cartCreate(input: { lines: $lines, discountCodes: $discountCodes, note: $note }) {
+  mutation CartCreate($lines: [CartLineInput!]!, $discountCodes: [String!], $note: String, $country: CountryCode!) {
+    cartCreate(input: { buyerIdentity: { countryCode: $country }, lines: $lines, discountCodes: $discountCodes, note: $note }) {
       cart {
         id
         checkoutUrl
         discountCodes { code applicable }
         lines(first: 250) {
           pageInfo { hasNextPage }
-          edges { node { quantity merchandise { ... on ProductVariant { id } } } }
+          edges { node { quantity merchandise { ... on ProductVariant { id price { amount currencyCode } } } } }
         }
         cost {
           subtotalAmount {
@@ -271,7 +278,7 @@ export const CREATE_CART = `
 
 /** Resolve saved product IDs directly instead of searching only the newest catalog page. */
 export const GET_SAVED_PRODUCTS = `
-  query GetSavedProducts($ids: [ID!]!) {
+  query GetSavedProducts($ids: [ID!]!, $country: CountryCode) @inContext(country: $country) {
     nodes(ids: $ids) {
       ... on Product {
         id handle title vendor availableForSale

@@ -14,6 +14,7 @@ interface CartOrderSummaryProps {
   finalTotal: number;
   discountLabel?: string;
   loading: boolean;
+  blocked: boolean;
   error: string | null;
   items?: { title: string; variantTitle?: string; price: string }[];
   onCheckout: () => void;
@@ -24,7 +25,7 @@ export default function CartOrderSummary({
   discountAmount,
   finalTotal,
   discountLabel,
-  loading,
+  loading, blocked,
   error,
   items,
   onCheckout,
@@ -142,8 +143,8 @@ export default function CartOrderSummary({
               <button
                 type="button"
                 onClick={onCheckout}
-                disabled={loading}
-                className={`btn-primary w-full text-sm sm:text-base font-bold py-4 shadow-md transition-all cursor-pointer ${
+                disabled={loading || blocked}
+                className={`btn-primary disabled:opacity-60 disabled:cursor-not-allowed w-full text-sm sm:text-base font-bold py-4 shadow-md transition-all cursor-pointer ${
                   loading
                     ? "opacity-70 cursor-wait"
                     : "hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
@@ -268,8 +269,8 @@ export default function CartOrderSummary({
             <button
               type="button"
               onClick={onCheckout}
-              disabled={loading}
-              className={`btn-primary flex-1 py-3 px-4 text-sm font-bold shadow-md cursor-pointer active:scale-[0.98] transition-all ${
+              disabled={loading || blocked}
+              className={`btn-primary disabled:opacity-60 disabled:cursor-not-allowed flex-1 py-3 px-4 text-sm font-bold shadow-md cursor-pointer active:scale-[0.98] transition-all ${
                 loading ? "opacity-70 cursor-wait" : ""
               }`}
             >
