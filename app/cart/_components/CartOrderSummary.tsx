@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { BagPriceStatus } from "../../components/BagPriceStatus";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CANCEL_WINDOW_HOURS, isStoreLive } from "@/lib/constants";
@@ -144,7 +145,7 @@ export default function CartOrderSummary({
                 type="button"
                 onClick={onCheckout}
                 disabled={loading || blocked}
-                className={`btn-primary disabled:opacity-60 disabled:cursor-not-allowed w-full text-sm sm:text-base font-bold py-4 shadow-md transition-all cursor-pointer ${
+                className={`btn-primary max-lg:hidden! disabled:opacity-60 disabled:cursor-not-allowed w-full text-sm sm:text-base font-bold py-4 shadow-md transition-all cursor-pointer ${
                   loading
                     ? "opacity-70 cursor-wait"
                     : "hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
@@ -181,7 +182,7 @@ export default function CartOrderSummary({
           )}
 
           {error && (
-            <p role="alert" className="text-xs text-red-500 text-center font-medium bg-red-50 p-2 rounded-lg border border-red-200">
+            <p role="alert" className="hidden lg:block text-xs text-red-500 text-center font-medium bg-red-50 p-2 rounded-lg border border-red-200">
               {error}
             </p>
           )}
@@ -243,8 +244,9 @@ export default function CartOrderSummary({
       </div>
 
       {/* Mobile Fixed Floating Checkout Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#E8DFC8] px-4 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] sm:p-4 lg:hidden z-40 shadow-xl">
-        {error && <p role="alert" className="mb-2 text-sm text-red-700">{error}</p>}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#E8DFC8] px-4 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] sm:px-4 lg:hidden z-40 shadow-xl">
+        {isStoreLive() && blocked && <div className="mb-2 text-sm"><BagPriceStatus /></div>}
+        {error && !blocked && <p role="alert" className="mb-2 text-sm text-red-700">{error}</p>}
         <div className="max-w-md mx-auto flex items-center justify-between gap-3">
           <div className="shrink-0 pl-1">
             <p className="text-[10px] text-[#71717A] uppercase font-bold tracking-wider">

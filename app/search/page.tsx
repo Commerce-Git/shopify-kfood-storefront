@@ -30,7 +30,7 @@ export default async function SearchPage({ searchParams }: {
       <p>Search is temporarily unavailable. Please try again.</p>
       <a className="mt-3 inline-flex min-h-11 items-center underline" href={`/search?q=${encodeURIComponent(query)}`}>Retry search</a>
     </div> : !query ? <p className="text-sm text-zinc-600">Enter a product, maker or keyword to search.</p> : <>
-      <p className="mb-5 break-words text-sm text-zinc-600">{result?.totalCount || 0} results for “{query}”</p>
+      <p className="mb-5 break-words text-sm text-zinc-600">{result?.totalCount || 0} {result?.totalCount === 1 ? 'result' : 'results'} for “{query}”</p>
       {result?.products.length ? <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {result.products.map((product, index) => <ProductCard key={product.id} product={product} priority={index < 2} />)}
       </div> : <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm">

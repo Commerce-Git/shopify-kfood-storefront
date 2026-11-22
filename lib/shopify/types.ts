@@ -69,6 +69,8 @@ export interface ShopifyProduct {
   };
 }
 
+export type ProductCardData = Pick<ShopifyProduct, 'id' | 'handle' | 'title' | 'availableForSale' | 'images' | 'priceRange'>;
+
 export interface ShopifyCheckout {
   id: string;
   webUrl: string;

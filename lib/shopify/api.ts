@@ -1,10 +1,10 @@
 import { storefrontFetch } from "./storefront.ts";
 import { GET_SAVED_PRODUCTS, GET_ALL_PRODUCTS, GET_PRODUCT_BY_HANDLE, GET_BASE_PRODUCT_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, SEARCH_PRODUCTS } from "./queries.ts";
-import type { ShopifyProduct, ShopifyCollection } from "./types.ts";
+import type { ProductCardData, ShopifyProduct, ShopifyCollection } from "./types.ts";
 
 // ---- API Response Shapes ----
 
-interface ProductsResponse {
+interface ProductsResponse<T = ShopifyProduct> {
   products: {
     pageInfo?: {
       hasNextPage: boolean;
@@ -12,7 +12,7 @@ interface ProductsResponse {
     };
     edges: {
       cursor?: string;
-      node: ShopifyProduct;
+      node: T;
     }[];
   };
 }
@@ -35,8 +35,8 @@ interface CollectionsResponse {
 
 // ---- Public API Functions ----
 
-export interface ProductsPageResult {
-  products: ShopifyProduct[];
+export interface ProductsPageResult<T = ShopifyProduct> {
+  products: T[];
   pageInfo: {
     hasNextPage: boolean;
     endCursor: string | null;
@@ -48,8 +48,8 @@ export interface FetchCatalogOptions {
   pageSize?: number;
 }
 
-export async function searchProducts(query: string, after: string | null = null, country?: string): Promise<ProductsPageResult & { totalCount: number }> {
-  const data = await storefrontFetch<{ search: ProductsResponse['products'] & { totalCount: number } }>(SEARCH_PRODUCTS, {
+export async function searchProducts(query: string, after: string | null = null, country?: string): Promise<ProductsPageResult<ProductCardData> & { totalCount: number }> {
+  const data = await storefrontFetch<{ search: ProductsResponse<ProductCardData>['products'] & { totalCount: number } }>(SEARCH_PRODUCTS, {
     query: query.trim().slice(0, 200), first: 24, after, country,
   });
   return {
@@ -233,15 +233,8 @@ export function getProductPricing(product: ShopifyProduct) {
   };
 }
 
-/**
- * Check if a product is completely sold out across ALL variants.
- * Returns true ONLY if every single variant has availableForSale === false.
- * If at least one variant is available, returns false.
- */
-export function isProductSoldOut(product: ShopifyProduct): boolean {
-  if (product.variants?.edges && product.variants.edges.length > 0) {
-    return !product.variants.edges.some((edge) => edge.node.availableForSale);
-  }
+/** Product-level availability covers variants beyond the current page. */
+export function isProductSoldOut(product: Pick<ShopifyProduct, 'availableForSale'>): boolean {
   return !product.availableForSale;
 }
 

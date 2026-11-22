@@ -52,13 +52,13 @@
 
 /* --- Global Header & Page Top Offset System (SSOT) --- */
 :root {
-  --header-height: 140px; /* Mobile fallback baseline: Announcement (32px) + Brand Nav (48px) + Mobile Search (54px) + Borders (6px) */
+  --header-height: 120px; /* Brand row and mobile search before the header is measured. */
   --page-top-offset: calc(var(--header-height) + 1.25rem); /* +20px Editorial breathing margin */
 }
 
 @media (min-width: 768px) {
   :root {
-    --header-height: 104px; /* Desktop fallback baseline: Announcement + Desktop Integrated Nav */
+    --header-height: 124px; /* Brand row and category navigation. */
     --page-top-offset: calc(var(--header-height) + 2rem); /* +32px Editorial gallery margin */
   }
 }

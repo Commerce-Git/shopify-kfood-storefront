@@ -51,7 +51,7 @@ test('nonexistent option combinations must never fall back to the first variant'
 });
 
 function response(): CheckoutResponse {
-  return { cartCreate: { userErrors: [], warnings: [], cart: { id: 'cart', checkoutUrl: 'https://checkout.example.com/c/1', discountCodes: [], lines: { pageInfo: { hasNextPage: false }, edges: [{ node: { quantity: 2, merchandise: { id: item.variantId } } }] } } } };
+  return { cartCreate: { userErrors: [], warnings: [], cart: { id: 'cart', checkoutUrl: 'https://checkout.example.com/c/1', discountCodes: [], lines: { pageInfo: { hasNextPage: false }, edges: [{ node: { quantity: 2, merchandise: { id: item.variantId, price: { amount: item.price, currencyCode: 'USD' } } } }] } } } };
 }
 
 test('checkout redirects only with a complete accepted cart', () => {
@@ -77,4 +77,13 @@ test('checkout connectivity errors are readable without leaking technical respon
   assert.match(checkoutErrorMessage(new Error('[Storefront API] HTTP 503')), /couldn’t connect/);
   assert.match(checkoutErrorMessage(new DOMException('Timeout', 'TimeoutError')), /taking longer/);
   assert.equal(checkoutErrorMessage(new CheckoutError('Coupon has expired.')), 'Coupon has expired.');
+});
+
+test('a Shopify cart repriced after the final bag quote requires another review', () => {
+  const result = response();
+  const variant = result.cartCreate.cart!.lines.edges[0].node.merchandise;
+  for (const price of [{ amount: '32', currencyCode: 'USD' }, { amount: item.price, currencyCode: 'EUR' }, undefined]) {
+    variant.price = price;
+    assert.throws(() => checkoutDestination(result, [item], null), /Prices changed/);
+  }
 });

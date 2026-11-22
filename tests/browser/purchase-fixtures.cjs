@@ -6,10 +6,26 @@ function page(first=48, after, source=products) { const start=Number(after||0);c
 function graphql(query, variables={}) {
  if (query.includes('GetSavedProducts')) return {data:{nodes:variables.ids.map(id=>products.find(p=>p.id===id)||null)}};
  if (query.includes('GetVariantStock')) return {data:{node:variants.find(v=>v.id===variables.id)||null}};
- if (query.includes('GetProductByHandle')) return {data:{product:products.find(p=>p.handle===variables.handle)||null}};
+ if (query.includes('GetProductByHandle')) {
+   const product = structuredClone(products.find(p => p.handle === variables.handle) ?? null);
+   if (product && variables.country === 'DE') {
+     for (const {node} of product.variants.edges) node.price.amount = String(Number(node.price.amount) + 10);
+     for (const price of Object.values(product.priceRange)) price.amount = String(Number(price.amount) + 10);
+   }
+   return {data:{product}};
+ }
  if (query.includes('GetAllProducts')) return {data:{products:page(variables.first,variables.after)}};
  if (query.includes('GetCollectionByHandle')) return {data:{collection:{id:'collection',handle:variables.handle,title:'Bags & Pouches',description:'Collection',products:page(variables.first,variables.after,variables.handle==='bags-pouches'?products:[])}}};
- if (query.includes('SearchProducts')) return {data:{search:{...page(variables.first,variables.after,variables.query==='missing'?[]:products),totalCount:variables.query==='missing'?0:65}}};
+ if (query.includes('ProductSuggestions') || query.includes('SearchProducts')) {
+   const term = variables.query.trim().toLowerCase();
+   const matches = products.filter(product =>
+     [product.title, product.vendor, product.productType, ...product.tags].some(value => value.toLowerCase().includes(term))
+   );
+   if (query.includes('ProductSuggestions')) {
+     return {data: {predictiveSearch: {products: matches.slice(0, 3).map(({handle, title}) => ({handle, title, featuredImage: image}))}}};
+   }
+   return {data: {search: {...page(variables.first, variables.after, matches), totalCount: matches.length}}};
+ }
  if (query.includes('GetAllCollections')) return {data:{collections:{edges:[]}}};
  throw new Error('Unexpected fixture query: '+query.slice(0,70));
 }

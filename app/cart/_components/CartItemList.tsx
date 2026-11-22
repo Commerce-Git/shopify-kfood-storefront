@@ -34,7 +34,7 @@ export default function CartItemList({
   onOptionChange,
 }: CartItemListProps) {
   return (
-    <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-5 sm:p-6 shadow-2xs">
+    <div className="bg-white border border-[#E8DFC8]/80 rounded-2xl p-3.5 sm:p-6 shadow-2xs">
       <div className="flex items-baseline justify-between mb-4 pb-3 border-b border-[#E8DFC8]/50">
         <h1
           className="text-base sm:text-xl font-extrabold text-[#18181B]"
@@ -59,7 +59,7 @@ export default function CartItemList({
               className="py-4.5 first:pt-0 last:pb-0 flex gap-3.5 sm:gap-5 items-start"
             >
               {/* Product Thumbnail */}
-              <div className="w-[76px] h-[76px] sm:w-20 sm:h-20 rounded-2xl bg-[#FAF9F6] border border-[#E8DFC8]/70 overflow-hidden shrink-0 relative shadow-2xs">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#FAF9F6] border border-[#E8DFC8]/70 overflow-hidden shrink-0 relative shadow-2xs">
                 {item.image?.url && item.image.url.trim() !== "" ? (
                   <Image
                     src={item.image.url}
@@ -93,41 +93,13 @@ export default function CartItemList({
                       {item.title}
                     </Link>
                     <ItemPriceNotice id={item.variantId} />
-                    {item.variantTitle && item.variantTitle !== "Default Title" && (
-                      <div className="flex items-center gap-1.5 mt-1 text-xs text-[#71717A]">
-                        <span className="shrink-0 font-medium text-[11px]">Option:</span>
-                        {variants && variants.length > 1 ? (
-                          <select
-                            value={item.variantId}
-                            onChange={(e) => onOptionChange(item, e.target.value)}
-                            className="text-xs font-semibold text-[#18181B] bg-[#FAF9F6] border border-[#E8DFC8] rounded-lg px-2 py-0.5 hover:border-[#18181B] focus:border-[#18181B] transition-colors cursor-pointer outline-none shadow-2xs min-w-0 max-w-full truncate"
-                            aria-label="Change variant option"
-                          >
-                            {variants.map((v) => (
-                              <option
-                                key={v.id}
-                                value={v.id}
-                                disabled={!v.availableForSale}
-                              >
-                                {v.title} (${v.price}){" "}
-                                {!v.availableForSale ? "— Sold Out" : ""}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="font-semibold text-[#3F3F46] text-xs">
-                            {item.variantTitle}
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Top-Right Remove Button */}
                   <button
                     type="button"
                     onClick={() => removeFromCart(item.variantId)}
-                    className="text-[#A1A1AA] hover:text-red-500 transition-colors p-1.5 -mr-1.5 -mt-1 shrink-0 cursor-pointer rounded-lg hover:bg-red-50 active:scale-95"
+                    className="text-[#A1A1AA] hover:text-red-500 transition-colors grid place-items-center size-11 -mr-1.5 -mt-1 shrink-0 cursor-pointer rounded-lg hover:bg-red-50 active:scale-95"
                     aria-label="Remove item"
                   >
                     <svg
@@ -144,6 +116,35 @@ export default function CartItemList({
                     </svg>
                   </button>
                 </div>
+
+                {item.variantTitle && item.variantTitle !== "Default Title" && (
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-[#71717A]">
+                    <span className="shrink-0 font-medium text-[11px]">Option:</span>
+                    {variants && variants.length > 1 ? (
+                      <select
+                        value={item.variantId}
+                        onChange={(e) => onOptionChange(item, e.target.value)}
+                        className="min-h-11 text-base sm:text-xs font-semibold text-[#18181B] bg-[#FAF9F6] border border-[#E8DFC8] rounded-lg px-2 py-0.5 hover:border-[#18181B] focus:border-[#18181B] transition-colors cursor-pointer focus-visible:outline-2 shadow-2xs min-w-0 max-w-full truncate"
+                        aria-label="Change variant option"
+                      >
+                        {variants.map((v) => (
+                          <option
+                            key={v.id}
+                            value={v.id}
+                            disabled={!v.availableForSale}
+                          >
+                            {v.title}{v.id !== item.variantId && v.availableForSale ? ` ($${v.price})` : ""}{" "}
+                            {!v.availableForSale ? "— Sold Out" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="font-semibold text-[#3F3F46] text-xs">
+                        {item.variantTitle}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Lower Tier: Price & Quantity Controls */}
                 <div className="flex flex-wrap items-end justify-between gap-3 mt-3 pt-1">
@@ -167,7 +168,7 @@ export default function CartItemList({
                         onClick={() =>
                           updateQuantity(item.variantId, item.quantity - 1)
                         }
-                        className="w-10 h-10 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs cursor-pointer"
+                        className="w-11 h-11 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs cursor-pointer"
                         aria-label="Decrease quantity"
                       >
                         −
@@ -185,7 +186,7 @@ export default function CartItemList({
                           item.stockLimit !== null &&
                           item.quantity >= item.stockLimit
                         }
-                        className="w-10 h-10 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-11 h-11 rounded-lg bg-white border border-[#E8DFC8] flex items-center justify-center hover:border-[#18181B] active:scale-95 transition-all text-xs font-bold text-[#18181B] shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                         aria-label="Increase quantity"
                       >
                         +

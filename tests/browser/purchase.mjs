@@ -40,6 +40,9 @@ let activeAccountUser=accountUser;
 let ordersMode='success';
 let authMode='success';let emailAttempts=0;
 const errors=[];let checkoutCalls=0;let checkoutMode='fail';
+let priceOverride = null;
+let quoteIssue = null;
+const priceFor = id => priceOverride ?? variants.find(v => v.id === id).price.amount;
 await context.route('**/*', async route=>{
  const url=route.request().url();
  if(url.includes('.myshopify.com/')&&url.includes('graphql.json')){
@@ -48,7 +51,7 @@ await context.route('**/*', async route=>{
    checkoutCalls++;
    await new Promise(r=>setTimeout(r,350));
    if(checkoutMode==='fail') return route.fulfill({status:503,body:'Unavailable'});
-   const cart={id:'qa-cart',checkoutUrl:'https://checkout.example.com/c/qa',discountCodes:[],lines:{pageInfo:{hasNextPage:false},edges:variables.lines.map(l=>({node:{quantity:checkoutMode==='partial'?1:l.quantity,merchandise:{id:l.merchandiseId}}}))}};
+   const cart={id:'qa-cart',checkoutUrl:'https://checkout.example.com/c/qa',discountCodes:[],lines:{pageInfo:{hasNextPage:false},edges:variables.lines.map(l=>({node:{quantity:checkoutMode==='partial'?1:l.quantity,merchandise:{id:l.merchandiseId,price:{amount:priceFor(l.merchandiseId),currencyCode:'USD'}}}}))}};
    return route.fulfill({json:{data:{cartCreate:{cart,userErrors:[],warnings:checkoutMode==='warning'?[{message:'Requested quantity is no longer available.'}]:[]}}}});
   }
   return route.fulfill({json:graphql(query,variables)});
@@ -64,6 +67,10 @@ await context.route('**/*', async route=>{
  if(url.includes('.supabase.co/'))return route.fulfill({json:[]});
  if(new URL(url).pathname==='/api/orders')return ordersMode==='fail'?route.fulfill({status:503,json:{error:'Fixture outage'}}):route.fulfill({json:{orders:[accountOrder],isSubscribed:false}});
 
+ if(url.endsWith('/api/market/cart-prices')) {
+   const {country,ids}=route.request().postDataJSON();
+   return route.fulfill({json:{country,prices:ids.map(id=>quoteIssue ? {id,issue:quoteIssue} : {id,amount:priceFor(id)})}});
+ }
  if(url.includes('/api/cart-companions'))return route.fulfill({json:{success:true,companions:[],artistsToFollow:[]}});
  if(url.includes('/api/review'))return route.fulfill({json:{reviews:[]}});
  if(url.includes('/api/views'))return route.fulfill({json:{success:true,views:1}});
@@ -131,24 +138,102 @@ await check('Korean seller identity and policy copy agree on mobile and desktop'
  await page.getByText('Free shipping does not mean that import charges are waived.',{exact:false}).waitFor();
  assert.doesNotMatch(await page.locator('main').innerText(),/duty-free|zero surprise customs fees/);
 });
+const mobileNav = page.getByRole('navigation', { name: 'Mobile Navigation Bar' });
+await check('Direct and refreshed product links reserve the mobile footer for purchasing in every active market', async () => {
+  const product = '/product/qa-pouch-1';
+  for (const prefix of ['', '/de', '/nl', '/se', '/us']) {
+    const url = 'http://localhost:3021' + prefix + product;
+    for (const visit of [() => page.goto(url), () => page.reload()]) {
+      const response = await visit();
+      assert.equal(response.status(), 200, url);
+      assert.doesNotMatch(await response.text(), /<nav\b[^>]*\bid="mobile-bottom-nav"/);
+      await page.getByRole('heading', { name: 'Review Pouch 1', exact: true }).first().waitFor();
+      await page.waitForLoadState('networkidle');
+      assert.equal(await page.locator('#mobile-bottom-nav').count(), 0, url);
+    }
+  }
+  assert.deepEqual(errors, []);
+});
+await check('Going back to the collection restores the active mobile Shop tab', async () => {
+  await goto('/collections');
+  const shopTab = mobileNav.getByRole('link', { name: 'Shop', current: 'location' });
+  await shopTab.waitFor();
+  await page.locator('main a[href="/product/qa-pouch-1"]').first().click();
+  await page.waitForURL('**/product/qa-pouch-1');
+  await mobileNav.waitFor({ state: 'detached' });
+  await page.goBack();
+  await page.waitForURL('**/collections');
+  await shopTab.waitFor();
+});
 await check('Home, wishlist and mobile product layout',async()=>{
  await goto('/'); await page.getByRole('heading',{level:1}).waitFor();
+ await mobileNav.getByRole('link', { name: 'Home', current: 'location' }).waitFor();
  await goto('/product/qa-pouch-1'); await page.getByRole('button',{name:'Save to wishlist',exact:true}).first().click();
  await goto('/product/qa-pouch-65'); await page.getByRole('button',{name:'Save to wishlist',exact:true}).first().click();
  await goto('/wishlist'); await page.getByRole('link',{name:'Review Pouch 65',exact:true}).waitFor();
  await goto('/product/qa-pouch-1');
- for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.waitForTimeout(500);const overflow=await page.evaluate(()=>({width:innerWidth, scroll:document.documentElement.scrollWidth, offenders:[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right}))}));assert.ok(overflow.scroll<=overflow.width+1,JSON.stringify(overflow));await page.screenshot({path:path.join(output,`product-${width}.png`),fullPage:true});}
+ for(const width of [320,390,430,768,1440]){await page.setViewportSize({width,height:900});await page.waitForTimeout(500);const overflow=await page.evaluate(()=>({width:innerWidth, scroll:document.documentElement.scrollWidth, offenders:[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right}))}));assert.ok(overflow.scroll<=overflow.width+1,JSON.stringify(overflow));await page.screenshot({path:path.join(output,`product-${width}.png`),fullPage:true});}
  await page.setViewportSize({width:390,height:844});
 });
 await check('Shop all pagination reaches product 65',async()=>{await goto('/collections');assert.equal(await page.locator('main h3').count(),48);await page.getByRole('link',{name:'Next products →'}).click();await page.getByRole('heading',{name:'Review Pouch 65',exact:true}).waitFor();assert.equal(await page.locator('main h3').count(),17);});
 await check('Collection pagination and group category links',async()=>{await goto('/collections/bags-pouches');await page.getByRole('link',{name:'Next products →'}).click();await page.getByRole('heading',{name:'Review Pouch 65',exact:true}).waitFor();await goto('/collections/wear');await page.getByRole('navigation',{name:'Product categories'}).getByRole('link',{name:'Bags & Pouches'}).waitFor();});
 await check('Search results, next page and empty result',async()=>{await goto('/search?q=pouch');await page.getByRole('link',{name:'Next results →'}).click();await page.getByRole('heading',{name:'Review Pouch 25',exact:true}).waitFor();await goto('/search?q=missing');await page.getByRole('heading',{name:'No matching products'}).waitFor();});
+await check('Header product suggestions support mobile, desktop, keyboard and full search', async () => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({width, height: 844});
+    await goto('/');
+    const input = page.getByRole('combobox', {name: 'Search products'});
+    const list = page.getByRole('listbox', {name: 'Product suggestions'});
+    await input.fill('p');
+    await page.waitForTimeout(300);
+    assert.equal(await list.count(), 0);
+    await input.fill('po');
+    await list.waitFor();
+    assert.equal(await list.getByRole('option').count(), 4);
+    assert.equal(await list.locator('img').count(), 3);
+    assert.doesNotMatch(await list.innerText(), /USD|\$/);
+    if (width === 390) {
+      await input.press('ArrowDown');
+      await input.press('Enter');
+    } else {
+      await list.getByRole('option', {name: 'Review Pouch 1', exact: true}).click();
+    }
+    await page.waitForURL('**/us/product/qa-pouch-1');
+    await input.fill('Review Pouch 65');
+    await list.getByRole('option', {name: 'Review Pouch 65', exact: true}).waitFor();
+    await input.press('Escape');
+    assert.equal(await list.count(), 0);
+    await input.press('Enter');
+    await page.waitForURL('**/search?q=Review%20Pouch%2065');
+    await page.getByText('1 result for “Review Pouch 65”').waitFor();
+  }
+  await page.setViewportSize({width:390, height:844});
+});
 await check('Unavailable option combination never adds first variant',async()=>{await goto('/product/qa-pouch-1');await page.getByRole('button',{name:'M',exact:true}).click();await page.getByRole('button',{name:'Red',exact:true}).click();await page.getByText('This option combination is unavailable.',{exact:false}).waitFor();assert.equal(await page.locator('#buy-now-button').count(),0);});
 await check('Available option add respects stock and stores selected price',async()=>{await page.getByRole('button',{name:'S',exact:true}).click();const add=page.locator('#buy-now-button');await add.waitFor();await page.waitForFunction(()=>!document.querySelector('#buy-now-button').disabled);await add.click();await page.getByRole('dialog').waitFor();assert.equal((await cart())[0].variantId,variants[2].id);assert.equal((await cart())[0].price,'42');assert.equal((await cart())[0].quantity,1);await page.keyboard.press('Escape');});
 await check('Sold-out variant cannot be added',async()=>{await page.getByRole('button',{name:'Green',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#buy-now-button')?.textContent.includes('Sold Out'));assert.equal(await page.locator('#buy-now-button').isDisabled(),true);});
-await check('Cart option change, quantity, and page reload',async()=>{await goto('/cart');const select=page.getByLabel('Change variant option');await select.waitFor();await select.selectOption(variants[0].id);await page.getByRole('button',{name:'Increase quantity',exact:true}).click();assert.equal((await cart())[0].quantity,2);await select.selectOption(variants[2].id);assert.equal((await cart())[0].quantity,1);assert.equal(await page.getByRole('button',{name:'Increase quantity',exact:true}).isDisabled(),true);await page.reload();await page.getByRole('heading',{name:'Your bag',exact:true}).waitFor();assert.equal((await cart())[0].price,'42.00');});
-await check('320/390/768/1440 cart has no horizontal overflow',async()=>{for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.waitForTimeout(150);const size=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(size.scroll<=size.client+1,JSON.stringify({width,...size}));await page.getByText('Any taxes or duties we collect are shown at checkout.',{exact:true}).waitFor();assert.doesNotMatch(await page.locator('main').innerText(),/Taxes and shipping included|Pre-Cleared Customs/);await page.screenshot({path:path.join(output, `cart-${width}.png`),fullPage:true});}});
-await check('Checkout failure retains cart, duplicate clicks create one request',async()=>{await page.setViewportSize({width:390,height:844});const button=page.getByRole('button',{name:'Checkout →',exact:true});await button.evaluate(b=>{b.click();b.click();});await page.getByRole('alert').first().waitFor();assert.equal(checkoutCalls,1);assert.equal((await cart()).length,1);assert.equal(await button.isEnabled(),true);});
+await check('Cart option change, quantity, and page reload',async()=>{await goto('/cart');assert.equal(await mobileNav.count(),0);const select=page.getByLabel('Change variant option');await select.waitFor();await select.selectOption(variants[0].id);await page.getByRole('button',{name:'Increase quantity',exact:true}).click();assert.equal((await cart())[0].quantity,2);await select.selectOption(variants[2].id);assert.equal((await cart())[0].quantity,1);assert.equal(await page.getByRole('button',{name:'Increase quantity',exact:true}).isDisabled(),true);await page.reload();await page.getByRole('heading',{name:'Your bag',exact:true}).waitFor();assert.equal((await cart())[0].price,'42.00');});
+await check('Cart fits phone, tablet and desktop widths with one checkout action on phones', async () => {
+  for (const width of [320, 390, 430, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const size = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    assert.ok(size.scroll <= size.client + 1, JSON.stringify({ width, ...size }));
+    await page.getByText('Any taxes or duties we collect are shown at checkout.', { exact: true }).waitFor();
+    assert.doesNotMatch(await page.locator('main').innerText(), /Taxes and shipping included|Pre-Cleared Customs/);
+    if (width < 640) {
+      const option = page.getByRole('combobox', { name: 'Change variant option' });
+      assert.equal((await option.locator('option:checked').innerText()).trim(), 'Red / S');
+      assert.ok((await option.boundingBox()).height >= 44);
+      assert.equal(await page.getByText('Review Cart', { exact: true }).isVisible(), false);
+      assert.equal(await page.getByRole('button', { name: /checkout/i }).count(), 1);
+    }
+    await page.screenshot({ path: path.join(output, `cart-${width}.png`), fullPage: true });
+  }
+});
+await check('Checkout failure retains cart, duplicate clicks create one request',async()=>{await page.setViewportSize({width:390,height:844});const button=page.getByRole('button',{name:'Checkout →',exact:true});await button.evaluate(b=>{b.click();b.click();});await page.getByRole('alert').filter({hasText:'connect to checkout'}).first().waitFor();assert.equal(checkoutCalls,1);assert.equal((await cart()).length,1);assert.equal(await button.isEnabled(),true);});
 await check('Partial checkout adjustment keeps requested local quantities',async()=>{
  await page.getByLabel('Change variant option').selectOption(variants[0].id);
  await page.getByRole('button',{name:'Increase quantity',exact:true}).click();
@@ -157,6 +242,104 @@ await check('Partial checkout adjustment keeps requested local quantities',async
  assert.equal((await cart())[0].quantity,2);
 });
 await check('Shopify warnings preserve local cart',async()=>{checkoutMode='warning';await page.getByRole('button',{name:'Checkout →',exact:true}).click();await page.getByRole('alert').filter({hasText:'Requested quantity'}).first().waitFor();assert.equal((await cart()).length,1);});
+await check('The header destination stays beside the account across screen sizes', async () => {
+  await goto('/');
+  const header = page.locator('#site-header');
+  const selector = header.getByRole('button', { name: 'Ship to: United States', exact: true });
+  assert.doesNotMatch(await header.innerText(), /Free shipping on all orders/i);
+  for (const width of [320, 360, 390, 400, 480, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const label = (await selector.innerText()).replace(/\s+/g, ' ').trim();
+    assert.equal(label, width < 1024 ? '🇺🇸 US' : 'Ship to: 🇺🇸 United States');
+    const [logo, ship, account, bag] = await Promise.all([
+      header.locator('#header-logo'), selector, header.getByRole('link', { name: /^(Sign in|My Account)$/i }), header.locator('#cart-button'),
+    ].map(element => element.boundingBox()));
+    assert.ok(logo.x + logo.width <= ship.x && ship.x + ship.width <= account.x + 1 && bag.x + bag.width <= width, JSON.stringify({ width, logo, ship, account, bag }));
+    assert.ok(Math.abs((ship.y + ship.height / 2) - (account.y + account.height / 2)) < 2);
+    if (width === 1440) {
+      const search = await header.getByRole('combobox', { name: 'Search products' }).boundingBox();
+      assert.equal(search.width, 600);
+      assert.ok(ship.x - (search.x + search.width) > search.x - (logo.x + logo.width));
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+});
+await check('Desktop destinations open below their trigger and mobile destinations open as a bottom sheet', async () => {
+  const trigger = page.getByRole('button', { name: 'Ship to: United States' });
+  const panel = page.getByRole('dialog', { name: 'Ship to' });
+  for (const width of [768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await trigger.click();
+    await panel.waitFor();
+    const anchor = await trigger.boundingBox();
+    const box = await panel.boundingBox();
+    assert.ok(box.y >= anchor.y + anchor.height && box.y - anchor.y - anchor.height <= 8);
+    assert.ok(Math.abs(box.x + box.width - anchor.x - anchor.width) <= 1);
+    assert.equal(await page.locator('dialog:modal').count(), 0);
+    await page.keyboard.press('Escape');
+    await panel.waitFor({ state: 'detached' });
+    assert.ok(await trigger.evaluate(element => document.activeElement === element));
+    await trigger.click();
+    await page.getByRole('combobox', { name: 'Search products' }).click();
+    await panel.waitFor({ state: 'detached' });
+  }
+  await trigger.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await panel.waitFor({ state: 'detached' });
+  await trigger.click();
+  const sheet = page.locator('dialog:modal section');
+  await sheet.waitFor();
+  const bounds = await sheet.boundingBox();
+  assert.ok(Math.abs(bounds.y + bounds.height - 844) <= 1);
+  await sheet.getByRole('button', { name: 'Close shipping destinations' }).click();
+  await panel.waitFor({ state: 'detached' });
+});
+await check('Preparing destinations stay out of the customer selector', async () => {
+ await goto('/product/qa-pouch-1');
+ await page.getByRole('button',{name:/Ship to:/}).click();
+ const chooser = page.getByRole('dialog',{name:'Ship to'});
+ await chooser.getByRole('button',{name:/United States/}).waitFor();
+ assert.equal(await chooser.getByRole('button',{name:/France/}).count(), 0);
+ await page.keyboard.press('Escape');
+});
+await check('Switching destination keeps the selected product option and displays its destination price', async () => {
+ await goto('/product/qa-pouch-1?variant=102');
+ const selection = page.locator('[data-market-variant="102"]');
+ for (const [destination, code, price] of [['Germany', 'de', '$50.00'], ['United States', 'us', '$40.00']]) {
+   await selection.waitFor();
+   await page.getByRole('button', {name:/Ship to:/}).click();
+   await page.getByRole('dialog', {name:'Ship to'}).getByRole('button', {name:destination, exact:true}).click();
+   await page.waitForURL('**/' + code + '/product/qa-pouch-1?variant=102');
+   await selection.getByText(price, {exact:true}).first().waitFor();
+   assert.equal(await mobileNav.count(), 0);
+ }
+});
+await check('An unavailable checkout quote keeps the line and prevents checkout', async () => {
+ await goto('/cart');
+ await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent.trim() === 'Checkout →' && !button.disabled));
+ const calls = checkoutCalls;
+ quoteIssue = 'Unavailable for this destination.';
+ const button = page.getByRole('button',{name:'Checkout →',exact:true});
+ await button.click();
+ await page.getByText(quoteIssue,{exact:true}).first().waitFor();
+ assert.equal(await button.isDisabled(), true);
+ assert.equal((await cart()).length, 1);
+ assert.equal(checkoutCalls, calls);
+ quoteIssue = null;
+ await page.getByRole('button',{name:'Retry prices'}).click();
+});
+await check('A checkout price change updates the same line and requires another click', async () => {
+ priceOverride = '29.00';
+ await goto('/cart');
+ await page.waitForFunction(() => Number(JSON.parse(localStorage.getItem('blank-seoul-cart'))[0].price) === 29);
+ const before = (await cart())[0];
+ const calls = checkoutCalls;
+ priceOverride = '32.00';
+ await page.getByRole('button',{name:'Checkout →',exact:true}).click();
+ await page.getByText('Price updated from $29.00 to $32.00.',{exact:true}).first().waitFor();
+ assert.equal(checkoutCalls, calls);
+ assert.deepEqual((await cart())[0], {...before, price:'32.00'});
+});
 await check('Accepted checkout redirects and back navigation restores bag',async()=>{checkoutMode='success';await page.getByRole('button',{name:'Checkout →',exact:true}).click();await page.waitForURL('https://checkout.example.com/c/qa');await page.goBack();await page.getByRole('button',{name:'Restore My Cart'}).click();await page.getByRole('heading',{name:'Your bag',exact:true}).waitFor();assert.equal((await cart()).length,1);});
 await check('Removing last item returns accessible empty state',async()=>{await page.getByRole('button',{name:'Remove item',exact:true}).click();assert.equal((await cart()).length,0);await page.getByRole('heading',{name:'Your Blank Seoul Box is Waiting!'}).waitFor();});
 await check('Account details ignore another account cache and recover after an order API failure',async()=>{

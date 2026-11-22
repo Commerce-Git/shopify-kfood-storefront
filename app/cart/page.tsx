@@ -50,6 +50,8 @@ export default function CartPage() {
   const { loading, isRedirecting, error, handleCheckout } = useCartCheckout({
     items,
     appliedCoupon,
+    confirmPrices: pricing.confirm,
+    refreshPrices: pricing.retry,
     backupToStorageOnly,
   });
 
@@ -200,9 +202,9 @@ export default function CartPage() {
   const finalTotal = subtotal - discountAmount;
 
   return (
-    <div className="flex-1 pb-32 lg:pb-24 bg-[#FAF9F6]">
+    <div className="flex-1 pt-4 pb-40 sm:pt-0 lg:pb-24 bg-[#FAF9F6]">
       {/* 1. Header Bar */}
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mb-4 sm:mb-6">
+      <div className="hidden sm:block max-w-[1240px] mx-auto px-6 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3 py-2">
           <div>
             <Link
@@ -236,7 +238,7 @@ export default function CartPage() {
       </div>
 
       {/* 2. 3-Step Checkout Stepper */}
-      <div className="max-w-4xl mx-auto px-4 mb-5 sm:mb-8">
+      <div className="hidden sm:block max-w-4xl mx-auto px-4 mb-8">
         <div className="flex items-center justify-between text-xs font-semibold text-[#71717A] select-none">
           <div className="flex items-center gap-1.5 sm:gap-2 text-[#C25E38] font-bold">
             <span className="w-5 h-5 rounded-full bg-[#C25E38] text-white flex items-center justify-center text-[10px] shadow-2xs">1</span>
@@ -253,10 +255,6 @@ export default function CartPage() {
             <span className="hidden sm:inline">Secure Payment</span>
           </div>
         </div>
-        {/* Mobile micro indicator */}
-        <p className="sm:hidden text-center text-[11px] font-semibold text-[#C25E38] mt-2">
-          Step 1 of 3: Review Cart
-        </p>
       </div>
 
       {/* 3. Main 2-Column Responsive Layout */}
@@ -265,7 +263,7 @@ export default function CartPage() {
           {/* Left Column: Items, Upsells, and Coupons */}
           <fieldset disabled={loading} className="lg:col-span-7 xl:col-span-7 min-w-0 space-y-6">
             {backup && <CartBackupModal backup={backup} onRestore={restoreFromBackup} onDismiss={dismissBackup} />}
-            <BagPriceStatus />
+            {isStoreLive() ? <div className="hidden lg:block empty:hidden"><BagPriceStatus /></div> : <BagPriceStatus />}
             <CartItemList
               items={items}
               productVariantsMap={productVariantsMap}

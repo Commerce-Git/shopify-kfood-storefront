@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, isProductSoldOut } from "@/lib/shopify/api";
-import type { ShopifyProduct } from "@/lib/shopify/types";
+import type { ProductCardData } from "@/lib/shopify/types";
 import WishlistHeartOverlay from "@/app/components/WishlistHeartOverlay";
 
 interface ProductCardProps {
-  product: ShopifyProduct;
+  product: ProductCardData;
   priority?: boolean;
   currencyCode?: string;
 }

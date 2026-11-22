@@ -91,28 +91,42 @@ test('expired review tokens and fractional ratings never issue discounts', async
 
 test('subscription forms verify identity and actual consent/tag writes before reporting success', async () => {
   for (const name of ['newsletter', 'waitlist']) {
-    for (const mode of ['success', 'wrong-email', 'mutation-error', 'missing-create', 'create-conflict']) {
+    for (const mode of ['success', 'new-customer', 'wrong-email', 'mutation-error', 'tag-error', 'missing-create', 'create-conflict', 'lookup-error', 'missing-edges', 'missing-node']) {
       let syncs = 0, mutations = 0;
       const api = load(`app/api/${name}/route.ts`, {
         '@/lib/shopify/admin': { adminGraphQL: async (query: string, variables: Record<string, unknown>) => {
           if (query.includes('query FindCustomer')) {
             assert.equal(variables.query, 'email:"buyer@example.com"');
-            return { data: { customers: { edges: mode.startsWith('missing') || mode === 'create-conflict' ? [] : [{ node: { id: 'customer', email: mode === 'wrong-email' ? 'other@example.com' : 'buyer@example.com', tags: [name] } }] } } };
+            if (mode === 'lookup-error') throw new Error('Lookup failed');
+            if (mode === 'missing-edges') return { data: { customers: {} } };
+            if (mode === 'missing-node') return { data: { customers: { edges: [{ node: null }] } } };
+            return { data: { customers: { edges: ['missing-create', 'create-conflict', 'new-customer'].includes(mode) ? [] : [{ node: { id: 'customer', email: mode === 'wrong-email' ? 'other@example.com' : 'buyer@example.com', tags: [name] } }] } } };
           }
           mutations++;
+          if (mode === 'new-customer') {
+            assert.match(query, /mutation Create/);
+            const input = variables.input as { email: string; tags: string[]; emailMarketingConsent: { marketingState: string } };
+            assert.equal(input.email, 'buyer@example.com');
+            assert.equal(input.tags.join(','), name);
+            assert.equal(input.emailMarketingConsent.marketingState, 'SUBSCRIBED');
+            return { data: { customerCreate: { customer: { id: 'new' }, userErrors: [] } } };
+          }
           if (query.includes('mutation Create')) return { data: { customerCreate: mode === 'create-conflict' ? { userErrors: [{ message: 'Email has already been taken' }] } : {} } };
           const input = variables.input as Record<string, unknown>;
+          assert.equal((variables.tags as string[]).join(','), name);
           assert.equal(input.id, 'customer');
           assert.equal(input.tags, undefined); // tagsAdd preserves concurrently added tags.
           assert.equal((input.emailMarketingConsent as Record<string, unknown>).marketingState, 'SUBSCRIBED');
-          return { data: { customerUpdate: { customer: { id: 'customer', emailMarketingConsent: { marketingState: 'SUBSCRIBED' } }, userErrors: mode === 'mutation-error' ? [{ message: 'failed' }] : [] }, tagsAdd: { node: { id: 'customer' }, userErrors: [] } } };
+          return { data: { customerUpdate: { customer: { id: 'customer', emailMarketingConsent: { marketingState: 'SUBSCRIBED' } }, userErrors: mode === 'mutation-error' ? [{ message: 'failed' }] : [] }, tagsAdd: { node: { id: 'customer' }, userErrors: mode === 'tag-error' ? [{ message: 'failed' }] : [] } } };
         } },
         '@/lib/supabase/admin': { supabaseAdmin: { from: () => ({ update: () => ({ eq: async () => { syncs++; return { error: null }; } }) }) } },
       });
       const response = await api.POST(new Request('http://local', { method: 'POST', body: JSON.stringify({ email: ' BUYER@example.com ' }) }));
-      assert.equal(response.status, mode === 'success' ? 200 : mode === 'create-conflict' ? 400 : 502);
-      assert.equal(syncs, mode === 'success' && name === 'newsletter' ? 1 : 0);
-      if (mode === 'wrong-email') assert.equal(mutations, 0);
+      const success = mode === 'success' || mode === 'new-customer';
+      assert.equal(response.status, success ? 200 : mode === 'create-conflict' ? 400 : 502);
+      if (success) assert.equal((await response.json()).existing, mode === 'success');
+      assert.equal(syncs, success && name === 'newsletter' ? 1 : 0);
+      assert.equal(mutations, ['wrong-email', 'lookup-error', 'missing-edges', 'missing-node'].includes(mode) ? 0 : 1);
     }
   }
 });

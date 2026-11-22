@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { requestMarket } from '@/lib/markets/request';
 import { countryProductPath } from '@/lib/markets/selection';
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import ProductInteractive from "@/app/components/ProductInteractive";
@@ -40,6 +40,26 @@ const getCachedReviews = unstable_cache(
   { revalidate: 300, tags: ["reviews"] }
 );
 
+async function StoreReviews() {
+  const reviews = await getCachedReviews();
+  const avgRating =
+    reviews.length > 0
+      ? Math.round(
+          (reviews.reduce((sum: number, r: { rating: number | null }) => sum + (r.rating || 0), 0) /
+            reviews.length) *
+            10
+        ) / 10
+      : null;
+  return (
+    <Reviews
+      initialReviews={reviews}
+      initialAvgRating={avgRating}
+      subtitle="Store Reviews"
+      title="What Collectors Say About BLANK SEOUL"
+    />
+  );
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const decodedHandle = decodeURIComponent(handle);
@@ -67,17 +87,6 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
   }
 
   const images = getProductImages(product);
-
-  // SEO & Zero-Waterfall: Fetch cached reviews (protected by 300s TTL)
-  const reviews = await getCachedReviews();
-  const avgRating =
-    reviews.length > 0
-      ? Math.round(
-          (reviews.reduce((sum: number, r: { rating: number | null }) => sum + (r.rating || 0), 0) /
-            reviews.length) *
-            10
-        ) / 10
-      : null;
 
   const requestedVariant = (await searchParams)?.variant;
   const firstVariant = product.variants.edges.find(({node}) => node.id.split('/').pop() === requestedVariant)?.node
@@ -193,12 +202,9 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
         <ProductInteractive initialVariant={firstVariant?.id} product={product} />
       </section>
 
-      <Reviews
-        initialReviews={reviews}
-        initialAvgRating={avgRating}
-        subtitle="Store Reviews"
-        title="What Collectors Say About BLANK SEOUL"
-      />
+      <Suspense fallback={null}>
+        <StoreReviews />
+      </Suspense>
     </div>
   );
 }

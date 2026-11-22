@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import type { ShopifyProduct } from '@/lib/shopify/types';
 import { requestMarket } from '@/lib/markets/request';
 import EtsyHorizontalShelf from "./components/EtsyHorizontalShelf";
 import EtsyEditorialSplitBanner from "./components/EtsyEditorialSplitBanner";
@@ -12,6 +14,11 @@ interface HomePageProps {
     mode?: string;
     preview?: string;
   }>;
+}
+
+async function PartnerStudios({ products }: { products: ShopifyProduct[] }) {
+  const artists = await getEnrichedArtistsWithProducts(products);
+  return <AtelierSpotlight artists={artists.map(artist => artist.profile)} />;
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
@@ -29,7 +36,6 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   // Fetch all live products directly from Shopify Storefront API
   const { products: liveProducts } = await getProductsPage({ country: (await requestMarket()).country, first: 50 });
-  const enrichedArtists = await getEnrichedArtistsWithProducts(liveProducts);
 
   // Group live products dynamically into SSOT shelves (Auto-Hides 0-product shelves)
   const shelves = groupProductsIntoShelves(liveProducts);
@@ -62,7 +68,9 @@ export default async function Home({ searchParams }: HomePageProps) {
       {shelves.length === 0 && isLive && <EtsyEditorialSplitBanner isHero={false} isLive={isLive} />}
 
       {/* Partner Studios Showcase */}
-      <AtelierSpotlight artists={enrichedArtists.map((a) => a.profile)} />
+      <Suspense fallback={liveProducts.length ? <div aria-hidden="true" className="h-80 bg-[#F5F0E6]" /> : null}>
+        <PartnerStudios products={liveProducts} />
+      </Suspense>
     </div>
   );
 }

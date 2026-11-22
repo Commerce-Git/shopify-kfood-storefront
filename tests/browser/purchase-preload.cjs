@@ -8,6 +8,12 @@ global.fetch = async (input, init) => {
    const {query,variables} = JSON.parse(init?.body || '{}');
    return Response.json(graphql(query,variables));
  }
+ if (url.includes('/rest/v1/pricing_markets')) {
+   const markets = ['US', 'DE', 'NL', 'SE'].map(country => ({ country, status: 'active' }));
+   markets.push({ country: 'FR', status: 'preparing' });
+   const status = new URL(url).searchParams.get('status');
+   return Response.json(markets.filter(m => !status || status === 'eq.' + m.status));
+ }
  if (url.includes('.supabase.co/auth/v1/user')) return Response.json(require('./account-fixtures.cjs').user);
  if (url.includes('.supabase.co/')) {
    if (init?.method && !['GET','HEAD'].includes(init.method)) throw new Error('Remote writes forbidden in local fixture review');

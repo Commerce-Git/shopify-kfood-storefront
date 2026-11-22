@@ -1,5 +1,13 @@
 // Shopify Storefront API — GraphQL Queries & Mutations
 
+export const PRODUCT_SUGGESTIONS = `
+  query ProductSuggestions($query: String!, $country: CountryCode!) @inContext(country: $country) {
+    predictiveSearch(query: $query, types: [PRODUCT], limit: 3, unavailableProducts: LAST) {
+      products { handle title featuredImage { url } }
+    }
+  }
+`;
+
 /** Full-text, relevant product results with bounded cursor pagination. */
 export const SEARCH_PRODUCTS = `
   query SearchProducts($query: String!, $first: Int!, $after: String, $country: CountryCode) @inContext(country: $country) {
@@ -9,10 +17,9 @@ export const SEARCH_PRODUCTS = `
       edges {
         node {
           ... on Product {
-            id handle title description vendor productType tags availableForSale
+            id handle title availableForSale
             images(first: 1) { edges { node { url altText width height } } }
             priceRange { minVariantPrice { amount currencyCode } maxVariantPrice { amount currencyCode } }
-            variants(first: 10) { edges { node { id title availableForSale price { amount currencyCode } } } }
           }
         }
       }

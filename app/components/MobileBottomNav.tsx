@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { useCart } from "./CartProvider";
 import {
   subscribeWishlist,
@@ -12,7 +12,7 @@ import {
 import { triggerHaptic } from "@/lib/haptics";
 
 export default function MobileBottomNav() {
-  const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
   const { itemCount, setIsCartOpen } = useCart();
 
   // Wishlist live count using React 19 external store
@@ -22,22 +22,15 @@ export default function MobileBottomNav() {
     getServerWishlistCountSnapshot
   );
 
-  // 1. Route-aware visibility: Auto-hide on Product Detail Page (PDP)
-  // On /product/..., the MobileStickyBottomBar (Buy Box) takes 100% precedence for conversion
-  const isPDP = pathname?.startsWith("/product/");
-  if (isPDP || pathname === "/cart") {
+  // Country-specific product URLs resolve to the same product segment.
+  if (segment === "product" || segment === "cart") {
     return null;
   }
 
-  // Active route helpers
-  const isHome = pathname === "/";
-  const isShop = pathname.startsWith("/collections");
-  const isFavorites = pathname.startsWith("/wishlist");
-  const isAccount =
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/order-lookup");
-  const isCart = pathname === "/cart";
+  const isHome = segment === null;
+  const isShop = segment === "collections";
+  const isFavorites = segment === "wishlist";
+  const isAccount = segment === "account" || segment === "auth" || segment === "order-lookup";
 
   return (
     <nav
@@ -52,6 +45,7 @@ export default function MobileBottomNav() {
         {/* 1. Home Tab */}
         <Link
           href="/"
+          aria-current={isHome ? "location" : undefined}
           onClick={() => triggerHaptic(8)}
           className="flex flex-col items-center justify-center py-1 transition-transform active:scale-90"
         >
@@ -99,6 +93,7 @@ export default function MobileBottomNav() {
         {/* 2. Shop Tab */}
         <Link
           href="/collections"
+          aria-current={isShop ? "location" : undefined}
           onClick={() => triggerHaptic(8)}
           className="flex flex-col items-center justify-center py-1 transition-transform active:scale-90"
         >
@@ -150,6 +145,7 @@ export default function MobileBottomNav() {
         {/* 3. Favorites Tab */}
         <Link
           href="/wishlist"
+          aria-current={isFavorites ? "location" : undefined}
           onClick={() => triggerHaptic(8)}
           className="flex flex-col items-center justify-center py-1 transition-transform active:scale-90 relative"
         >
@@ -202,6 +198,7 @@ export default function MobileBottomNav() {
         {/* 4. You Tab */}
         <Link
           href="/account"
+          aria-current={isAccount ? "location" : undefined}
           onClick={() => triggerHaptic(8)}
           className="flex flex-col items-center justify-center py-1 transition-transform active:scale-90"
         >
@@ -260,38 +257,20 @@ export default function MobileBottomNav() {
           aria-label="Open shopping cart"
           className="flex flex-col items-center justify-center py-1 transition-transform active:scale-90 relative"
         >
-          <div
-            className={`relative flex items-center justify-center h-8 px-3.5 rounded-full transition-all duration-200 ${
-              isCart
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {/* Cart Icon */}
-            {isCart ? (
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h14.5a.75.75 0 000-1.5H5.78a2.25 2.25 0 012.18-1.75h10.05a2.25 2.25 0 002.176-1.685l1.644-6.575a.75.75 0 00-.728-.94H5.197L4.743 3.093A1.875 1.875 0 002.925 1.5H2.25z" />
-                <path d="M7.5 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm12 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="8" cy="21" r="1" />
-                <circle cx="19" cy="21" r="1" />
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-              </svg>
-            )}
+          <div className="relative flex items-center justify-center h-8 px-3.5 rounded-full transition-all duration-200 text-muted-foreground hover:text-foreground">
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="8" cy="21" r="1" />
+              <circle cx="19" cy="21" r="1" />
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
 
             {/* Cart Badge with Etsy-like vibrant accent */}
             {itemCount > 0 && (
@@ -300,11 +279,7 @@ export default function MobileBottomNav() {
               </span>
             )}
           </div>
-          <span
-            className={`text-[10px] tracking-tight mt-0.5 transition-colors ${
-              isCart ? "font-bold text-foreground" : "font-medium text-muted-foreground"
-            }`}
-          >
+          <span className="text-[10px] tracking-tight mt-0.5 transition-colors font-medium text-muted-foreground">
             Cart
           </span>
         </button>

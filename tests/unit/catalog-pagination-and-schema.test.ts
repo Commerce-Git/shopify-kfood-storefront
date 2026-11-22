@@ -4,8 +4,17 @@ import test from "node:test";
 process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN = "unit-test.myshopify.com";
 process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN = "unit-test-token";
 
-import { fetchAllCatalogProducts, getProductByHandle } from "../../lib/shopify/api.ts";
+import { fetchAllCatalogProducts, getProductByHandle, isProductSoldOut } from "../../lib/shopify/api.ts";
 import type { ShopifyProduct } from "../../lib/shopify/types.ts";
+
+test("a sold-out first page of variants does not hide an available product", () => {
+  const product = {
+    availableForSale: true,
+    variants: { edges: Array.from({ length: 10 }, () => ({ node: { availableForSale: false } })) },
+  };
+  assert.equal(isProductSoldOut(product), false);
+  assert.equal(isProductSoldOut({ availableForSale: false }), true);
+});
 
 test("product detail reads current purchase prices without a persistent fetch cache", async () => {
   const previousFetch = globalThis.fetch;

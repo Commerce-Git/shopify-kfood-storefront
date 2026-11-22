@@ -1,9 +1,10 @@
 "use client";
+import HeaderProductSearch from "./HeaderProductSearch";
 import { MarketSelector } from "./MarketProvider";
 
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useAuth } from "./AuthProvider";
 import { getMegaNavStructure, MegaNavGroup } from "@/lib/config/collections";
@@ -28,7 +29,6 @@ export default function Header() {
   const { itemCount } = useCart();
   const { isLoggedIn } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
 
   // Modern React 19 hydration-safe mount detection
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
@@ -132,14 +132,6 @@ export default function Header() {
     }, 90);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q) return;
-
-    router.push(`/search?q=${encodeURIComponent(q.slice(0, 200))}`);
-  };
-
   return (
     <>
       {/* 2026 Quiet Luxury Backdrop Scrim: Dims page background & dismisses dropdown on external click */}
@@ -152,79 +144,33 @@ export default function Header() {
       )}
 
       <header id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] border-b border-[#E1E3DF] shadow-2xs">
-        {/* =========================================================================
-            TOP ANNOUNCEMENT STRIP: Simple & Clean Quiet Luxury Free Shipping & Origin Bar
-           ========================================================================= */}
-        <div className="flex items-center justify-between gap-2 bg-[#18181B] text-white py-1 px-4 text-center border-b border-white/10">
-          {!isStoreLive() ? (
-            <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95 flex items-center justify-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-              <span>Collection Preview &middot; Official International Dispatch Opening Soon</span>
-            </p>
-          ) : (
-            <p className="text-[11px] sm:text-xs font-semibold tracking-wider text-white/95">
-              Made in Korea <span className="hidden sm:inline">· Free shipping on all orders</span>
-            </p>
-          )}
-          <MarketSelector ready={mounted} />
-        </div>
+        {!isStoreLive() && (
+          <p className="bg-[#18181B] px-4 py-1 text-center text-[11px] font-semibold tracking-wider text-white sm:text-xs">
+            Collection Preview &middot; Official International Dispatch Opening Soon
+          </p>
+        )}
 
-        {/* =========================================================================
-            ROW 1: Top Navigation Bar
-            - Desktop: [Logo] --- [Wide Search Form] --- [Account | Wishlist | Cart]
-            - Mobile:  [Logo] -------------------------- [Account | Wishlist | Cart]
-           ========================================================================= */}
         <div
-          className="max-w-[1360px] mx-auto px-4 sm:px-6 pt-2 pb-2 md:py-3"
+          className="max-w-[1360px] mx-auto px-3 min-[480px]:px-4 sm:px-6 pt-2 pb-2 md:py-3"
           onMouseEnter={handleImmediateClose}
         >
-          <div className="flex items-center justify-between gap-3 sm:gap-6">
+          <div className="flex items-center justify-between gap-1 min-[480px]:gap-3 lg:gap-6">
             {/* Left: Brand Logo (2026 Luxury Artisan House Mark) */}
             <Link href="/" className="flex items-center gap-1 shrink-0 group" id="header-logo">
               <span
-                className="text-2xl sm:text-[28px] font-black tracking-tight text-[#18181B] group-hover:text-[#C25E38] transition-colors"
+                className="text-lg min-[360px]:text-xl min-[480px]:text-2xl sm:text-[28px] font-black tracking-tight text-[#18181B] group-hover:text-[#C25E38] transition-colors"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 BLANK SEOUL<span className="text-[#C25E38]">.</span>
               </span>
             </Link>
 
-            {/* Desktop Center: Full-Width Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-2xl relative">
-              <div className="relative flex items-center w-full">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for Made in Korea goods, pouches, accessories..."
-                  aria-label="Search products"
-                  maxLength={200}
-                  className="w-full pl-5 pr-14 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs sm:text-sm text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-12 text-xs font-bold text-[#9CA3AF] hover:text-[#18181B] p-1"
-                  >
-                    ✕
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="absolute right-1.5 w-9 h-9 rounded-full bg-[#C25E38] text-white hover:bg-[#A74B28] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
-                  aria-label="Search"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </button>
-              </div>
-            </form>
+            {/* Desktop search */}
+            <HeaderProductSearch key={pathname} query={searchQuery} onChange={setSearchQuery} className="relative hidden min-w-0 max-w-[600px] flex-1 md:flex xl:mr-4" />
 
             {/* Right: Actions (Desktop & Mobile Shared Clean Icons) */}
-            <div className="flex items-center gap-1 sm:gap-4">
+            <div className="flex items-center min-[480px]:gap-1 sm:gap-2 lg:gap-4">
+              <MarketSelector ready={mounted} />
               {/* Sign in / Account Action */}
               {mounted && isLoggedIn ? (
                 <Link
@@ -338,38 +284,7 @@ export default function Header() {
             </button>
 
             {/* Mobile Full-Width Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-              <div className="relative flex items-center w-full">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for anything..."
-                  aria-label="Search products"
-                  maxLength={200}
-                  className="w-full pl-4 pr-11 py-2.5 rounded-full bg-[#FFFFFF] border-2 border-[#18181B] focus:border-[#C25E38] text-xs text-[#18181B] placeholder-[#6B7280] focus:outline-none transition-all shadow-2xs font-medium"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-10 text-xs font-bold text-[#9CA3AF] hover:text-[#18181B] p-1"
-                  >
-                    ✕
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="absolute right-1.5 w-7 h-7 rounded-full bg-[#C25E38] text-white hover:bg-[#A74B28] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
-                  aria-label="Search"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </button>
-              </div>
-            </form>
+            <HeaderProductSearch key={pathname} query={searchQuery} onChange={setSearchQuery} className="flex-1 relative" />
           </div>
         </div>
 

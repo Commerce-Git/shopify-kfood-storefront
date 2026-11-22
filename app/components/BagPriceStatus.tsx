@@ -7,7 +7,7 @@ export function BagPriceStatus() {
   if (!pricing.error && !Object.keys(pricing.issues).length) return null;
   return <div role="status" className="rounded-lg bg-amber-50 p-3 text-sm">
     {pricing.error || 'Review the marked items before checkout.'}{' '}
-    <button type="button" className="underline" onClick={pricing.retry}>Retry prices</button>
+    <button type="button" className="min-h-11 px-1 underline" onClick={pricing.retry}>Retry prices</button>
   </div>;
 }
 
